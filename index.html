@@ -234,20 +234,20 @@
             { name: "Yusuf", number: 99, pos: "Forvet" }
         ];
 
-        // Kadroyu ekrana dinamik olarak basma fonksiyonu
+        // Kadroyu ekrana dinamik olarak basma fonksiyonu (Büyütülmüş arka plan arması ile)
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
             teamSquad.forEach(player => {
                 const card = document.createElement('div');
-                card.className = "glass-panel rounded-xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-lg";
+                card.className = "glass-panel rounded-xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-lg relative";
                 card.innerHTML = `
                     <div class="h-48 bg-bordo/20 flex items-center justify-center relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-t from-siyah via-transparent to-transparent z-10"></div>
-                        <img src="image_09a3ea.png" alt="Arma" class="w-20 h-20 object-contain opacity-20 absolute group-hover:scale-110 transition-transform duration-500">
+                        <img src="image_09a3ea.png" alt="Arma" class="w-32 h-32 object-contain opacity-25 absolute group-hover:scale-110 transition-transform duration-500">
                         <span class="font-baslik text-7xl font-black text-white/80 z-20 drop-shadow-md">${player.number}</span>
                     </div>
-                    <div class="p-6 text-center border-t border-white/10 bg-black/40">
+                    <div class="p-6 text-center border-t border-white/10 bg-black/40 relative z-20">
                         <h3 class="font-bold text-xl text-white mb-1 uppercase tracking-wider">${player.name}</h3>
                         <p class="text-altin text-xs uppercase tracking-widest font-semibold">${player.pos}</p>
                     </div>
