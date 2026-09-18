@@ -48,9 +48,9 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        /* Işıklı Parlama Efekti */
+        /* Işıklı Parlama Efekti - UNITED Yazısı İçin Güçlendirildi */
         .text-glow-gold {
-            text-shadow: 0 0 15px rgba(193, 165, 123, 0.9), 0 0 30px rgba(193, 165, 123, 0.6), 0 0 45px rgba(193, 165, 123, 0.3);
+            text-shadow: 0 0 20px rgba(193, 165, 123, 0.95), 0 0 35px rgba(193, 165, 123, 0.7), 0 0 50px rgba(193, 165, 123, 0.4);
         }
         .text-glow-white {
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
@@ -262,7 +262,7 @@
         // Teknik Direktör Bilgisi
         const coachData = { name: "Bünyamin", pos: "T.D.", ovr: 95, pace: 90, def: 94, pas: 96, img: "bunyamin.png" };
 
-        // Oyuncu Kartlarını Dinamik Basma
+        // Oyuncu Kartlarını Dinamik Basma (Fotoğraflar hafifçe aşağı kaydırıldı)
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
@@ -284,10 +284,10 @@
                         <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
                     </div>
 
-                    <!-- Oyuncu Fotoğrafı (Klasörden doğrudan çekilir) -->
-                    <div class="my-2 flex justify-center relative z-10">
+                    <!-- Oyuncu Fotoğrafı (Klasörden doğrudan çekilir, aşağı kaydırıldı) -->
+                    <div class="my-2 flex justify-center relative z-10 pt-2">
                         <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
-                            <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover object-top translate-y-1.5 group-hover:scale-105 transition-transform duration-500">
                         </div>
                     </div>
 
@@ -308,7 +308,7 @@
             });
         }
 
-        // Teknik Direktör Kartını Basma
+        // Teknik Direktör Kartını Basma (Aşağı kaydırıldı)
         function renderCoach() {
             const container = document.getElementById('coach-container');
             container.innerHTML = `
@@ -323,9 +323,9 @@
                         </div>
                         <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
                     </div>
-                    <div class="my-2 flex justify-center relative z-10">
+                    <div class="my-2 flex justify-center relative z-10 pt-2">
                         <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
-                            <img src="${coachData.img}" alt="${coachData.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="${coachData.img}" alt="${coachData.name}" class="w-full h-full object-cover object-top translate-y-1.5 group-hover:scale-105 transition-transform duration-500">
                         </div>
                     </div>
                     <div class="text-center mb-4 relative z-10">
