@@ -56,19 +56,18 @@
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
         }
 
-        /* Gerçek FIFA Oyuncu Kartı Şekli (Üstü kavisli, altı sivri) */
+        /* Gerçek FIFA Oyuncu Kartı Şekli (Üstü kavisli, altı sivri rozet) */
         .fifa-card {
             background: linear-gradient(135deg, #1f1416 0%, #0d0809 100%);
             border: 2px solid #c1a57b;
-            /* FIFA Kart Kesimi: Sol-üst, Sağ-üst yuvarlatılmış, Alt köşeler hafif sivri rozet yapısı */
-            border-radius: 24px 24px 12px 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(193, 165, 123, 0.2);
+            border-radius: 28px 28px 14px 14px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.85), inset 0 0 20px rgba(193, 165, 123, 0.25);
             transition: all 0.3s ease;
             position: relative;
         }
         .fifa-card:hover {
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 35px rgba(92, 26, 33, 0.6), inset 0 0 25px rgba(193, 165, 123, 0.4);
+            box-shadow: 0 18px 40px rgba(92, 26, 33, 0.7), inset 0 0 30px rgba(193, 165, 123, 0.45);
             border-color: #e5cb9b;
         }
     </style>
@@ -130,7 +129,7 @@
         </div>
     </section>
 
-    <!-- Kadro Section (FIFA Tarzı Köşeli/Kavisli Kartlar) -->
+    <!-- Kadro Section (FIFA Tarzı Köşeli Kartlar) -->
     <section id="kadro" class="py-20 bg-siyah relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
@@ -140,6 +139,16 @@
 
             <!-- Kadro Grid Alanı -->
             <div id="squad-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Javascript ile dinamik doldurulacak -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Teknik Direktör Section -->
+    <section class="py-12 bg-gradient-to-t from-siyah to-[#150709] border-t border-white/5">
+        <div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="font-baslik text-2xl md:text-3xl font-bold text-white uppercase tracking-wider mb-8">Teknik <span class="text-altin text-glow-gold">Direktör</span></h3>
+            <div id="coach-container" class="flex justify-center">
                 <!-- Javascript ile dinamik doldurulacak -->
             </div>
         </div>
@@ -237,7 +246,7 @@
 
     <!-- Scripts -->
     <script>
-        // Oyuncu listesi (Fotoğraflar: utku.png, mert_ali.png vb. klasördeki dosya adlarıyla eşleşir)
+        // Oyuncu listesi ve klasördeki resim yolları
         const teamSquad = [
             { name: "Mert Ali", number: 1, pos: "KL", ovr: 88, pace: 82, def: 89, pas: 84, img: "mert_ali.png" },
             { name: "Utku", number: 4, pos: "STP", ovr: 85, pace: 78, def: 88, pas: 75, img: "utku.png" },
@@ -250,7 +259,10 @@
             { name: "Yusuf", number: 99, pos: "FOR", ovr: 88, pace: 91, def: 48, pas: 80, img: "yusuf.png" }
         ];
 
-        // Kartları dinamik basma fonksiyonu (Direkt senin klasör yollarını çeker)
+        // Teknik Direktör Bilgisi
+        const coachData = { name: "Bünyamin", pos: "T.D.", ovr: 95, pace: 90, def: 94, pas: 96, img: "bunyamin.png" };
+
+        // Oyuncu Kartlarını Dinamik Basma
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
@@ -258,9 +270,9 @@
                 const card = document.createElement('div');
                 card.className = "fifa-card p-5 relative overflow-hidden group flex flex-col justify-between";
                 card.innerHTML = `
-                    <!-- Arka plan dev şeffaf arma -->
+                    <!-- Arka plan büyük şeffaf logo -->
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                        <img src="image_09a3ea.png" alt="" class="w-64 h-64 object-contain scale-125">
+                        <img src="image_09a3ea.png" alt="" class="w-72 h-72 object-contain scale-125">
                     </div>
 
                     <!-- Üst Kısım: Reyting, Pozisyon ve Arma -->
@@ -272,7 +284,7 @@
                         <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
                     </div>
 
-                    <!-- Oyuncu Fotoğrafı (Klasörden çekilir) -->
+                    <!-- Oyuncu Fotoğrafı (Klasörden doğrudan çekilir) -->
                     <div class="my-2 flex justify-center relative z-10">
                         <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
                             <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -296,6 +308,39 @@
             });
         }
 
+        // Teknik Direktör Kartını Basma
+        function renderCoach() {
+            const container = document.getElementById('coach-container');
+            container.innerHTML = `
+                <div class="fifa-card p-5 relative overflow-hidden group flex flex-col justify-between w-full sm:w-72">
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                        <img src="image_09a3ea.png" alt="" class="w-72 h-72 object-contain scale-125">
+                    </div>
+                    <div class="flex justify-between items-start relative z-10">
+                        <div class="flex flex-col items-center">
+                            <span class="font-baslik text-3xl font-black text-altin leading-none">${coachData.ovr}</span>
+                            <span class="font-bold text-xs text-gray-300 tracking-widest mt-1">${coachData.pos}</span>
+                        </div>
+                        <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
+                    </div>
+                    <div class="my-2 flex justify-center relative z-10">
+                        <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
+                            <img src="${coachData.img}" alt="${coachData.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                    </div>
+                    <div class="text-center mb-4 relative z-10">
+                        <h3 class="font-bold text-xl text-white uppercase tracking-wider border-t border-altin/30 pt-2">${coachData.name}</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-300 border-t border-white/10 pt-3 relative z-10 font-semibold tracking-wider">
+                        <div class="flex justify-between px-2"><span>TAK</span> <span class="text-altin">${coachData.pace}</span></div>
+                        <div class="flex justify-between px-2"><span>TAKTİK</span> <span class="text-altin">${coachData.pas}</span></div>
+                        <div class="flex justify-between px-2"><span>LİD</span> <span class="text-altin">${coachData.def}</span></div>
+                        <div class="flex justify-between px-2"><span>GEN</span> <span class="text-altin">${coachData.ovr}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
         // Mobil menü aç/kapa
         function toggleMenu() {
             const menu = document.getElementById('mobile-menu');
@@ -314,9 +359,10 @@
             }
         });
 
-        // Sayfa yüklenince kadroyu yükle
+        // Sayfa yüklenince kadroyu ve hocayı yükle
         window.onload = () => {
             renderSquad();
+            renderCoach();
         };
     </script>
 </body>
