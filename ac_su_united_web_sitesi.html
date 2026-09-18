@@ -80,7 +80,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <div class="flex-shrink-0 flex items-center gap-3">
-                    <img src="image_09a3ea.png" alt="Acısu United Logo" class="h-12 w-12 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]" onerror="this.src='https://placehold.co/100x100/5c1a21/fff?text=ASU'">
+                    <img src="image_09a3ea.png" alt="Acısu United Logo" class="h-12 w-12 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
                     <span class="font-baslik font-bold text-2xl tracking-wider uppercase text-white">ACISU <span class="text-altin text-glow-gold">UNITED</span></span>
                 </div>
                 <div class="hidden md:block">
@@ -237,7 +237,7 @@
 
     <!-- Scripts -->
     <script>
-        // Oyuncu listesi (Fotoğraflar: utku.png, mert_ali.png vb. dosya adlarıyla klasörde olmalı)
+        // Oyuncu listesi (Fotoğraflar: utku.png, mert_ali.png vb. klasördeki dosya adlarıyla eşleşir)
         const teamSquad = [
             { name: "Mert Ali", number: 1, pos: "KL", ovr: 88, pace: 82, def: 89, pas: 84, img: "mert_ali.png" },
             { name: "Utku", number: 4, pos: "STP", ovr: 85, pace: 78, def: 88, pas: 75, img: "utku.png" },
@@ -250,7 +250,7 @@
             { name: "Yusuf", number: 99, pos: "FOR", ovr: 88, pace: 91, def: 48, pas: 80, img: "yusuf.png" }
         ];
 
-        // Kartları dinamik basma fonksiyonu (Oyuncu fotoğrafları yoksa placeholder devreye girer)
+        // Kartları dinamik basma fonksiyonu (Direkt senin klasör yollarını çeker)
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
@@ -272,10 +272,10 @@
                         <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
                     </div>
 
-                    <!-- Oyuncu Fotoğrafı (Örn: utku.png) -->
+                    <!-- Oyuncu Fotoğrafı (Klasörden çekilir) -->
                     <div class="my-2 flex justify-center relative z-10">
                         <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
-                            <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/150x150/1f1416/c1a57b?text=${player.name}'">
+                            <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         </div>
                     </div>
 
