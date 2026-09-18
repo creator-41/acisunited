@@ -56,13 +56,15 @@
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
         }
 
-        /* FIFA Tarzı Oyuncu Kartı Tasarımı */
+        /* Gerçek FIFA Oyuncu Kartı Şekli (Üstü kavisli, altı sivri) */
         .fifa-card {
             background: linear-gradient(135deg, #1f1416 0%, #0d0809 100%);
             border: 2px solid #c1a57b;
-            border-radius: 16px 16px 24px 24px;
+            /* FIFA Kart Kesimi: Sol-üst, Sağ-üst yuvarlatılmış, Alt köşeler hafif sivri rozet yapısı */
+            border-radius: 24px 24px 12px 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(193, 165, 123, 0.2);
             transition: all 0.3s ease;
+            position: relative;
         }
         .fifa-card:hover {
             transform: translateY(-8px) scale(1.02);
@@ -128,11 +130,11 @@
         </div>
     </section>
 
-    <!-- Kadro Section (FIFA Tarzı Kartlar) -->
+    <!-- Kadro Section (FIFA Tarzı Köşeli/Kavisli Kartlar) -->
     <section id="kadro" class="py-20 bg-siyah relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="font-baslik text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-4">Takım <span class="text-altin text-glow-gold">Kandrosu</span></h2>
+                <h2 class="font-baslik text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-4">Takım <span class="text-altin text-glow-gold">Kadrosu</span></h2>
                 <div class="w-24 h-1 bg-altin mx-auto"></div>
             </div>
 
@@ -235,20 +237,20 @@
 
     <!-- Scripts -->
     <script>
-        // Tam Takım Kadrosu Veritabanı (OVR ve istatistikler eklendi)
+        // Oyuncu listesi (Fotoğraflar: utku.png, mert_ali.png vb. dosya adlarıyla klasörde olmalı)
         const teamSquad = [
-            { name: "Mert Ali", number: 1, pos: "KL", ovr: 88, pace: 82, def: 89, pas: 84 },
-            { name: "Utku", number: 4, pos: "STP", ovr: 85, pace: 78, def: 88, pas: 75 },
-            { name: "Yasir", number: 7, pos: "OS", ovr: 89, pace: 86, def: 82, pas: 88 },
-            { name: "Muhammed", number: 8, pos: "OS", ovr: 86, pace: 84, def: 80, pas: 85 },
-            { name: "Hamza", number: 9, pos: "FOR", ovr: 92, pace: 94, def: 45, pas: 86 },
-            { name: "Enes", number: 10, pos: "OS", ovr: 90, pace: 88, def: 72, pas: 91 },
-            { name: "Emrullah", number: 20, pos: "DEF", ovr: 84, pace: 79, def: 86, pas: 74 },
-            { name: "Recep", number: 41, pos: "DEF", ovr: 86, pace: 81, def: 89, pas: 78 },
-            { name: "Yusuf", number: 99, pos: "FOR", ovr: 88, pace: 91, def: 48, pas: 80 }
+            { name: "Mert Ali", number: 1, pos: "KL", ovr: 88, pace: 82, def: 89, pas: 84, img: "mert_ali.png" },
+            { name: "Utku", number: 4, pos: "STP", ovr: 85, pace: 78, def: 88, pas: 75, img: "utku.png" },
+            { name: "Yasir", number: 7, pos: "OS", ovr: 89, pace: 86, def: 82, pas: 88, img: "yasir.png" },
+            { name: "Muhammed", number: 8, pos: "OS", ovr: 86, pace: 84, def: 80, pas: 85, img: "muhammed.png" },
+            { name: "Hamza", number: 9, pos: "FOR", ovr: 92, pace: 94, def: 45, pas: 86, img: "hamza.png" },
+            { name: "Enes", number: 10, pos: "OS", ovr: 90, pace: 88, def: 72, pas: 91, img: "enes.png" },
+            { name: "Emrullah", number: 20, pos: "DEF", ovr: 84, pace: 79, def: 86, pas: 74, img: "emrullah.png" },
+            { name: "Recep", number: 41, pos: "DEF", ovr: 86, pace: 81, def: 89, pas: 78, img: "recep.png" },
+            { name: "Yusuf", number: 99, pos: "FOR", ovr: 88, pace: 91, def: 48, pas: 80, img: "yusuf.png" }
         ];
 
-        // Kadroyu FIFA kartları formatında ekrana basma fonksiyonu
+        // Kartları dinamik basma fonksiyonu (Oyuncu fotoğrafları yoksa placeholder devreye girer)
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
@@ -270,13 +272,19 @@
                         <img src="image_09a3ea.png" alt="Arma" class="w-10 h-10 object-contain drop-shadow-[0_0_5px_rgba(193,165,123,0.6)]">
                     </div>
 
-                    <!-- Orta Kısım: Numara ve Oyuncu İsmi -->
-                    <div class="text-center my-6 relative z-10">
-                        <div class="font-baslik text-6xl font-black text-white group-hover:text-altin transition-colors duration-300 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]">${player.number}</div>
-                        <h3 class="font-bold text-xl text-white uppercase tracking-wider mt-2 border-t border-altin/30 pt-2">${player.name}</h3>
+                    <!-- Oyuncu Fotoğrafı (Örn: utku.png) -->
+                    <div class="my-2 flex justify-center relative z-10">
+                        <div class="w-28 h-28 rounded-full border-2 border-altin/50 overflow-hidden bg-black/40 flex items-center justify-center shadow-lg">
+                            <img src="${player.img}" alt="${player.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/150x150/1f1416/c1a57b?text=${player.name}'">
+                        </div>
                     </div>
 
-                    <!-- Alt Kısım: FIFA İstatistikleri (PACE, SHO, PAS, DEF vb.) -->
+                    <!-- Orta Kısım: Oyuncu İsmi -->
+                    <div class="text-center mb-4 relative z-10">
+                        <h3 class="font-bold text-xl text-white uppercase tracking-wider border-t border-altin/30 pt-2">${player.name}</h3>
+                    </div>
+
+                    <!-- Alt Kısım: FIFA İstatistikleri -->
                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-300 border-t border-white/10 pt-3 relative z-10 font-semibold tracking-wider">
                         <div class="flex justify-between px-2"><span>HIZ</span> <span class="text-altin">${player.pace}</span></div>
                         <div class="flex justify-between px-2"><span>PAS</span> <span class="text-altin">${player.pas}</span></div>
