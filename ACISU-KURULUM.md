@@ -2,7 +2,7 @@
 
 1. **Acısu United** için ayrı Supabase projesi (`mjnnotqrcdotklqtemgm`) oluşturuldu. ANT Turnuva projesi kullanılmadı.
 2. `supabase-schema.sql` Acısu projesinde çalıştırıldı. Taslaktaki dokuz oyuncu ve 16.09.2026 tarihli 5–6'lık maç aktarıldı. Eski maçın saati taslakta yazmadığı için sitede yalnızca tarih görünür.
-3. Site yayımlandıktan sonra `admin.html` ekranında admin e-postanı ve kendi belirlediğin şifreyi girip **İlk giriş: hesap oluştur** bağlantısına bas. E-postana gelen doğrulama bağlantısını aç. Bu hesap ANT Turnuva hesabından ayrıdır.
+3. İlk admin hesabı Acısu projesinde oluşturulup doğrulandı ve `acisu_admins` tablosuna eklendi. Yeni admin hesabı gerektiğinde önce Supabase Authentication > Users ekranında kullanıcı oluşturup e-postasını doğrula.
 4. Doğrulama tamamlandıktan sonra Acısu projesinin SQL Editor ekranında şu komutla o e-postaya ait kullanıcıya admin yetkisi ver:
 
    ```sql
@@ -17,4 +17,4 @@
 
 Oyuncu fotoğrafları için depodaki `oyuncu.png` gibi dosya adları veya HTTPS görsel adresleri kullanılabilir. Fotoğraf yükleme henüz panelde yok; dosyayı önce GitHub reposuna koyman gerekir. Oyuncu, maç ve kadro kayıtları Supabase'e yazılır; anasayfa her açıldığında veritabanından okur. Maç kadrosu bölümünde yayımlanan en yakın oynanmamış maçın oyuncuları görünür.
 
-**Not:** Kod ana dala alındı; anasayfa ayrı Acısu projesinden veri okuyor. Admin hesabı oluşturulup `acisu_admins` tablosuna eklenene kadar veri girişi yapılamaz.
+**Not:** Kod ana dala alındı; anasayfa ayrı Acısu projesinden veri okuyor. Genel kayıt düğmesi kaldırıldı; admin paneli yalnızca tanımlı hesaplarla kullanılır.
