@@ -14,7 +14,7 @@
     clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
   };
   const pageIds = {
-    home:["ana-sayfa"], squad:["kadro"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
+    home:["ana-sayfa"], squad:["kadro","teknik-direktor"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
     stats:["istatistik"], news:["haberler"], archive:["sezonlar"], community:["instagram","sponsorlar"]
   };
   const pageForId = new Map(Object.entries(pageIds).flatMap(([key,ids]) => ids.map(id => [id,key])));
