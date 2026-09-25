@@ -7,6 +7,7 @@
     timeZone: "Europe/Istanbul", day: "2-digit", month: "2-digit", year: "numeric"
   }).format(new Date(value));
   let scores = new Map(), initialized = false, installPrompt, audio, statusTimer;
+  let db = null;
   const status = message => {
     const el = $("app-status"); el.textContent = message;
     clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
@@ -38,9 +39,6 @@
     });
   });
   window.showAcisuTab = showSiteTab;
-  // Sekme gezinmesi Supabase bağlantısından bağımsız çalışsın.
-  if (!url || !key || !window.supabase) return;
-  const db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
 
   async function loadExtras() {
     const [p, s, n, a, m] = await Promise.all([
@@ -168,6 +166,7 @@
     if (dot && window.Notification?.permission === "granted") dot.hidden = true;
   }
   async function enablePush() {
+    if (!db) { status("Bildirim servisi şu an hazır değil."); return; }
     if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       status("Bu tarayıcı bildirimleri desteklemiyor.");return;
     }
@@ -198,8 +197,12 @@
   $("accept-push-prompt").addEventListener("click",async()=>{closePushPrompt();await enablePush();updateBell();});
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
   window.addEventListener("appinstalled",()=>{$("install-app-banner").hidden=true;});
-  showInstallPrompt(); maybeShowPushPrompt(); updateBell();
+  showInstallPrompt();
   showSiteTab("home", false);
+  // Sekmeler ve yükleme düğmesi Supabase hazır olmasa da çalışmalı.
+  if (!url || !key || !window.supabase) return;
+  db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
+  maybeShowPushPrompt(); updateBell();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(console.warn);
   loadExtras();
   db.channel("acisu-live-site").on("postgres_changes",
