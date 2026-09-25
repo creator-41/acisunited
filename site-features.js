@@ -120,14 +120,16 @@
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (isIOS) {
+      $("install-share-guide").hidden = false;
       if (navigator.share) {
         try {
-          await navigator.share({title: document.title, url: window.location.href});
+          // Kullanıcı dokunuşunun içinde, beklemeden çağır: iOS paylaşım izni bunu gerektirir.
+          await navigator.share({title: "Acısu United", url: window.location.href});
         } catch (error) {
-          if (error.name !== "AbortError") status("Paylaş ekranını açamadım. Safari’de paylaş simgesine dokun.");
+          if (error.name !== "AbortError") status("Paylaş açılamadı. Safari’nin paylaş simgesine dokun.");
         }
       } else {
-        status("Safari’de paylaş simgesine dokun; ardından Ana Ekrana Ekle’yi seç.");
+        status("Safari’nin paylaş simgesine dokun; ardından Ana Ekrana Ekle’yi seç.");
       }
       return;
     }
@@ -190,13 +192,14 @@
   }
   window.addEventListener("beforeinstallprompt", e=>{e.preventDefault();installPrompt=e;});
   $("install-app").addEventListener("click",install);
+  $("close-install-share-guide").addEventListener("click",()=>{$("install-share-guide").hidden=true;});
   $("close-install-banner").addEventListener("click",closeInstallPrompt);
   $("enable-push").addEventListener("click",enablePush);
   $("close-push-prompt").addEventListener("click",closePushPrompt);
   $("later-push-prompt").addEventListener("click",closePushPrompt);
   $("accept-push-prompt").addEventListener("click",async()=>{closePushPrompt();await enablePush();updateBell();});
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
-  window.addEventListener("appinstalled",()=>{$("install-app-banner").hidden=true;});
+  window.addEventListener("appinstalled",()=>{$("install-app-banner").hidden=true;$("install-share-guide").hidden=true;});
   showInstallPrompt();
   showSiteTab("home", false);
   // Sekmeler ve yükleme düğmesi Supabase hazır olmasa da çalışmalı.
