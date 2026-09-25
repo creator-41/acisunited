@@ -39,6 +39,7 @@
         body {
             background-color: #0a0a0a;
             color: #ffffff;
+            padding-bottom: calc(76px + env(safe-area-inset-bottom));
         }
         .hero-bg {
             background: linear-gradient(90deg, rgba(92,26,33,1) 0%, rgba(92,26,33,1) 50%, rgba(10,10,10,1) 50%, rgba(10,10,10,1) 100%);
@@ -80,6 +81,20 @@
         .acisu-goal-flash{position:fixed;z-index:100;inset:0;pointer-events:none;display:grid;place-items:center;background:rgba(92,26,33,.82);color:white;font:900 clamp(4rem,15vw,10rem) Oswald,sans-serif;text-shadow:0 0 45px #eabf76;animation:acisuGoal 1.6s ease-out forwards}
         @keyframes acisuGoal{0%{opacity:0;transform:scale(.6)}20%{opacity:1;transform:scale(1.1)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.25)}}
         @media(prefers-reduced-motion:reduce){.live-pulse,.acisu-goal-flash{animation:none}.acisu-goal-flash{opacity:.85}}
+        [data-site-page][hidden]{display:none!important}
+        .site-tabbar{position:fixed;z-index:60;inset:auto 0 0;display:flex;justify-content:flex-start;overflow-x:auto;overscroll-behavior-x:contain;background:rgba(12,9,10,.97);border-top:1px solid rgba(193,165,123,.28);padding:7px 5px calc(7px + env(safe-area-inset-bottom));backdrop-filter:blur(14px);scrollbar-width:none}
+        .site-tabbar::-webkit-scrollbar{display:none}
+        .site-tab{flex:1 0 54px;max-width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#c8c1bd;font-size:9px;font-weight:700;line-height:1.1;padding:4px 2px;background:none;border:0}
+        .site-tab .tab-icon{font-size:18px;line-height:1}
+        .site-tab[aria-selected="true"]{color:#e5c99a}
+        .site-tab[aria-selected="true"] .tab-icon{text-shadow:0 0 12px rgba(229,201,154,.7)}
+        .app-status-toast{position:fixed;z-index:90;top:88px;left:12px;right:12px;max-width:520px;margin:auto;text-align:center;pointer-events:none}
+        .app-prompt{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#211719;border:1px solid rgba(193,165,123,.7);border-radius:14px;box-shadow:0 12px 36px #000b;padding:10px 12px}
+        .push-prompt-backdrop{position:fixed;z-index:85;inset:0;background:#0009;display:grid;place-items:center;padding:20px}
+        .push-prompt-backdrop[hidden],.app-prompt[hidden]{display:none!important}
+        .push-prompt-card{position:relative;width:min(100%,380px);background:#1c1215;border:1px solid rgba(193,165,123,.7);border-radius:20px;box-shadow:0 24px 70px #000b;padding:24px;text-align:center}
+        @media(min-width:768px){.site-tabbar{inset:auto 50% 14px auto;transform:translateX(50%);width:min(860px,calc(100% - 32px));border:1px solid rgba(193,165,123,.28);border-radius:18px;padding:8px 12px}.site-tab{font-size:11px}.app-prompt{bottom:calc(92px + env(safe-area-inset-bottom))}}
+        @media(prefers-reduced-motion:reduce){.site-tab{transition:none!important}}
     </style>
 </head>
 <body class="antialiased selection:bg-bordo selection:text-white">
@@ -102,24 +117,30 @@
                         <a href="#sponsorlar" class="hover:text-altin transition-colors px-3 py-2 rounded-md text-sm font-medium uppercase tracking-widest">Sponsorlar</a>
                     </div>
                 </div>
-                <div class="-mr-2 flex md:hidden">
+                <div class="flex items-center gap-2">
+                    <button id="enable-push" type="button" aria-label="Bildirimleri aç" title="Bildirimleri aç" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-altin/50 bg-siyah/70 text-altin hover:bg-bordo focus:outline-none focus:ring-2 focus:ring-altin">
+                        <svg aria-hidden="true" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4.5-5.8V4a1.5 1.5 0 00-3 0v1.2A6 6 0 006 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9"/></svg>
+                        <span class="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[#120e10]" aria-hidden="true"></span>
+                    </button>
+                    <div class="-mr-2 flex md:hidden">
                     <button type="button" onclick="toggleMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-white/10 focus:outline-none">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="md:hidden hidden bg-siyah border-b border-white/10" id="mobile-menu">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="#ana-sayfa" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Ana Sayfa</a>
-                <a href="#kadro" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Kadro</a>
-                <a href="#fikstur" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Fikstür</a>
-                <a href="#istatistik" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">İstatistik</a>
-                <a href="#haberler" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Haberler</a>
-                <a href="#instagram" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Instagram</a>
-                <a href="#sponsorlar" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Sponsorlar</a>
+                <a href="#ana-sayfa" data-site-tab-link="home" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Ana Sayfa</a>
+                <a href="#kadro" data-site-tab-link="squad" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Kadro</a>
+                <a href="#fikstur" data-site-tab-link="fixtures" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Fikstür</a>
+                <a href="#istatistik" data-site-tab-link="stats" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">İstatistik</a>
+                <a href="#haberler" data-site-tab-link="news" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Haberler</a>
+                <a href="#sezonlar" data-site-tab-link="archive" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Sezon arşivi</a>
+                <a href="#instagram" data-site-tab-link="community" class="hover:bg-bordo hover:text-white block px-3 py-2 rounded-md text-base font-medium">Diğer</a>
             </div>
         </div>
     </nav>
@@ -140,11 +161,7 @@
                 <span class="bg-siyah/80 border border-white/20 px-4 py-2 rounded-full text-sm text-altin font-bold">#asayaltyapı</span>
                 <span class="bg-bordo/80 border border-white/20 px-4 py-2 rounded-full text-sm text-white font-bold">#aleniacisu</span>
             </div>
-            <div class="mt-7 flex flex-wrap justify-center gap-3">
-                <button id="install-app" type="button" class="border border-altin/70 bg-siyah/80 px-5 py-3 rounded-xl text-altin font-bold text-sm">📲 Uygulamayı yükle</button>
-                <button id="enable-push" type="button" class="border border-white/30 bg-bordo px-5 py-3 rounded-xl text-white font-bold text-sm">🔔 Bildirimleri aç</button>
-            </div>
-            <p id="app-status" role="status" aria-live="polite" class="mt-3 text-sm text-white/90 max-w-lg"></p>
+            <div class="mt-7"><button type="button" data-site-tab="fixtures" class="border border-altin/70 bg-siyah/80 px-5 py-3 rounded-xl text-altin font-bold text-sm">⚽ Maçları görüntüle</button></div>
         </div>
     </section>
 
@@ -344,6 +361,37 @@
         </div>
     </footer>
 
+    <nav class="site-tabbar" id="site-tabbar" role="tablist" aria-label="Acısu United sayfaları">
+        <button class="site-tab" type="button" role="tab" data-site-tab="home" aria-selected="true"><span class="tab-icon">⌂</span><span>Ana Sayfa</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="squad" aria-selected="false"><span class="tab-icon">♙</span><span>Kadro</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="fixtures" aria-selected="false"><span class="tab-icon">⚽</span><span>Fikstür</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="lineup" aria-selected="false"><span class="tab-icon">📋</span><span>Maç kadrosu</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="stats" aria-selected="false"><span class="tab-icon">📊</span><span>İstatistik</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="news" aria-selected="false"><span class="tab-icon">📰</span><span>Haberler</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="archive" aria-selected="false"><span class="tab-icon">🏆</span><span>Arşiv</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="community" aria-selected="false"><span class="tab-icon">✦</span><span>Diğer</span></button>
+    </nav>
+
+    <aside id="install-app-banner" class="app-prompt" hidden aria-label="Uygulamayı yükle">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl" aria-hidden="true">📲</span>
+            <div class="min-w-0 flex-1"><strong class="block text-sm text-white">Acısu United’ı uygulama gibi kullan</strong><span id="install-app-sub" class="block text-xs text-gray-300 mt-1">Daha hızlı erişmek için ana ekrana ekle.</span></div>
+            <button id="install-app" type="button" class="rounded-lg bg-altin px-3 py-2 text-xs font-bold text-black">Ekle</button>
+            <button id="close-install-banner" type="button" aria-label="Kurulum uyarısını kapat" class="p-1 text-gray-300 text-xl">×</button>
+        </div>
+    </aside>
+    <div id="push-prompt" class="push-prompt-backdrop" hidden>
+        <section class="push-prompt-card" role="dialog" aria-modal="true" aria-labelledby="push-prompt-title">
+            <button id="close-push-prompt" type="button" aria-label="Bildirim uyarısını kapat" class="absolute right-3 top-2 p-2 text-xl text-gray-300">×</button>
+            <div class="text-4xl mb-3" aria-hidden="true">🔔</div>
+            <h2 id="push-prompt-title" class="font-baslik text-2xl text-white">Acısu’dan haberdar ol</h2>
+            <p class="text-sm text-gray-300 mt-2">Canlı maç, goller ve maç sonuçları için bildirimleri aç.</p>
+            <button id="accept-push-prompt" type="button" class="mt-5 w-full rounded-xl bg-altin px-4 py-3 font-bold text-black">Bildirimleri aç</button>
+            <button id="later-push-prompt" type="button" class="mt-2 w-full rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-200">Şimdi değil</button>
+        </section>
+    </div>
+    <p id="app-status" role="status" aria-live="polite" class="app-status-toast text-sm text-white"></p>
+
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
     <script>
@@ -466,7 +514,7 @@
             renderCoach();
         };
     </script>
-    <script src="site-data.js?v=20260925-3"></script>
-    <script src="site-features.js?v=20260925-2"></script>
+    <script src="site-data.js?v=20260925-4"></script>
+    <script src="site-features.js?v=20260925-3"></script>
 </body>
 </html>
