@@ -92,9 +92,9 @@
         .site-tab[aria-selected="true"] .tab-icon{text-shadow:0 0 12px rgba(229,201,154,.7)}
         .app-status-toast{position:fixed;z-index:90;top:88px;left:12px;right:12px;max-width:520px;margin:auto;text-align:center;pointer-events:none}
         .app-prompt{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#211719;border:1px solid rgba(193,165,123,.7);border-radius:14px;box-shadow:0 12px 36px #000b;padding:10px 12px}
-        .push-prompt-backdrop{position:fixed;z-index:85;inset:0;background:#0009;display:grid;place-items:center;padding:20px}
+        .push-prompt-backdrop{position:fixed;z-index:85;inset:auto 12px calc(88px + env(safe-area-inset-bottom));display:grid;place-items:end center;padding:0;background:transparent;pointer-events:none}
         .push-prompt-backdrop[hidden],.app-prompt[hidden]{display:none!important}
-        .push-prompt-card{position:relative;width:min(100%,380px);background:#1c1215;border:1px solid rgba(193,165,123,.7);border-radius:20px;box-shadow:0 24px 70px #000b;padding:24px;text-align:center}
+        .push-prompt-card{pointer-events:auto;position:relative;width:min(100%,420px);background:#1c1215;border:1px solid rgba(193,165,123,.7);border-radius:16px;box-shadow:0 12px 36px #000b;padding:16px;text-align:center}
         @media(min-width:768px){.site-tabbar{inset:auto 50% 14px auto;transform:translateX(50%);width:min(860px,calc(100% - 32px));border:1px solid rgba(193,165,123,.28);border-radius:18px;padding:8px 12px}.site-tab{font-size:11px}.app-prompt{bottom:calc(92px + env(safe-area-inset-bottom))}}
         @media(prefers-reduced-motion:reduce){.site-tab{transition:none!important}}
     </style>
@@ -375,8 +375,8 @@
         <section class="push-prompt-card" role="dialog" aria-modal="true" aria-labelledby="push-prompt-title">
             <button id="close-push-prompt" type="button" aria-label="Bildirim uyarısını kapat" class="absolute right-3 top-2 p-2 text-xl text-gray-300">×</button>
             <div class="text-4xl mb-3" aria-hidden="true">🔔</div>
-            <h2 id="push-prompt-title" class="font-baslik text-2xl text-white">Acısu’dan haberdar ol</h2>
-            <p class="text-sm text-gray-300 mt-2">Canlı maç, goller ve maç sonuçları için bildirimleri aç.</p>
+            <h2 id="push-prompt-title" class="font-baslik text-2xl text-white">Bildirimleri aç, gelişmeleri kaçırma!</h2>
+            <p class="text-sm text-gray-300 mt-2">Canlı maç, goller ve sonuçlar anında cebine gelsin.</p>
             <button id="accept-push-prompt" type="button" class="mt-5 w-full rounded-xl bg-altin px-4 py-3 font-bold text-black">Bildirimleri aç</button>
             <button id="later-push-prompt" type="button" class="mt-2 w-full rounded-xl border border-white/20 px-4 py-2 text-sm text-gray-200">Şimdi değil</button>
         </section>
@@ -497,6 +497,6 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260925-8"></script>
-    <script src="site-features.js?v=20260925-8"></script>
+    <script src="site-features.js?v=20260925-9"></script>
 </body>
 </html>
