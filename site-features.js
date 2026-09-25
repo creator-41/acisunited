@@ -121,16 +121,6 @@
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (isIOS) {
       $("install-share-guide").hidden = false;
-      if (navigator.share) {
-        try {
-          // Kullanıcı dokunuşunun içinde, beklemeden çağır: iOS paylaşım izni bunu gerektirir.
-          await navigator.share({title: "Acısu United", url: window.location.href});
-        } catch (error) {
-          if (error.name !== "AbortError") status("Paylaş açılamadı. Safari’nin paylaş simgesine dokun.");
-        }
-      } else {
-        status("Safari’nin paylaş simgesine dokun; ardından Ana Ekrana Ekle’yi seç.");
-      }
       return;
     }
     if (installPrompt) {
