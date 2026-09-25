@@ -119,14 +119,26 @@
   }
   async function install() {
     if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      if (navigator.share) {
+        try {
+          await navigator.share({title: document.title, url: window.location.href});
+        } catch (error) {
+          if (error.name !== "AbortError") status("Paylaş ekranını açamadım. Safari’de paylaş simgesine dokun.");
+        }
+      } else {
+        status("Safari’de paylaş simgesine dokun; ardından Ana Ekrana Ekle’yi seç.");
+      }
+      return;
+    }
     if (installPrompt) {
       installPrompt.prompt();const result=await installPrompt.userChoice;
       if (result.outcome === "accepted") $("install-app-banner").hidden = true;
       installPrompt=null;return;
     }
-    status(/iPhone|iPad/i.test(navigator.userAgent)
-      ? "Safari'de Paylaş → Ana Ekrana Ekle yolunu kullan."
-      : "Tarayıcı menüsünden 'Uygulamayı yükle' veya 'Ana ekrana ekle' seç.");
+    status("Tarayıcı menüsünden 'Uygulamayı yükle' veya 'Ana ekrana ekle' seç.");
   }
   function closeInstallPrompt() {
     $("install-app-banner").hidden = true;
@@ -144,11 +156,10 @@
     setTimeout(() => { $("install-app-banner").hidden = false; }, 700);
   }
   function maybeShowPushPrompt() {
-    if (sessionStorage.getItem("acisu_push_prompt_closed") === "1"
+    const isInstalled = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    if (!isInstalled || sessionStorage.getItem("acisu_push_prompt_closed") === "1"
       || !window.Notification || Notification.permission !== "default"
       || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
-    if (/iPhone|iPad/i.test(navigator.userAgent)
-      && !window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone) return;
     setTimeout(() => { $("push-prompt").hidden = false; }, 1500);
   }
   function updateBell() {
