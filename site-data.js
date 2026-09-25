@@ -17,12 +17,14 @@
   }).format(new Date(value));
 
   async function load() {
-    const [playersResult, matchesResult] = await Promise.all([
+    const [playersResult, matchesResult, goalResult, goalPlayersResult] = await Promise.all([
       db.from("acisu_players").select("*").eq("active", true).order("number"),
-      db.from("acisu_matches").select("*").eq("published", true).order("match_at", { ascending: false })
+      db.from("acisu_matches").select("*").eq("published", true).order("match_at", { ascending: false }),
+      db.from("acisu_goal_log").select("match_id,side,scorer_id,assist_id,created_at").order("created_at"),
+      db.from("acisu_players").select("id,name")
     ]);
-    if (playersResult.error || matchesResult.error) {
-      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error);
+    if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error) {
+      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error);
       return;
     }
     const players = playersResult.data || [];
@@ -34,6 +36,14 @@
     window.renderSquad();
 
     const matches = matchesResult.data || [];
+    const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
+    const goalsByMatch = new Map();
+    for (const goal of goalResult.data || []) {
+      if (goal.side !== "acisu") continue;
+      const bucket = goalsByMatch.get(goal.match_id) || [];
+      bucket.push(goal);
+      goalsByMatch.set(goal.match_id, bucket);
+    }
     const list = document.getElementById("match-list");
     const fallback = document.getElementById("match-fallback");
     fallback.hidden = true;
@@ -52,6 +62,13 @@
              <span class="font-baslik text-5xl font-bold text-altin">${m.home ? m.their_score : m.our_score}</span>
            </div>`
         : '<div class="bg-siyah border-2 border-white/10 px-5 py-4 rounded-xl text-altin font-bold">VS</div>';
+      const scored = (goalsByMatch.get(m.id) || []).map(g => {
+        const name = namesById.get(g.scorer_id) || "Acısu oyuncusu";
+        const assist = namesById.get(g.assist_id);
+        return `<li class="flex items-start justify-center gap-2 text-gray-200"><span class="text-altin" aria-hidden="true">⚽</span><span><strong>${esc(name)}</strong>${assist ? ` <span class="text-gray-400">(asist: ${esc(assist)})</span>` : ""}</span></li>`;
+      }).join("");
+      const legacyScorers = !scored && m.goal_scorers ? `<li class="text-gray-300">⚽ ${esc(m.goal_scorers)}</li>` : "";
+      const goalDetails = scored || legacyScorers;
       return `<article class="bg-siyah border border-bordo/30 rounded-2xl p-6 md:p-10 mb-5 shadow-[0_0_30px_rgba(92,26,33,0.2)] relative overflow-hidden">
         <img src="image_09a3ea.png" alt="" class="absolute -right-20 -bottom-20 w-96 opacity-5 pointer-events-none">
         <div class="text-center mb-6 relative">
@@ -63,9 +80,9 @@
           <div class="flex flex-col items-center w-full md:w-1/3">${score}</div>
           ${m.home ? opponent : ourTeam}
         </div>
-        ${m.played && m.goal_scorers ? `<div class="mt-10 pt-6 border-t border-white/10 text-center relative">
-          <h4 class="text-altin font-bold text-sm uppercase tracking-widest mb-4">Acısu United Golleri</h4>
-          <p class="text-gray-300">⚽ ${esc(m.goal_scorers)}</p></div>` : ""}
+        ${goalDetails ? `<div class="mt-8 pt-5 border-t border-white/10 text-center relative">
+          <h4 class="text-altin font-bold text-sm uppercase tracking-widest mb-3">Acısu United Golleri</h4>
+          <ul class="grid gap-2">${scored || legacyScorers}</ul></div>` : ""}
       </article>`;
     }).join("") : '<p class="text-center text-gray-300">Henüz maç eklenmedi.</p>';
 
