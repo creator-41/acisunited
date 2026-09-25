@@ -225,6 +225,18 @@
       goal_scorers: played ? formValue(f, "goal_scorers") : ""
     };
     const id = formValue(f, "id");
+    const previous = matches.find(x => x.id === id);
+    if (previous?.played && !played) {
+      if (!confirm("Bu maçı Oynanmadı yaparsan maçın gol günlüğü, oyuncu istatistikleri ve bu maçtan gelen puanlar sıfırlanacak. Devam edilsin mi?")) return;
+      const { data, error } = await db.rpc("acisu_reset_match", { p_match_id: id });
+      if (error) { notice("Maç sıfırlanamadı: " + error.message); return; }
+      f.reset(); editor("match", false);
+      const goals = Number(data?.goal_events_deleted || 0);
+      const rows = Number(data?.player_stat_rows_deleted || 0);
+      notice(`Maç sıfırlandı. ${goals} gol kaydı ve ${rows} oyuncu istatistiği silindi.`);
+      await refresh();
+      return;
+    }
     const { error } = id ? await db.from("acisu_matches").update(payload).eq("id", id)
       : await db.from("acisu_matches").insert(payload);
     if (error) { notice(error.message); return; }
