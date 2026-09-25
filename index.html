@@ -98,6 +98,8 @@
         .install-guide-card h2{margin:0 0 21px;color:#e5c99a;font-family:Oswald,sans-serif;font-size:clamp(25px,6vw,35px);font-weight:700;line-height:1.15;letter-spacing:.02em}
         .install-guide-card p{margin:0 auto 19px;max-width:480px;color:#e7e2df;font-size:clamp(16px,4.2vw,21px);line-height:1.4}
         .install-guide-card strong{color:#e5c99a}
+        .safari-share-icon{display:inline-flex;width:27px;height:29px;margin:0 2px;color:#0a84ff;vertical-align:-8px}
+        .safari-share-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
         .install-guide-card button{width:min(100%,360px);margin-top:3px;border:1px solid #c1a57b;border-radius:999px;background:linear-gradient(135deg,#751f29,#4b151b);color:#fff;padding:13px 20px;font-size:16px;font-weight:800;box-shadow:0 8px 20px #0007}
         .install-share-pointer{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));width:92px;height:118px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(229,201,154,.95)) drop-shadow(0 0 22px rgba(92,26,33,.9));animation:sharePointer 1.05s ease-in-out infinite}
         .install-share-pointer::before{content:"";position:absolute;left:40px;top:6px;width:12px;height:66px;border-radius:8px;background:linear-gradient(#fff1c9,#c1a57b);box-shadow:0 0 14px rgba(229,201,154,.9)}
@@ -387,7 +389,7 @@
     <aside id="install-share-guide" class="install-share-guide" hidden role="dialog" aria-modal="true" aria-labelledby="install-guide-title">
         <section class="install-guide-card">
             <h2 id="install-guide-title">Ana Ekrana Nasıl Eklenir?</h2>
-            <p>1. Ekranın altındaki <strong>Paylaş (📤)</strong> butonuna dokun.</p>
+            <p>1. Ekranın altındaki <strong>Paylaş</strong> (<span class="safari-share-icon" aria-label="Safari paylaş simgesi"><svg viewBox="0 0 28 30" role="img"><path d="M14 19V2"/><path d="M8 8l6-6 6 6"/><path d="M9 10H6a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3V13a3 3 0 0 0-3-3h-3"/></svg></span>) butonuna dokun.</p>
             <p>2. Açılan menüde aşağı kaydırıp <strong>“Ana Ekrana Ekle”</strong> seçeneğine dokun. Sonraki ekranda <strong>“Ekle”</strong>ye bas.</p>
             <button id="close-install-share-guide" type="button">Tamam, Anladım</button>
         </section>
@@ -519,6 +521,6 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260925-8"></script>
-    <script src="site-features.js?v=20260925-13"></script>
+    <script src="site-features.js?v=20260925-14"></script>
 </body>
 </html>
