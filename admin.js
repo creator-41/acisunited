@@ -196,7 +196,7 @@
       return;
     }
     $("login-form").hidden = true; $("dashboard").hidden = false; $("logout").hidden = false;
-    try { await refresh(); notice("Yönetim paneli hazır."); }
+    try { await refresh(); }
     catch (e) { notice("Veriler yüklenemedi: " + e.message); }
   }
   $("login-form").addEventListener("submit", async e => {
