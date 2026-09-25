@@ -17,14 +17,15 @@
   }).format(new Date(value));
 
   async function load() {
-    const [playersResult, matchesResult, goalResult, goalPlayersResult] = await Promise.all([
+    const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult] = await Promise.all([
       db.from("acisu_players").select("*").eq("active", true).order("number"),
       db.from("acisu_matches").select("*").eq("published", true).order("match_at", { ascending: false }),
       db.from("acisu_goal_log").select("match_id,side,scorer_id,assist_id,created_at").order("created_at"),
-      db.from("acisu_players").select("id,name")
+      db.from("acisu_players").select("id,name"),
+      db.from("acisu_staff").select("*").eq("active", true).order("sort_order").order("created_at")
     ]);
-    if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error) {
-      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error);
+    if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error) {
+      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error);
       return;
     }
     const players = playersResult.data || [];
@@ -34,6 +35,11 @@
       ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
     }));
     window.renderSquad();
+    window.technicalStaff = (staffResult.data || []).map(p => ({
+      name: esc(p.name), pos: esc(p.role), img: esc(safeImage(p.image_url)),
+      ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
+    }));
+    window.renderCoach();
 
     const matches = matchesResult.data || [];
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
@@ -52,9 +58,10 @@
           <img src="image_09a3ea.png" alt="Acısu United" class="w-20 h-20 object-contain mb-4">
           <h3 class="font-baslik text-2xl font-bold text-white text-center">ACISU UNITED</h3></div>`;
       const opponent = `<div class="flex flex-col items-center w-full md:w-1/3">
-          <div class="w-20 h-20 rounded-full bg-yellow-900/20 border border-yellow-700/30 flex items-center justify-center mb-4">
-            <span class="font-baslik text-sm text-yellow-600 text-center break-words px-1">${esc(m.opponent)}</span>
-          </div><h3 class="font-baslik text-2xl font-bold text-gray-400 text-center">${esc(m.opponent)}</h3></div>`;
+          ${m.opponent_image_url
+            ? `<img src="${esc(safeImage(m.opponent_image_url))}" alt="${esc(m.opponent)} arması" class="w-20 h-20 object-contain mb-4" onerror="this.onerror=null;this.src='image_09a3ea.png'">`
+            : `<div class="w-20 h-20 rounded-full bg-yellow-900/20 border border-yellow-700/30 flex items-center justify-center mb-4"><span class="font-baslik text-sm text-yellow-600 text-center break-words px-1">${esc(m.opponent)}</span></div>`}
+          <h3 class="font-baslik text-2xl font-bold text-gray-400 text-center">${esc(m.opponent)}</h3></div>`;
       const score = m.played || m.is_live
         ? `<div class="bg-siyah border-2 border-white/10 px-8 py-4 rounded-xl flex items-center gap-4 shadow-inner">
              <span class="font-baslik text-5xl font-bold text-white">${m.home ? m.our_score : m.their_score}</span>
