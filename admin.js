@@ -13,9 +13,38 @@
   }
   const db = window.supabase.createClient(window.ACISU_SUPABASE_URL, window.ACISU_SUPABASE_KEY);
   const photoBucket = "acisu-player-photos";
+  const mediaBucket = "acisu-site-media";
   const photoTypes = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
   const photoPrefix = `${window.ACISU_SUPABASE_URL}/storage/v1/object/public/${photoBucket}/`;
   const storedPhotoPath = url => url.startsWith(photoPrefix) ? url.slice(photoPrefix.length) : null;
+  const mediaPrefix = `${window.ACISU_SUPABASE_URL}/storage/v1/object/public/${mediaBucket}/`;
+  const storedMediaPath = url => url.startsWith(mediaPrefix) ? url.slice(mediaPrefix.length) : null;
+  const validPhoto = file => !file || (photoTypes[file.type] && file.size > 0 && file.size <= 5 * 1024 * 1024);
+  const previews = new Map();
+  function showPreview(id, src, file) {
+    if (previews.has(id)) URL.revokeObjectURL(previews.get(id));
+    previews.delete(id);
+    const image = $(id);
+    image.hidden = !src && !file;
+    if (file) {
+      const url = URL.createObjectURL(file);
+      previews.set(id, url);
+      image.src = url;
+    } else if (src) image.src = src;
+    else image.removeAttribute("src");
+  }
+  async function uploadMedia(file, folder) {
+    const path = `${folder}/${crypto.randomUUID()}.${photoTypes[file.type]}`;
+    const { error } = await db.storage.from(mediaBucket).upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw error;
+    return { path, url: db.storage.from(mediaBucket).getPublicUrl(path).data.publicUrl };
+  }
+  async function removeMedia(url) {
+    const path = storedMediaPath(url || "");
+    if (!path) return;
+    const { error } = await db.storage.from(mediaBucket).remove([path]);
+    if (error) console.warn("Eski görsel silinemedi:", error);
+  }
   let previewUrl;
   function showPhoto(src) {
     const preview = $("photo-preview");
@@ -35,7 +64,16 @@
       $("photo-preview").hidden = false;
     } else showPhoto($("player-form").elements.namedItem("image_url").value);
   });
-  let players = [], matches = [];
+  for (const [kind, preview, fileName, oldName] of [
+    ["staff", "staff-photo-preview", "photo", "image_url"],
+    ["match", "opponent-photo-preview", "opponent_photo", "opponent_image_url"]
+  ]) {
+    const form = $(kind + "-form");
+    form.addEventListener("reset", () => setTimeout(() => showPreview(preview, ""), 0));
+    form.elements.namedItem(fileName).addEventListener("change", e =>
+      showPreview(preview, form.elements.namedItem(oldName).value, e.target.files?.[0]));
+  }
+  let players = [], matches = [], staff = [];
   const tabs = [...document.querySelectorAll("#admin-tabs [role=tab]")];
   function activateTab(name, focus = false) {
     for (const tab of tabs) {
@@ -59,8 +97,8 @@
   function editor(kind, open, editing = false) {
     $(kind + "-editor").hidden = !open;
     $(kind + "-form-title").textContent = editing
-      ? (kind === "player" ? "Oyuncuyu düzenle" : "Maçı düzenle")
-      : (kind === "player" ? "Yeni oyuncu" : "Yeni maç");
+      ? ({player:"Oyuncuyu düzenle",staff:"Kişiyi düzenle",match:"Maçı düzenle"})[kind]
+      : ({player:"Yeni oyuncu",staff:"Yeni kişi",match:"Yeni maç"})[kind];
     if (open) $(kind + "-editor").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
   document.querySelectorAll("[data-open-form]").forEach(button => button.addEventListener("click", () => {
@@ -87,13 +125,15 @@
   const toIso = local => new Date(local + ":00+03:00").toISOString();
 
   async function refresh() {
-    const [p, m] = await Promise.all([
+    const [p, m, s] = await Promise.all([
       db.from("acisu_players").select("*").order("number"),
-      db.from("acisu_matches").select("*").order("match_at", { ascending: false })
+      db.from("acisu_matches").select("*").order("match_at", { ascending: false }),
+      db.from("acisu_staff").select("*").order("sort_order").order("created_at")
     ]);
-    if (p.error || m.error) throw p.error || m.error;
-    players = p.data || []; matches = m.data || [];
+    if (p.error || m.error || s.error) throw p.error || m.error || s.error;
+    players = p.data || []; matches = m.data || []; staff = s.data || [];
     $("player-count").textContent = players.length;
+    $("staff-count").textContent = staff.length;
     $("match-count").textContent = matches.length;
     $("stat-players").textContent = players.filter(x => x.active).length;
     $("stat-matches").textContent = matches.length;
@@ -103,6 +143,10 @@
       <span><strong class="text-white">#${x.number} ${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.position)} ${x.active ? "" : "· Gizli"}</span></span>
       <span class="list-actions"><button data-edit-player="${x.id}" type="button">Düzenle</button>
       <button data-delete-player="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz oyuncu yok. Oyuncu ekle düğmesiyle başla.</p>';
+    $("staff-list").innerHTML = staff.map(x => `<div class="list-row">
+      <span><strong class="text-white">${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.role)} ${x.active ? "" : "· Gizli"}</span></span>
+      <span class="list-actions"><button data-edit-staff="${x.id}" type="button">Düzenle</button>
+      <button data-delete-staff="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz teknik heyet üyesi yok.</p>';
     $("matches-list").innerHTML = matches.map(x => `<div class="list-row">
       <span><strong class="text-white">${escapeHtml(x.opponent)}</strong><span class="block muted text-xs mt-1">${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${x.is_live ? `🔴 CANLI ${x.our_score}-${x.their_score}` : x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span></span>
       <span class="list-actions"><button data-edit-match="${x.id}" type="button">Düzenle</button>
@@ -207,6 +251,34 @@
       submit.disabled = false; submit.textContent = "Oyuncuyu kaydet";
     }
   });
+  $("staff-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.currentTarget, file = f.elements.namedItem("photo").files?.[0];
+    if (!validPhoto(file)) { notice("JPG, PNG veya WebP seç; dosya en fazla 5 MB olmalı."); return; }
+    const id = formValue(f, "id"), oldImage = formValue(f, "image_url");
+    const payload = {
+      name: formValue(f, "name"), role: formValue(f, "role"),
+      sort_order: Number(formValue(f, "sort_order")),
+      rating: Number(formValue(f, "rating")), pace: Number(formValue(f, "pace")),
+      passing: Number(formValue(f, "passing")), defense: Number(formValue(f, "defense")),
+      image_url: oldImage || null, active: f.elements.namedItem("active").checked
+    };
+    const submit = f.querySelector('[type="submit"]');
+    submit.disabled = true; submit.textContent = file ? "Fotoğraf yükleniyor…" : "Kaydediliyor…";
+    let uploaded, saved = false;
+    try {
+      if (file) { uploaded = await uploadMedia(file, "staff"); payload.image_url = uploaded.url; }
+      const { error } = id ? await db.from("acisu_staff").update(payload).eq("id", id)
+        : await db.from("acisu_staff").insert(payload);
+      if (error) throw error;
+      saved = true;
+      if (uploaded) await removeMedia(oldImage);
+      f.reset(); editor("staff", false); notice("Teknik heyet kaydedildi."); await refresh();
+    } catch (error) {
+      if (!saved && uploaded) await removeMedia(uploaded.url);
+      notice((saved ? "Kaydedildi, liste yenilenemedi: " : "Kaydedilemedi: ") + error.message);
+    } finally { submit.disabled = false; submit.textContent = "Kişiyi kaydet"; }
+  });
   $("match-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
     if (matches.some(x => x.id === formValue(f, "id") && x.is_live)) {
@@ -216,8 +288,12 @@
     if (played && (!formValue(f, "our_score") || !formValue(f, "their_score"))) {
       notice("Oynanan maçın iki skorunu da gir."); return;
     }
+    const file = f.elements.namedItem("opponent_photo").files?.[0];
+    if (!validPhoto(file)) { notice("Rakip arması JPG, PNG veya WebP olmalı; en fazla 5 MB."); return; }
+    const oldImage = formValue(f, "opponent_image_url");
     const payload = {
       opponent: formValue(f, "opponent"), match_at: toIso(formValue(f, "match_at")), time_confirmed: true,
+      opponent_image_url: oldImage || null,
       venue: formValue(f, "venue"), home: formValue(f, "home") === "true",
       played, is_live: false, published: f.elements.namedItem("published").checked,
       our_score: played ? Number(formValue(f, "our_score")) : null,
@@ -226,21 +302,31 @@
     };
     const id = formValue(f, "id");
     const previous = matches.find(x => x.id === id);
-    if (previous?.played && !played) {
-      if (!confirm("Bu maçı Oynanmadı yaparsan maçın gol günlüğü, oyuncu istatistikleri ve bu maçtan gelen puanlar sıfırlanacak. Devam edilsin mi?")) return;
-      const { data, error } = await db.rpc("acisu_reset_match", { p_match_id: id });
-      if (error) { notice("Maç sıfırlanamadı: " + error.message); return; }
+    const reset = previous?.played && !played;
+    if (reset && !confirm("Bu maçı Oynanmadı yaparsan maçın gol günlüğü, oyuncu istatistikleri ve bu maçtan gelen puanlar sıfırlanacak. Devam edilsin mi?")) return;
+    const submit = f.querySelector('[type="submit"]');
+    submit.disabled = true; submit.textContent = file ? "Arma yükleniyor…" : "Kaydediliyor…";
+    let uploaded, saved = false, resetData;
+    try {
+      if (file) { uploaded = await uploadMedia(file, "opponents"); payload.opponent_image_url = uploaded.url; }
+      if (reset) {
+        const { data, error } = await db.rpc("acisu_reset_match", { p_match_id: id });
+        if (error) throw error;
+        resetData = data;
+      }
+      const { error } = id ? await db.from("acisu_matches").update(payload).eq("id", id)
+        : await db.from("acisu_matches").insert(payload);
+      if (error) throw error;
+      saved = true;
+      if (uploaded) await removeMedia(oldImage);
       f.reset(); editor("match", false);
-      const goals = Number(data?.goal_events_deleted || 0);
-      const rows = Number(data?.player_stat_rows_deleted || 0);
-      notice(`Maç sıfırlandı. ${goals} gol kaydı ve ${rows} oyuncu istatistiği silindi.`);
+      notice(reset ? `Maç sıfırlandı. ${Number(resetData?.goal_events_deleted || 0)} gol kaydı ve ${Number(resetData?.player_stat_rows_deleted || 0)} oyuncu istatistiği silindi.` : "Maç kaydedildi.");
       await refresh();
-      return;
-    }
-    const { error } = id ? await db.from("acisu_matches").update(payload).eq("id", id)
-      : await db.from("acisu_matches").insert(payload);
-    if (error) { notice(error.message); return; }
-    f.reset(); editor("match", false); notice("Maç kaydedildi."); await refresh();
+    } catch (error) {
+      if (!saved && uploaded) await removeMedia(uploaded.url);
+      notice((resetData ? "Maç sıfırlandı; diğer bilgiler kaydedilemedi: " : "Maç kaydedilemedi: ") + error.message);
+      if (resetData) await refresh();
+    } finally { submit.disabled = false; submit.textContent = "Maçı kaydet"; }
   });
   $("lineup-match").addEventListener("change", showLineup);
   $("save-lineup").addEventListener("click", async () => {
@@ -278,13 +364,34 @@
       notice(error ? error.message : "Oyuncu silindi."); if (!error) await refresh();
     }
   });
+  $("staff-list").addEventListener("click", async e => {
+    const edit = e.target.closest("[data-edit-staff]");
+    const del = e.target.closest("[data-delete-staff]");
+    if (edit) {
+      const person = staff.find(x => x.id === edit.dataset.editStaff), f = $("staff-form");
+      for (const field of ["id", "name", "role", "sort_order", "image_url", "rating", "pace", "passing", "defense"])
+        f.elements.namedItem(field).value = person[field] ?? "";
+      f.elements.namedItem("photo").value = "";
+      f.elements.namedItem("active").checked = person.active;
+      showPreview("staff-photo-preview", person.image_url || "");
+      editor("staff", true, true); return;
+    }
+    if (del && confirm("Bu kişi teknik heyetten silinsin mi?")) {
+      const person = staff.find(x => x.id === del.dataset.deleteStaff);
+      const { error } = await db.from("acisu_staff").delete().eq("id", del.dataset.deleteStaff);
+      if (!error) await removeMedia(person?.image_url);
+      notice(error ? error.message : "Kişi silindi."); if (!error) await refresh();
+    }
+  });
   $("matches-list").addEventListener("click", async e => {
     const edit = e.target.closest("[data-edit-match]");
     const del = e.target.closest("[data-delete-match]");
     if (edit) {
       const m = matches.find(x => x.id === edit.dataset.editMatch), f = $("match-form");
-      for (const field of ["id", "opponent", "venue", "our_score", "their_score", "goal_scorers"])
+      for (const field of ["id", "opponent", "opponent_image_url", "venue", "our_score", "their_score", "goal_scorers"])
         f.elements.namedItem(field).value = m[field] ?? "";
+      f.elements.namedItem("opponent_photo").value = "";
+      showPreview("opponent-photo-preview", m.opponent_image_url || "");
       f.elements.namedItem("match_at").value = localInput(m.match_at);
       f.elements.namedItem("home").value = String(m.home);
       f.elements.namedItem("played").checked = m.played;
@@ -292,7 +399,9 @@
       editor("match", true, true); return;
     }
     if (del && confirm("Maç ve maç kadrosu silinsin mi?")) {
+      const match = matches.find(x => x.id === del.dataset.deleteMatch);
       const { error } = await db.from("acisu_matches").delete().eq("id", del.dataset.deleteMatch);
+      if (!error) await removeMedia(match?.opponent_image_url);
       notice(error ? error.message : "Maç silindi."); if (!error) await refresh();
     }
   });
