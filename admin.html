@@ -53,8 +53,6 @@
         <div><div class="font-baslik text-xl sm:text-2xl tracking-wide leading-none">ACISU UNITED</div><div class="eyebrow mt-1">Yönetim merkezi</div></div>
       </div>
       <div class="flex items-center gap-4 text-xs sm:text-sm font-semibold">
-        <button id="admin-install" type="button" class="text-altin hover:text-white">📲 Uygulamayı yükle</button>
-        <a href="index.html" class="text-altin hover:text-white">← Siteyi görüntüle</a>
         <button id="logout" type="button" class="text-[#d7c6c8] hover:text-white" hidden>Çıkış yap</button>
       </div>
     </div>
@@ -80,16 +78,16 @@
       <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 overflow-x-auto sticky top-2 z-30">
         <div id="admin-tabs" role="tablist" aria-label="Yönetim bölümleri" class="flex gap-1 min-w-max">
           <button id="tab-button-overview" class="tab" type="button" role="tab" aria-controls="tab-overview" aria-selected="true" tabindex="0" data-tab="overview">Genel bakış</button>
+          <button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button>
+          <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
+          <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
+          <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
+          <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
           <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="false" tabindex="-1" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
           <button id="tab-button-staff" class="tab" type="button" role="tab" aria-controls="tab-staff" aria-selected="false" tabindex="-1" data-tab="staff"><span>Teknik heyet</span><span id="staff-count" class="tab-number">0</span></button>
-          <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
-          <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
-          <button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button>
           <button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button>
           <button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button>
-          <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
           <button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button>
-          <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
         </div>
       </nav>
       <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
@@ -258,8 +256,8 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-7"></script>
+  <script src="admin.js?v=20260925-8"></script>
   <script src="admin-features.js?v=20260925-2"></script>
-  <script src="admin-pwa.js?v=20260925-1"></script>
+  <script src="admin-pwa.js?v=20260925-2"></script>
 </body>
 </html>
