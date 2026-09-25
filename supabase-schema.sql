@@ -125,3 +125,28 @@ insert into public.acisu_matches
   (opponent, match_at, time_confirmed, venue, home, played, our_score, their_score, goal_scorers)
 values ('FACİA', '2026-09-16 12:00:00+03', false, 'Kartepe Sporium Kompleksi',
         true, true, 5, 6, 'Hamza 4, Yasir 1');
+
+-- Oyuncu fotoğrafları için yalnızca Acısu yöneticileri yükleme ve silme yapabilir.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('acisu-player-photos', 'acisu-player-photos', true, 5242880,
+        array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+create policy "Acisu admins upload player photos" on storage.objects
+  for insert to authenticated with check (
+    bucket_id = 'acisu-player-photos' and exists (
+      select 1 from public.acisu_admins a where a.user_id = (select auth.uid())
+    )
+  );
+create policy "Acisu admins list player photos" on storage.objects
+  for select to authenticated using (
+    bucket_id = 'acisu-player-photos' and exists (
+      select 1 from public.acisu_admins a where a.user_id = (select auth.uid())
+    )
+  );
+create policy "Acisu admins delete player photos" on storage.objects
+  for delete to authenticated using (
+    bucket_id = 'acisu-player-photos' and exists (
+      select 1 from public.acisu_admins a where a.user_id = (select auth.uid())
+    )
+  );
