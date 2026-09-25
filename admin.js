@@ -193,7 +193,8 @@
       const statMap = new Map((statsResult.data || []).map(s => [s.player_id, s]));
       const scorers = matchGoalRoster.flatMap(p => Array(Number(statMap.get(p.id)?.goals || 0)).fill(p.id));
       const assisters = matchGoalRoster.flatMap(p => Array(Number(statMap.get(p.id)?.assists || 0)).fill(p.id));
-      events = Array.from({length:score}, (_,i) => ({scorer_id:scorers[i] || "", assist_id:assisters[i] || ""}));
+      const knownSingleAssist = score === 1 && assisters.length === 1 ? assisters[0] : "";
+      events = Array.from({length:score}, (_,i) => ({scorer_id:scorers[i] || "", assist_id:knownSingleAssist}));
     }
     renderMatchGoalAssignments(events);
   }
