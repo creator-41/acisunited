@@ -2,7 +2,7 @@
   const $ = id => document.getElementById(id);
   const url = window.ACISU_SUPABASE_URL, key = window.ACISU_SUPABASE_KEY;
   if (!url || !key || !window.supabase) return;
-  const db = window.supabase.createClient(url, key);
+  const db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
   const esc = v => String(v ?? "").replace(/[&<>"']/g, x =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[x]);
   const dateText = value => new Intl.DateTimeFormat("tr-TR", {
