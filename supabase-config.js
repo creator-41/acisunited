@@ -1,4 +1,4 @@
-// Acısu United için AYRI Supabase projesinin URL ve publishable key değerlerini girin.
-// Bu anahtar tarayıcıda görünür; güvenlik veritabanındaki RLS politikalarıyla sağlanır.
-window.ACISU_SUPABASE_URL = "";
-window.ACISU_SUPABASE_KEY = "";
+// Acısu United projesinin yalnızca tarayıcıya açık publishable key değeri.
+// service_role / secret key buraya ASLA eklenmez.
+window.ACISU_SUPABASE_URL = "https://mjnnotqrcdotklqtemgm.supabase.co";
+window.ACISU_SUPABASE_KEY = "sb_publishable_UK1zTaTYZQzv7mVq-L-Ulg_0pOwWiXg";
