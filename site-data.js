@@ -62,10 +62,17 @@
              <span class="font-baslik text-5xl font-bold text-altin">${m.home ? m.their_score : m.our_score}</span>
            </div>`
         : '<div class="bg-siyah border-2 border-white/10 px-5 py-4 rounded-xl text-altin font-bold">VS</div>';
-      const scored = (goalsByMatch.get(m.id) || []).map(g => {
+      const goalGroups = new Map();
+      for (const goal of goalsByMatch.get(m.id) || []) {
+        const key = `${goal.scorer_id || ""}|${goal.assist_id || ""}`;
+        const group = goalGroups.get(key) || { scorer_id: goal.scorer_id, assist_id: goal.assist_id, count: 0 };
+        group.count++;
+        goalGroups.set(key, group);
+      }
+      const scored = [...goalGroups.values()].map(g => {
         const name = namesById.get(g.scorer_id) || "Acısu oyuncusu";
         const assist = namesById.get(g.assist_id);
-        return `<li class="flex items-start justify-center gap-2 text-gray-200"><span class="text-altin" aria-hidden="true">⚽</span><span><strong>${esc(name)}</strong>${assist ? ` <span class="text-gray-400">(asist: ${esc(assist)})</span>` : ""}</span></li>`;
+        return `<li class="flex items-start justify-center gap-2 text-gray-200"><span class="text-altin" aria-hidden="true">⚽</span><span><strong>${esc(name)}</strong>${g.count > 1 ? ` <span class="text-altin">× ${g.count}</span>` : ""}${assist ? ` <span class="text-gray-400">(asist: ${esc(assist)})</span>` : ""}</span></li>`;
       }).join("");
       const legacyScorers = !scored && m.goal_scorers ? `<li class="text-gray-300">⚽ ${esc(m.goal_scorers)}</li>` : "";
       const goalDetails = scored || legacyScorers;
