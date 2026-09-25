@@ -91,7 +91,9 @@
               <label class="field sm:col-span-2">Adı<input name="name" maxlength="100" required></label>
               <label class="field">Forma no<input name="number" type="number" min="0" max="99" required></label>
               <label class="field">Pozisyon<input name="position" maxlength="20" required></label>
-              <label class="field sm:col-span-2">Fotoğraf dosyası / HTTPS URL<input name="image_url" maxlength="500" placeholder="oyuncu.png"></label>
+              <input type="hidden" name="image_url">
+              <label class="field sm:col-span-2">Oyuncu fotoğrafı<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label>
+              <div class="sm:col-span-2 flex items-center gap-3"><img id="photo-preview" src="" alt="Seçilen oyuncu fotoğrafı" class="w-16 h-16 rounded-lg object-cover border border-white/20" hidden><span id="photo-hint" class="muted text-xs">Telefondan veya bilgisayardan fotoğraf seç. JPG, PNG veya WebP; en fazla 5 MB.</span></div>
               <label class="field">Genel<input name="rating" type="number" min="0" max="99" value="70" required></label>
               <label class="field">Hız<input name="pace" type="number" min="0" max="99" value="70" required></label>
               <label class="field">Pas<input name="passing" type="number" min="0" max="99" value="70" required></label>
@@ -140,6 +142,6 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-3"></script>
+  <script src="admin.js?v=20260925-4"></script>
 </body>
 </html>
