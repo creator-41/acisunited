@@ -1,8 +1,6 @@
 (function () {
   const $ = id => document.getElementById(id);
   const url = window.ACISU_SUPABASE_URL, key = window.ACISU_SUPABASE_KEY;
-  if (!url || !key || !window.supabase) return;
-  const db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
   const esc = v => String(v ?? "").replace(/[&<>"']/g, x =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[x]);
   const dateText = value => new Intl.DateTimeFormat("tr-TR", {
@@ -40,6 +38,9 @@
     });
   });
   window.showAcisuTab = showSiteTab;
+  // Sekme gezinmesi Supabase bağlantısından bağımsız çalışsın.
+  if (!url || !key || !window.supabase) return;
+  const db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
 
   async function loadExtras() {
     const [p, s, n, a, m] = await Promise.all([
