@@ -1,0 +1,15 @@
+{
+  "id": "./admin.html",
+  "name": "Acısu United Yönetim",
+  "short_name": "Acısu Admin",
+  "start_url": "./admin.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#100d0f",
+  "theme_color": "#5c1a21",
+  "lang": "tr",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "./image_09a3ea.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }
+  ]
+}
