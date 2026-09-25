@@ -77,10 +77,12 @@
   let players = [], matches = [], staff = [];
   let editingMatchId = null;
   let matchGoalRoster = [];
+  let matchHasSpecificLineup = false;
   function setMatchFormMode(matchId = null) {
     const form = $("match-form");
     editingMatchId = matchId || null;
     matchGoalRoster = [];
+    matchHasSpecificLineup = false;
     form.dataset.mode = editingMatchId ? "edit" : "create";
     form.elements.namedItem("id").value = editingMatchId || "";
   }
@@ -143,7 +145,7 @@
     box.replaceChildren();
     if (!count) {
       hint.textContent = matchGoalRoster.length
-        ? "Acısu golü yoksa oyuncu seçimi gerekmiyor."
+        ? matchHasSpecificLineup ? "Acısu golü yoksa oyuncu seçimi gerekmiyor." : "Bu maç için özel kadro yok; golcüleri aktif oyuncu listesinden seçebilirsin."
         : "Önce bu maçın kadrosunu Maç Kadrosu sekmesinden kaydet.";
       form.elements.namedItem("goal_scorers").value = "";
       return;
@@ -153,7 +155,7 @@
       form.elements.namedItem("goal_scorers").value = "";
       return;
     }
-    hint.textContent = "Her Acısu golü için golcüyü seç. Asist yoksa ‘Asist yok’ kalsın.";
+    hint.textContent = `${matchHasSpecificLineup ? "Oyuncular bu maçın kadrosundan geliyor. " : "Bu maçta özel kadro seçilmedi; aktif oyuncular listeleniyor. "}Her Acısu golü için golcüyü seç. Asist yoksa ‘Asist yok’ kalsın.`;
     const options = matchGoalRoster.map(p => `<option value="${escapeHtml(p.id)}">#${p.number} ${escapeHtml(p.name)}${p.role === "yedek" ? " · Yedek" : ""}</option>`).join("");
     for (let i = 0; i < count; i++) {
       const event = oldEvents[i] || {};
@@ -184,9 +186,12 @@
     ]);
     if (lineupResult.error || eventResult.error || statsResult.error)
       throw lineupResult.error || eventResult.error || statsResult.error;
-    matchGoalRoster = (lineupResult.data || []).map(row => ({
+    const lineup = lineupResult.data || [];
+    matchHasSpecificLineup = lineup.length > 0;
+    matchGoalRoster = (matchHasSpecificLineup ? lineup.map(row => ({
       ...players.find(p => p.id === row.player_id), id: row.player_id, role: row.role
-    })).filter(p => p.name).sort((a,b) => a.number - b.number);
+    })) : players.filter(p => p.active).map(p => ({...p, role:""})))
+      .filter(p => p.name).sort((a,b) => a.number - b.number);
     const score = Number(match.our_score || 0), logged = eventResult.data || [];
     let events = logged.map(g => ({scorer_id:g.scorer_id, assist_id:g.assist_id}));
     if (events.length !== score) {
