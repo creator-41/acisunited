@@ -1,4 +1,4 @@
-const CACHE = "acisu-shell-v1";
+const CACHE = "acisu-shell-v2";
 const SHELL = ["./", "./index.html", "./admin.html", "./offline.html", "./icon.svg", "./image_09a3ea.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -34,7 +34,4 @@ self.addEventListener("notificationclick", event => {
   const target = new URL(event.notification.data?.url || "./index.html", self.location.origin).href;
   event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async windows => {
     const existing = windows.find(client => client.url.startsWith(self.registration.scope));
-    if (existing) { await existing.navigate(target); return existing.focus(); }
-    return self.clients.openWindow(target);
-  }));
-});
+    if (existing) { await existi
