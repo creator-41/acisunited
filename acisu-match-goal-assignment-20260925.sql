@@ -9,6 +9,7 @@ set search_path = ''
 as $function$
 declare
   current_match record;
+  has_match_lineup boolean;
 begin
   if not exists (
     select 1 from public.acisu_admins a where a.user_id = (select auth.uid())
@@ -34,18 +35,28 @@ begin
     raise exception 'Oynanmamış maça gol yazılamaz';
   end if;
 
+  select exists (
+    select 1 from public.acisu_match_lineup l where l.match_id = p_match_id
+  ) into has_match_lineup;
+
   if exists (
     select 1
     from jsonb_to_recordset(p_goal_events) as e(scorer_id uuid, assist_id uuid)
     where e.scorer_id is null
        or e.scorer_id = e.assist_id
-       or not exists (
+       or (has_match_lineup and not exists (
          select 1 from public.acisu_match_lineup l
          where l.match_id = p_match_id and l.player_id = e.scorer_id
-       )
-       or (e.assist_id is not null and not exists (
+       ))
+       or (not has_match_lineup and not exists (
+         select 1 from public.acisu_players p where p.id = e.scorer_id and p.active
+       ))
+       or (e.assist_id is not null and has_match_lineup and not exists (
          select 1 from public.acisu_match_lineup l
          where l.match_id = p_match_id and l.player_id = e.assist_id
+       ))
+       or (e.assist_id is not null and not has_match_lineup and not exists (
+         select 1 from public.acisu_players p where p.id = e.assist_id and p.active
        ))
   ) then
     raise exception 'Golcü ve asist bu maçın kadrosunda olmalı; golcü kendine asist yapamaz';
