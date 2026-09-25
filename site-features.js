@@ -14,21 +14,20 @@
     clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
   };
   const pageIds = {
-    home:["ana-sayfa"], squad:["kadro","teknik-direktor"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
-    stats:["istatistik"], news:["haberler"], archive:["sezonlar"], community:["instagram","sponsorlar"]
+    home:["ana-sayfa","instagram","sponsorlar"], squad:["kadro","teknik-direktor"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
+    stats:["istatistik"], news:["haberler"], archive:["sezonlar"]
   };
   const pageForId = new Map(Object.entries(pageIds).flatMap(([key,ids]) => ids.map(id => [id,key])));
   for (const [key,ids] of Object.entries(pageIds)) for (const id of ids) {
     const page = $(id); if (page) { page.dataset.sitePage = key; page.hidden = key !== "home"; }
   }
   const footer = document.querySelector("body > footer");
-  if (footer) { footer.dataset.sitePage = "community"; footer.hidden = true; }
+  if (footer) { footer.dataset.sitePage = "home"; footer.hidden = false; }
   function showSiteTab(key, scroll = true) {
     if (!pageIds[key]) return;
     for (const page of document.querySelectorAll("[data-site-page]")) page.hidden = page.dataset.sitePage !== key;
     document.querySelectorAll("#site-tabbar [data-site-tab]").forEach(tab =>
       tab.setAttribute("aria-selected", String(tab.dataset.siteTab === key)));
-    document.getElementById("mobile-menu")?.classList.add("hidden");
     if (scroll) window.scrollTo({top:0,behavior:"smooth"});
   }
   document.querySelectorAll("#site-tabbar [data-site-tab], [data-site-tab]").forEach(button =>
