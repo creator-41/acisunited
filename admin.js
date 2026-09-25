@@ -74,6 +74,13 @@
       showPreview(preview, form.elements.namedItem(oldName).value, e.target.files?.[0]));
   }
   let players = [], matches = [], staff = [];
+  let editingMatchId = null;
+  function setMatchFormMode(matchId = null) {
+    const form = $("match-form");
+    editingMatchId = matchId || null;
+    form.dataset.mode = editingMatchId ? "edit" : "create";
+    form.elements.namedItem("id").value = editingMatchId || "";
+  }
   const tabs = [...document.querySelectorAll("#admin-tabs [role=tab]")];
   function activateTab(name, focus = false) {
     for (const tab of tabs) {
@@ -104,10 +111,12 @@
   document.querySelectorAll("[data-open-form]").forEach(button => button.addEventListener("click", () => {
     const kind = button.dataset.openForm;
     $(kind + "-form").reset();
+    if (kind === "match") setMatchFormMode();
     editor(kind, true);
   }));
   document.querySelectorAll("[data-close-form]").forEach(button => button.addEventListener("click", () => {
     const kind = button.dataset.closeForm;
+    if (kind === "match") setMatchFormMode();
     $(kind + "-form").reset();
     editor(kind, false);
   }));
@@ -281,7 +290,11 @@
   });
   $("match-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
-    if (matches.some(x => x.id === formValue(f, "id") && x.is_live)) {
+    const id = f.dataset.mode === "edit" ? editingMatchId : "";
+    if (f.dataset.mode === "edit" && !id) {
+      notice("Düzenlenecek maç seçimi bulunamadı. Maçı listeden tekrar aç."); return;
+    }
+    if (matches.some(x => x.id === id && x.is_live)) {
       notice("Canlı maçın skorunu Canlı Maç sekmesinden yönet."); return;
     }
     const played = f.elements.namedItem("played").checked;
@@ -300,7 +313,6 @@
       their_score: played ? Number(formValue(f, "their_score")) : null,
       goal_scorers: played ? formValue(f, "goal_scorers") : ""
     };
-    const id = formValue(f, "id");
     const previous = matches.find(x => x.id === id);
     const reset = previous?.played && !played;
     if (reset && !confirm("Bu maçı Oynanmadı yaparsan maçın gol günlüğü, oyuncu istatistikleri ve bu maçtan gelen puanlar sıfırlanacak. Devam edilsin mi?")) return;
@@ -319,7 +331,7 @@
       if (error) throw error;
       saved = true;
       if (uploaded) await removeMedia(oldImage);
-      f.reset(); editor("match", false);
+      setMatchFormMode(); f.reset(); editor("match", false);
       notice(reset ? `Maç sıfırlandı. ${Number(resetData?.goal_events_deleted || 0)} gol kaydı ve ${Number(resetData?.player_stat_rows_deleted || 0)} oyuncu istatistiği silindi.` : "Maç kaydedildi.");
       await refresh();
     } catch (error) {
@@ -388,6 +400,8 @@
     const del = e.target.closest("[data-delete-match]");
     if (edit) {
       const m = matches.find(x => x.id === edit.dataset.editMatch), f = $("match-form");
+      if (!m) { notice("Maç bulunamadı. Listeyi yenileyip tekrar dene."); return; }
+      setMatchFormMode(m.id);
       for (const field of ["id", "opponent", "opponent_image_url", "venue", "our_score", "their_score", "goal_scorers"])
         f.elements.namedItem(field).value = m[field] ?? "";
       f.elements.namedItem("opponent_photo").value = "";
