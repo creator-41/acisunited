@@ -81,7 +81,7 @@
   function setMatchFormMode(matchId = null) {
     const form = $("match-form");
     editingMatchId = matchId || null;
-    matchGoalRoster = [];
+    matchGoalRoster = editingMatchId ? [] : players.filter(p => p.active).map(p => ({...p, role:""}));
     matchHasSpecificLineup = false;
     form.dataset.mode = editingMatchId ? "edit" : "create";
     form.elements.namedItem("id").value = editingMatchId || "";
@@ -388,8 +388,8 @@
     if (played && (!formValue(f, "our_score") || !formValue(f, "their_score"))) {
       notice("Oynanan maçın iki skorunu da gir."); return;
     }
-    const goalEvents = played && id ? selectedMatchGoalEvents() : [];
-    if (played && id && Number(formValue(f, "our_score")) > 0) {
+    const goalEvents = played ? selectedMatchGoalEvents() : [];
+    if (played && Number(formValue(f, "our_score")) > 0) {
       if (!matchGoalRoster.length) {
         notice("Önce bu maçın kadrosunu Maç Kadrosu sekmesinden kaydet, sonra golcüleri seç."); return;
       }
@@ -425,13 +425,19 @@
         if (error) throw error;
         resetData = data;
       }
-      const { error } = id ? await db.from("acisu_matches").update(payload).eq("id", id)
-        : await db.from("acisu_matches").insert(payload);
-      if (error) throw error;
+      let savedMatchId = id;
+      if (id) {
+        const { error } = await db.from("acisu_matches").update(payload).eq("id", id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await db.from("acisu_matches").insert(payload).select("id").single();
+        if (error) throw error;
+        savedMatchId = data.id;
+      }
       saved = true;
-      if (id && played) {
+      if (savedMatchId && played) {
         const { error: creditError } = await db.rpc("acisu_save_match_goal_events", {
-          p_match_id: id, p_goal_events: goalEvents
+          p_match_id: savedMatchId, p_goal_events: goalEvents
         });
         if (creditError) {
           notice("Maç bilgisi kaydedildi ama gol/asist bağlantıları kaydedilemedi: " + creditError.message);
