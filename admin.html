@@ -3,72 +3,143 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#120e10">
   <title>Acısu United | Yönetim</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={theme:{extend:{colors:{bordo:"#5c1a21",altin:"#c1a57b"},fontFamily:{sans:["Montserrat","sans-serif"],baslik:["Oswald","sans-serif"]}}}}</script>
-  <style>body{background:#0a0a0a;color:#fff}input,select,textarea{background:#191315!important;border:1px solid #75545a!important;border-radius:8px;padding:10px;color:white;width:100%}button{cursor:pointer}label{display:block;margin:8px 0;font-size:.9rem}.panel{background:#171013;border:1px solid #624147;border-radius:16px;padding:20px;margin-bottom:22px}.action{background:#5c1a21;padding:10px 16px;border-radius:8px;font-weight:700}.action:hover{background:#7a2933}.muted{color:#c9b8bb}</style>
+  <style>
+    body{background:#100d0f;color:#f5efec}
+    [hidden]{display:none!important}
+    .surface{background:#1c1619;border:1px solid #49353a;border-radius:20px;box-shadow:0 14px 40px #0002}
+    .field{display:block;font-size:.77rem;font-weight:700;color:#c9b8bb;letter-spacing:.03em}
+    .field input,.field select{display:block;width:100%;margin-top:8px;background:#120e10;border:1px solid #644b52;border-radius:10px;padding:12px;color:#fff;min-height:46px;font-size:.9rem;font-weight:500;letter-spacing:normal}
+    .field input:focus,.field select:focus{outline:2px solid #c1a57b;outline-offset:1px;border-color:#c1a57b}
+    input[type=checkbox]{accent-color:#c1a57b;width:18px;height:18px}
+    .action{background:#8a343e;color:white;padding:12px 19px;border-radius:10px;font-size:.85rem;font-weight:700;transition:background .2s}
+    .action:hover{background:#a64751}
+    .action:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #d5b98b;outline-offset:3px}
+    .outline-action{border:1px solid #795c63;border-radius:10px;padding:11px 17px;font-size:.85rem;font-weight:700;color:#e7d8d5}
+    .outline-action:hover{background:#3a272c}
+    .tab{position:relative;flex:none;display:flex;align-items:center;gap:11px;border:1px solid transparent;border-radius:11px;padding:13px 16px;color:#c4b5b7;font-weight:700;font-size:.84rem;white-space:nowrap;transition:background .2s,color .2s}
+    .tab:hover{background:#38262b;color:#fff}
+    .tab[aria-selected=true]{background:#593038;color:#fff;border-color:#846169}
+    .tab[aria-selected=true] .tab-number{background:#c1a57b;color:#1b1213}
+    .tab-number{background:#392c30;border-radius:99px;min-width:24px;padding:3px 7px;text-align:center;font-size:.69rem}
+    .muted{color:#bcaeb0}
+    #notice:not(:empty){position:fixed;z-index:50;top:76px;left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),520px);background:#36272b;border:1px solid #ac8b6d;border-radius:12px;padding:13px 16px;color:#fff;box-shadow:0 14px 35px #0009}
+    .list-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid #ffffff16}
+    .list-row:first-child{border-top:0}
+    .list-actions{display:flex;gap:12px;flex:none;font-size:.77rem;font-weight:700}
+    .list-actions button:first-child{color:#dec49d}
+    .list-actions button:last-child{color:#d8a0a3}
+    .list-actions button:hover{text-decoration:underline}
+    .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:#c1a57b}
+    .lineup-item{background:#211a1d;border:1px solid #48373c;border-radius:12px;padding:12px 14px}
+    @media(max-width:640px){.list-row{align-items:flex-start;flex-direction:column}.list-actions{align-self:flex-end}}
+  </style>
 </head>
-<body class="font-sans">
-  <main class="max-w-5xl mx-auto p-4 md:p-8">
-    <header class="flex justify-between items-center mb-8 gap-3">
-      <h1 class="font-baslik text-3xl text-altin">ACISU UNITED · YÖNETİM</h1>
-      <a href="index.html" class="underline text-sm">Siteye dön</a>
-    </header>
-    <p id="notice" role="status" aria-live="polite" class="mb-4 muted"></p>
-    <form id="login-form" class="panel max-w-md">
-      <h2 class="text-xl font-bold mb-4">Admin girişi</h2>
-      <label>E-posta<input type="email" name="email" required autocomplete="username"></label>
-      <label>Şifre<input type="password" name="password" required autocomplete="current-password"></label>
-      <button class="action mt-3" type="submit">Giriş yap</button>
+<body class="font-sans min-h-screen">
+  <header class="border-b border-white/10 bg-[#181114]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-bordo border border-altin/50 grid place-items-center text-altin font-baslik text-xl">AU</div>
+        <div><div class="font-baslik text-xl sm:text-2xl tracking-wide leading-none">ACISU UNITED</div><div class="eyebrow mt-1">Yönetim merkezi</div></div>
+      </div>
+      <div class="flex items-center gap-4 text-xs sm:text-sm font-semibold">
+        <a href="index.html" class="text-altin hover:text-white">← Siteyi görüntüle</a>
+        <button id="logout" type="button" class="text-[#d7c6c8] hover:text-white" hidden>Çıkış yap</button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-7 sm:py-10">
+    <p id="notice" role="status" aria-live="polite" class="muted text-sm mb-5 empty:hidden"></p>
+    <form id="login-form" class="surface max-w-md mx-auto p-6 sm:p-8" hidden>
+      <p class="eyebrow mb-2">Yetkili erişimi</p>
+      <h1 class="font-baslik text-3xl mb-2">Admin girişi</h1>
+      <p class="muted text-sm mb-6">Takım içeriklerini yönetmek için giriş yap.</p>
+      <div class="space-y-4">
+        <label class="field">E-posta<input type="email" name="email" required autocomplete="username"></label>
+        <label class="field">Şifre<input type="password" name="password" required autocomplete="current-password"></label>
+      </div>
+      <button class="action mt-6 w-full" type="submit">Giriş yap</button>
     </form>
     <div id="dashboard" hidden>
-      <button id="logout" class="underline mb-6">Çıkış yap</button>
-      <section class="panel">
-        <h2 class="font-baslik text-2xl text-altin mb-3">Oyuncular</h2>
-        <form id="player-form" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input type="hidden" name="id">
-          <label>Adı<input name="name" maxlength="100" required></label>
-          <label>Forma no<input name="number" type="number" min="0" max="99" required></label>
-          <label>Pozisyon<input name="position" maxlength="20" required></label>
-          <label>Fotoğraf dosyası / HTTPS URL<input name="image_url" maxlength="500" placeholder="oyuncu.png"></label>
-          <label>Genel<input name="rating" type="number" min="0" max="99" value="70" required></label>
-          <label>Hız<input name="pace" type="number" min="0" max="99" value="70" required></label>
-          <label>Pas<input name="passing" type="number" min="0" max="99" value="70" required></label>
-          <label>Defans<input name="defense" type="number" min="0" max="99" value="70" required></label>
-          <label class="flex items-center gap-2"><input name="active" type="checkbox" checked class="!w-auto"> Sitede göster</label>
-          <div class="flex items-end gap-3"><button class="action" type="submit">Oyuncuyu kaydet</button><button type="reset" class="underline">Temizle</button></div>
-        </form>
-        <div id="players-list" class="mt-5"></div>
+      <div class="mb-7">
+        <p class="eyebrow mb-2">Kulüp yönetimi</p>
+        <h1 class="font-baslik text-3xl sm:text-4xl tracking-wide">İçerik paneli</h1>
+        <p class="muted text-sm mt-2">Oyuncuları, maç sonuçlarını ve maç kadrosunu ayrı sekmelerden yönet.</p>
+      </div>
+      <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 overflow-x-auto">
+        <div id="admin-tabs" role="tablist" aria-label="Yönetim bölümleri" class="flex gap-1 min-w-max">
+          <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="true" tabindex="0" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
+          <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
+          <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
+        </div>
+      </nav>
+      <section id="tab-players" role="tabpanel" aria-labelledby="tab-button-players">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+          <div><p class="eyebrow mb-1">Takım</p><h2 class="font-baslik text-3xl">Oyuncular</h2><p class="muted text-sm mt-1">Oyuncu bilgilerini ve sitede görünürlüğünü düzenle.</p></div>
+          <button type="button" class="action" data-open-form="player">+ Oyuncu ekle</button>
+        </div>
+        <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(340px,410px)] gap-5 items-start">
+          <div class="surface p-5 sm:p-6"><div class="flex justify-between items-center mb-3"><h3 class="font-baslik text-xl">Oyuncu listesi</h3><span class="muted text-xs">Düzenle veya sil</span></div><div id="players-list" class="text-sm"></div></div>
+          <div id="player-editor" class="surface p-5 sm:p-6" hidden>
+            <div class="flex justify-between items-center mb-5"><h3 id="player-form-title" class="font-baslik text-xl">Yeni oyuncu</h3><button class="muted hover:text-white text-xl leading-none" type="button" data-close-form="player" aria-label="Oyuncu formunu kapat">×</button></div>
+            <form id="player-form" class="grid sm:grid-cols-2 gap-4">
+              <input type="hidden" name="id">
+              <label class="field sm:col-span-2">Adı<input name="name" maxlength="100" required></label>
+              <label class="field">Forma no<input name="number" type="number" min="0" max="99" required></label>
+              <label class="field">Pozisyon<input name="position" maxlength="20" required></label>
+              <label class="field sm:col-span-2">Fotoğraf dosyası / HTTPS URL<input name="image_url" maxlength="500" placeholder="oyuncu.png"></label>
+              <label class="field">Genel<input name="rating" type="number" min="0" max="99" value="70" required></label>
+              <label class="field">Hız<input name="pace" type="number" min="0" max="99" value="70" required></label>
+              <label class="field">Pas<input name="passing" type="number" min="0" max="99" value="70" required></label>
+              <label class="field">Defans<input name="defense" type="number" min="0" max="99" value="70" required></label>
+              <label class="sm:col-span-2 flex items-center gap-2 text-sm"><input name="active" type="checkbox" checked> Sitede göster</label>
+              <div class="sm:col-span-2 flex flex-wrap gap-3"><button class="action" type="submit">Oyuncuyu kaydet</button><button type="reset" class="outline-action">Temizle</button></div>
+            </form>
+          </div>
+        </div>
       </section>
-      <section class="panel">
-        <h2 class="font-baslik text-2xl text-altin mb-3">Maçlar ve sonuçlar</h2>
-        <form id="match-form" class="grid sm:grid-cols-2 gap-3">
-          <input type="hidden" name="id">
-          <label>Rakip<input name="opponent" maxlength="100" required></label>
-          <label>Tarih ve saat<input name="match_at" type="datetime-local" required></label>
-          <label>Saha<input name="venue" maxlength="150"></label>
-          <label>Ev/deplasman<select name="home"><option value="true">Ev sahibi</option><option value="false">Deplasman</option></select></label>
-          <label class="flex items-center gap-2"><input name="played" type="checkbox" class="!w-auto"> Maç oynandı</label>
-          <label class="flex items-center gap-2"><input name="published" type="checkbox" checked class="!w-auto"> Sitede yayımla</label>
-          <label>Bizim skor<input name="our_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
-          <label>Rakip skor<input name="their_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
-          <label class="sm:col-span-2">Gol atanlar<input name="goal_scorers" maxlength="500" placeholder="Örn. Hamza 2, Yasir 1"></label>
-          <div class="flex items-end gap-3"><button class="action" type="submit">Maçı kaydet</button><button type="reset" class="underline">Temizle</button></div>
-        </form>
-        <div id="matches-list" class="mt-5"></div>
+      <section id="tab-matches" role="tabpanel" aria-labelledby="tab-button-matches" hidden>
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+          <div><p class="eyebrow mb-1">Fikstür</p><h2 class="font-baslik text-3xl">Maçlar ve sonuçlar</h2><p class="muted text-sm mt-1">Yaklaşan maçları ve oynanan maçların skorlarını yönet.</p></div>
+          <button type="button" class="action" data-open-form="match">+ Maç ekle</button>
+        </div>
+        <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(340px,410px)] gap-5 items-start">
+          <div class="surface p-5 sm:p-6"><div class="flex justify-between items-center mb-3"><h3 class="font-baslik text-xl">Maç listesi</h3><span class="muted text-xs">Düzenle veya sil</span></div><div id="matches-list" class="text-sm"></div></div>
+          <div id="match-editor" class="surface p-5 sm:p-6" hidden>
+            <div class="flex justify-between items-center mb-5"><h3 id="match-form-title" class="font-baslik text-xl">Yeni maç</h3><button class="muted hover:text-white text-xl leading-none" type="button" data-close-form="match" aria-label="Maç formunu kapat">×</button></div>
+            <form id="match-form" class="grid sm:grid-cols-2 gap-4">
+              <input type="hidden" name="id">
+              <label class="field sm:col-span-2">Rakip<input name="opponent" maxlength="100" required></label>
+              <label class="field sm:col-span-2">Tarih ve saat<input name="match_at" type="datetime-local" required></label>
+              <label class="field sm:col-span-2">Saha<input name="venue" maxlength="150"></label>
+              <label class="field sm:col-span-2">Ev/deplasman<select name="home"><option value="true">Ev sahibi</option><option value="false">Deplasman</option></select></label>
+              <label class="flex items-center gap-2 text-sm"><input name="played" type="checkbox"> Maç oynandı</label>
+              <label class="flex items-center gap-2 text-sm"><input name="published" type="checkbox" checked> Sitede yayımla</label>
+              <label class="field">Bizim skor<input name="our_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
+              <label class="field">Rakip skor<input name="their_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
+              <label class="field sm:col-span-2">Gol atanlar<input name="goal_scorers" maxlength="500" placeholder="Örn. Hamza 2, Yasir 1"></label>
+              <div class="sm:col-span-2 flex flex-wrap gap-3"><button class="action" type="submit">Maçı kaydet</button><button type="reset" class="outline-action">Temizle</button></div>
+            </form>
+          </div>
+        </div>
       </section>
-      <section class="panel">
-        <h2 class="font-baslik text-2xl text-altin mb-3">Maç kadrosu</h2>
-        <label>Maç seç<select id="lineup-match"></select></label>
-        <p class="muted text-sm my-3">Her oyuncu için ilk kadro, yedek veya kadro dışı seç. Site, yaklaşan ilk maçın kadrosunu gösterir.</p>
-        <div id="lineup-players" class="grid sm:grid-cols-2 gap-2"></div>
-        <button id="save-lineup" class="action mt-4">Kadroyu kaydet</button>
+      <section id="tab-lineup" role="tabpanel" aria-labelledby="tab-button-lineup" hidden>
+        <div class="mb-5"><p class="eyebrow mb-1">Maç günü</p><h2 class="font-baslik text-3xl">Maç kadrosu</h2><p class="muted text-sm mt-1">Maçı seç, oyuncuların rollerini belirle ve kadroyu kaydet.</p></div>
+        <div class="surface p-5 sm:p-7 max-w-4xl">
+          <label class="field max-w-lg">Maç seç<select id="lineup-match"></select></label>
+          <p class="muted text-sm my-5">İlk kadro, yedek veya kadro dışı seç. Site, yaklaşan ilk maçın kadrosunu gösterir.</p>
+          <div id="lineup-players" class="grid sm:grid-cols-2 gap-3"></div>
+          <button id="save-lineup" type="button" class="action mt-6">Kadroyu kaydet</button>
+        </div>
       </section>
     </div>
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-2"></script>
+  <script src="admin.js?v=20260925-3"></script>
 </body>
 </html>
