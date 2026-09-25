@@ -3,7 +3,7 @@
   const key = window.ACISU_SUPABASE_KEY;
   if (!url || !key || !window.supabase) return;
 
-  const db = window.supabase.createClient(url, key);
+  const db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
   const esc = value => String(value ?? "").replace(/[&<>"']/g, ch =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   const safeImage = value => {
