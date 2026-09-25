@@ -91,6 +91,11 @@
         .site-tab[aria-selected="true"]{color:#e5c99a}
         .site-tab[aria-selected="true"] .tab-icon{text-shadow:0 0 12px rgba(229,201,154,.7)}
         .app-status-toast{position:fixed;z-index:90;top:88px;left:12px;right:12px;max-width:520px;margin:auto;text-align:center;pointer-events:none}
+        .install-share-guide{position:fixed;z-index:110;top:calc(8px + env(safe-area-inset-top));left:12px;right:12px;max-width:560px;margin:auto;display:flex;align-items:flex-start;gap:12px;padding:13px 14px;background:#281519;border:1px solid #c1a57b;border-radius:14px;box-shadow:0 12px 34px #000c;color:#fff}
+        .install-share-guide[hidden]{display:none!important}
+        .install-share-guide strong{display:block;color:#e5c99a;font-size:14px}
+        .install-share-guide p{margin:3px 0 0;font-size:12px;line-height:1.45}
+        .install-share-guide button{flex:none;padding:0 5px;color:#eee;font-size:24px;line-height:1}
         .app-prompt{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#211719;border:1px solid rgba(193,165,123,.7);border-radius:14px;box-shadow:0 12px 36px #000b;padding:10px 12px}
         .push-prompt-backdrop{position:fixed;z-index:85;inset:auto 12px calc(88px + env(safe-area-inset-bottom));display:grid;place-items:end center;padding:0;background:transparent;pointer-events:none}
         .push-prompt-backdrop[hidden],.app-prompt[hidden]{display:none!important}
@@ -371,6 +376,10 @@
             <button id="close-install-banner" type="button" aria-label="Kurulum uyarısını kapat" class="p-1 text-gray-300 text-xl">×</button>
         </div>
     </aside>
+    <aside id="install-share-guide" class="install-share-guide" hidden aria-label="Ana ekrana ekleme adımları" role="status">
+        <div class="flex-1"><strong>Şimdi Ana Ekrana Ekle 📲</strong><p>Paylaş menüsünü yukarı kaydırıp <b>“Ana Ekrana Ekle”</b> seçeneğine dokun. Sonra sağ üstten <b>“Ekle”</b>ye bas. Seçenek görünmezse Safari’nin kendi paylaş simgesini kullan.</p></div>
+        <button id="close-install-share-guide" type="button" aria-label="Yönlendirmeyi kapat">×</button>
+    </aside>
     <div id="push-prompt" class="push-prompt-backdrop" hidden>
         <section class="push-prompt-card" role="dialog" aria-modal="true" aria-labelledby="push-prompt-title">
             <button id="close-push-prompt" type="button" aria-label="Bildirim uyarısını kapat" class="absolute right-3 top-2 p-2 text-xl text-gray-300">×</button>
@@ -497,6 +506,6 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260925-8"></script>
-    <script src="site-features.js?v=20260925-11"></script>
+    <script src="site-features.js?v=20260925-12"></script>
 </body>
 </html>
