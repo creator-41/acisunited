@@ -8,6 +8,14 @@
   }).format(new Date(value));
   let scores = new Map(), initialized = false, installPrompt, audio, statusTimer;
   let db = null;
+  const isStandaloneApp = () =>
+    window.matchMedia("(display-mode: standalone)").matches
+    || window.matchMedia("(display-mode: fullscreen)").matches
+    || window.navigator.standalone === true
+    || new URLSearchParams(location.search).get("source") === "pwa";
+  if (isStandaloneApp()) {
+    try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
+  }
   const status = message => {
     const el = $("app-status"); el.textContent = message;
     clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
@@ -116,7 +124,7 @@
     return Uint8Array.from(atob(b64.padEnd(Math.ceil(b64.length/4)*4,"=")),c=>c.charCodeAt(0));
   }
   async function install() {
-    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
+    if (isStandaloneApp()) return;
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (isIOS) {
@@ -140,13 +148,13 @@
   }
   function showInstallPrompt() {
     if (sessionStorage.getItem("acisu_install_prompt_closed") === "1"
-      || window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
+      || localStorage.getItem("acisu_app_installed") === "1" || isStandaloneApp()) return;
     if (/iPhone|iPad/i.test(navigator.userAgent))
       $("install-app-sub").textContent = "Ekle’ye dokun; paylaş ekranından Ana Ekrana Ekle’yi seç.";
     setTimeout(() => { $("install-app-banner").hidden = false; }, 700);
   }
   function maybeShowPushPrompt() {
-    const isInstalled = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    const isInstalled = isStandaloneApp();
     if (!isInstalled || sessionStorage.getItem("acisu_push_prompt_closed") === "1"
       || !window.Notification || Notification.permission !== "default"
       || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
@@ -189,7 +197,10 @@
   $("later-push-prompt").addEventListener("click",closePushPrompt);
   $("accept-push-prompt").addEventListener("click",async()=>{closePushPrompt();await enablePush();updateBell();});
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
-  window.addEventListener("appinstalled",()=>{$("install-app-banner").hidden=true;$("install-share-guide").hidden=true;});
+  window.addEventListener("appinstalled",()=>{
+    try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
+    $("install-app-banner").hidden=true;$("install-share-guide").hidden=true;
+  });
   showInstallPrompt();
   showSiteTab("home", false);
   // Sekmeler ve yükleme düğmesi Supabase hazır olmasa da çalışmalı.
