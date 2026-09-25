@@ -8,8 +8,39 @@
   const dateText = value => new Intl.DateTimeFormat("tr-TR", {
     timeZone: "Europe/Istanbul", day: "2-digit", month: "2-digit", year: "numeric"
   }).format(new Date(value));
-  let scores = new Map(), initialized = false, installPrompt, audio;
-  const status = message => { $("app-status").textContent = message; };
+  let scores = new Map(), initialized = false, installPrompt, audio, statusTimer;
+  const status = message => {
+    const el = $("app-status"); el.textContent = message;
+    clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
+  };
+  const pageIds = {
+    home:["ana-sayfa"], squad:["kadro"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
+    stats:["istatistik"], news:["haberler"], archive:["sezonlar"], community:["instagram","sponsorlar"]
+  };
+  const pageForId = new Map(Object.entries(pageIds).flatMap(([key,ids]) => ids.map(id => [id,key])));
+  for (const [key,ids] of Object.entries(pageIds)) for (const id of ids) {
+    const page = $(id); if (page) { page.dataset.sitePage = key; page.hidden = key !== "home"; }
+  }
+  const footer = document.querySelector("body > footer");
+  if (footer) { footer.dataset.sitePage = "community"; footer.hidden = true; }
+  function showSiteTab(key, scroll = true) {
+    if (!pageIds[key]) return;
+    for (const page of document.querySelectorAll("[data-site-page]")) page.hidden = page.dataset.sitePage !== key;
+    document.querySelectorAll("#site-tabbar [data-site-tab]").forEach(tab =>
+      tab.setAttribute("aria-selected", String(tab.dataset.siteTab === key)));
+    document.getElementById("mobile-menu")?.classList.add("hidden");
+    if (scroll) window.scrollTo({top:0,behavior:"smooth"});
+  }
+  document.querySelectorAll("#site-tabbar [data-site-tab], [data-site-tab]").forEach(button =>
+    button.addEventListener("click", () => showSiteTab(button.dataset.siteTab)));
+  document.querySelectorAll("#navbar a[href^='#']").forEach(link => {
+    link.addEventListener("click", event => {
+      const key = link.dataset.siteTabLink || pageForId.get(link.getAttribute("href").slice(1));
+      if (!key) return;
+      event.preventDefault(); showSiteTab(key);
+    });
+  });
+  window.showAcisuTab = showSiteTab;
 
   async function loadExtras() {
     const [p, s, n, a, m] = await Promise.all([
@@ -87,17 +118,43 @@
     return Uint8Array.from(atob(b64.padEnd(Math.ceil(b64.length/4)*4,"=")),c=>c.charCodeAt(0));
   }
   async function install() {
-    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
-      status("Uygulama zaten yüklü.");return;
-    }
+    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
     if (installPrompt) {
       installPrompt.prompt();const result=await installPrompt.userChoice;
-      status(result.outcome==="accepted"?"Uygulama ekleniyor.":"Kurulum iptal edildi.");
+      if (result.outcome === "accepted") $("install-app-banner").hidden = true;
       installPrompt=null;return;
     }
     status(/iPhone|iPad/i.test(navigator.userAgent)
-      ? "iPhone'da Safari Paylaş menüsünden 'Ana Ekrana Ekle' seç."
+      ? "Safari'de Paylaş → Ana Ekrana Ekle yolunu kullan."
       : "Tarayıcı menüsünden 'Uygulamayı yükle' veya 'Ana ekrana ekle' seç.");
+  }
+  function closeInstallPrompt() {
+    $("install-app-banner").hidden = true;
+    sessionStorage.setItem("acisu_install_prompt_closed", "1");
+  }
+  function closePushPrompt() {
+    $("push-prompt").hidden = true;
+    sessionStorage.setItem("acisu_push_prompt_closed", "1");
+  }
+  function showInstallPrompt() {
+    if (sessionStorage.getItem("acisu_install_prompt_closed") === "1"
+      || window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
+    if (/iPhone|iPad/i.test(navigator.userAgent))
+      $("install-app-sub").textContent = "Safari Paylaş menüsünden Ana Ekrana Ekle.";
+    setTimeout(() => { $("install-app-banner").hidden = false; }, 700);
+  }
+  function maybeShowPushPrompt() {
+    if (sessionStorage.getItem("acisu_push_prompt_closed") === "1"
+      || !window.Notification || Notification.permission !== "default"
+      || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (/iPhone|iPad/i.test(navigator.userAgent)
+      && !window.matchMedia("(display-mode: standalone)").matches && !window.navigator.standalone) return;
+    setTimeout(() => { $("push-prompt").hidden = false; }, 1500);
+  }
+  function updateBell() {
+    const bell = $("enable-push");
+    const dot = bell?.querySelector("span");
+    if (dot && window.Notification?.permission === "granted") dot.hidden = true;
   }
   async function enablePush() {
     if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -123,7 +180,15 @@
   }
   window.addEventListener("beforeinstallprompt", e=>{e.preventDefault();installPrompt=e;});
   $("install-app").addEventListener("click",install);
+  $("close-install-banner").addEventListener("click",closeInstallPrompt);
   $("enable-push").addEventListener("click",enablePush);
+  $("close-push-prompt").addEventListener("click",closePushPrompt);
+  $("later-push-prompt").addEventListener("click",closePushPrompt);
+  $("accept-push-prompt").addEventListener("click",async()=>{closePushPrompt();await enablePush();updateBell();});
+  $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
+  window.addEventListener("appinstalled",()=>{$("install-app-banner").hidden=true;});
+  showInstallPrompt(); maybeShowPushPrompt(); updateBell();
+  showSiteTab("home", false);
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(console.warn);
   loadExtras();
   db.channel("acisu-live-site").on("postgres_changes",
