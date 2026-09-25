@@ -3,7 +3,7 @@
   "name": "Acısu United",
   "short_name": "Acısu",
   "description": "Acısu United maçları, kadro, istatistikler ve haberler",
-  "start_url": "./index.html",
+  "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
   "background_color": "#100d0f",
