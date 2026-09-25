@@ -2,7 +2,7 @@
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(console.warn);
   let promptEvent;
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); promptEvent = e; });
-  document.getElementById("admin-install").addEventListener("click", async () => {
+  document.getElementById("admin-install")?.addEventListener("click", async () => {
     if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
       document.getElementById("notice").textContent = "Yönetim uygulaması zaten yüklü.";return;
     }
