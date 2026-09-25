@@ -159,7 +159,7 @@
                 <div class="w-24 h-1 bg-altin mx-auto"></div>
             </div>
 
-            <div class="bg-siyah border border-bordo/30 rounded-2xl p-6 md:p-10 shadow-[0_0_30px_rgba(92,26,33,0.2)] relative overflow-hidden">
+            <div id="match-fallback" class="bg-siyah border border-bordo/30 rounded-2xl p-6 md:p-10 shadow-[0_0_30px_rgba(92,26,33,0.2)] relative overflow-hidden">
                 <img src="image_09a3ea.png" alt="" class="absolute -right-20 -bottom-20 w-96 opacity-5 pointer-events-none">
                 
                 <div class="text-center mb-6">
@@ -206,6 +206,14 @@
                     </ul>
                 </div>
             </div>
+            <div id="match-list"></div>
+        </div>
+    </section>
+
+    <section id="mac-kadrosu" class="py-16 bg-siyah border-t border-white/5">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="font-baslik text-4xl font-bold uppercase mb-8">Maç <span class="text-altin text-glow-gold">Kadrosu</span></h2>
+            <div id="lineup-content" class="bg-[#1a0a0c] border border-bordo/30 rounded-2xl p-6 text-gray-300">Yaklaşan maç kadrosu henüz paylaşılmadı.</div>
         </div>
     </section>
 
@@ -295,9 +303,11 @@
         </div>
     </footer>
 
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
     <script>
         // Oyuncu listesi ve klasördeki resim yolları
-        const teamSquad = [
+        window.teamSquad = [
             { name: "Mert Ali", number: 1, pos: "KL", ovr: 88, pace: 82, def: 89, pas: 84, img: "mert_ali.png" },
             { name: "Utku", number: 4, pos: "STP", ovr: 85, pace: 78, def: 88, pas: 75, img: "utku.png" },
             { name: "Yasir", number: 7, pos: "OS", ovr: 89, pace: 86, def: 82, pas: 88, img: "yasir.png" },
@@ -316,7 +326,7 @@
         function renderSquad() {
             const container = document.getElementById('squad-container');
             container.innerHTML = '';
-            teamSquad.forEach(player => {
+            window.teamSquad.forEach(player => {
                 const card = document.createElement('div');
                 card.className = "fifa-card p-5 relative overflow-hidden group flex flex-col justify-between";
                 card.innerHTML = `
@@ -415,5 +425,7 @@
             renderCoach();
         };
     </script>
+    <script src="site-data.js"></script>
 </body>
 </html>
+
