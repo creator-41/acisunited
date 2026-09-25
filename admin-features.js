@@ -122,8 +122,11 @@
     const own = Number(match.our_score), rival = Number(match.their_score);
     const title = own > rival ? `Acısu United, ${match.opponent} karşısında galip!` :
       own < rival ? `Acısu United - ${match.opponent} maçında son düdük` : `Acısu United ile ${match.opponent} berabere kaldı`;
-    const scorers = stats.filter(s => s.match_id === match.id && s.goals > 0)
-      .map(s => `${playerName(s.player_id)} (${s.goals})`).join(", ");
+    const matchScorers = stats.filter(s => s.match_id === match.id && s.goals > 0);
+    const statsGoalTotal = matchScorers.reduce((total, s) => total + Number(s.goals || 0), 0);
+    const scorers = statsGoalTotal === own
+      ? matchScorers.map(s => `${playerName(s.player_id)} (${s.goals})`).join(", ")
+      : "";
     const body = `Acısu United, ${match.opponent} ile oynadığı maçı ${own}-${rival} tamamladı.${scorers ? " Goller: " + scorers + "." : match.goal_scorers ? " Goller: " + match.goal_scorers + "." : ""}`;
     const previous = news.find(n => n.match_id === match.id && n.auto_generated);
     const payload = {title,body,match_id:match.id,published:true,auto_generated:true};
