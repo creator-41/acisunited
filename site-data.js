@@ -69,24 +69,24 @@
       </article>`;
     }).join("") : '<p class="text-center text-gray-300">Henüz maç eklenmedi.</p>';
 
-    const next = [...matches].filter(m => !m.played).sort((a, b) =>
-      new Date(a.match_at) - new Date(b.match_at))[0];
     const lineupBox = document.getElementById("lineup-content");
-    if (!next) {
-      lineupBox.textContent = "Yaklaşan maç kadrosu henüz paylaşılmadı.";
-      return;
-    }
-    const { data: lineup, error } = await db.from("acisu_match_lineup")
-      .select("role, player:acisu_players(name, number)")
-      .eq("match_id", next.id);
+    const { data: allLineup, error } = await db.from("acisu_match_lineup")
+      .select("match_id, role, player:acisu_players(name, number)");
     if (error) {
       lineupBox.textContent = "Maç kadrosu yüklenemedi.";
       return;
     }
-    if (!lineup?.length) {
-      lineupBox.textContent = "Yaklaşan maç kadrosu henüz paylaşılmadı.";
+    const withLineup = new Set((allLineup || []).map(x => x.match_id));
+    const candidates = matches.filter(m => withLineup.has(m.id));
+    const upcoming = candidates.filter(m => new Date(m.match_at) >= new Date())
+      .sort((a, b) => new Date(a.match_at) - new Date(b.match_at));
+    const next = upcoming[0] || candidates.sort((a, b) =>
+      new Date(b.match_at) - new Date(a.match_at))[0];
+    if (!next) {
+      lineupBox.textContent = "Maç kadrosu henüz paylaşılmadı.";
       return;
     }
+    const lineup = allLineup.filter(x => x.match_id === next.id);
     const group = role => lineup.filter(x => x.role === role && x.player)
       .sort((a, b) => a.player.number - b.player.number)
       .map(x => `<li class="py-2 border-b border-white/10">#${x.player.number} ${esc(x.player.name)}</li>`).join("");
