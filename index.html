@@ -91,11 +91,19 @@
         .site-tab[aria-selected="true"]{color:#e5c99a}
         .site-tab[aria-selected="true"] .tab-icon{text-shadow:0 0 12px rgba(229,201,154,.7)}
         .app-status-toast{position:fixed;z-index:90;top:88px;left:12px;right:12px;max-width:520px;margin:auto;text-align:center;pointer-events:none}
-        .install-share-guide{position:fixed;z-index:110;top:calc(8px + env(safe-area-inset-top));left:12px;right:12px;max-width:560px;margin:auto;display:flex;align-items:flex-start;gap:12px;padding:13px 14px;background:#281519;border:1px solid #c1a57b;border-radius:14px;box-shadow:0 12px 34px #000c;color:#fff}
+        .install-share-guide{position:fixed;z-index:110;inset:0;background:rgba(3,3,3,.76);padding:calc(20px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));display:flex;align-items:flex-start;justify-content:center;backdrop-filter:blur(4px)}
         .install-share-guide[hidden]{display:none!important}
-        .install-share-guide strong{display:block;color:#e5c99a;font-size:14px}
-        .install-share-guide p{margin:3px 0 0;font-size:12px;line-height:1.45}
-        .install-share-guide button{flex:none;padding:0 5px;color:#eee;font-size:24px;line-height:1}
+        .install-guide-card{position:relative;overflow:hidden;width:min(100%,560px);background:linear-gradient(145deg,#241316 0%,#0d0a0b 70%);color:#fff;border:1px solid rgba(193,165,123,.75);border-radius:22px;box-shadow:0 18px 48px #000c,0 0 28px rgba(92,26,33,.4);padding:27px 20px 21px;text-align:center}
+        .install-guide-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#5c1a21,#c1a57b,#5c1a21)}
+        .install-guide-card h2{margin:0 0 21px;color:#e5c99a;font-family:Oswald,sans-serif;font-size:clamp(25px,6vw,35px);font-weight:700;line-height:1.15;letter-spacing:.02em}
+        .install-guide-card p{margin:0 auto 19px;max-width:480px;color:#e7e2df;font-size:clamp(16px,4.2vw,21px);line-height:1.4}
+        .install-guide-card strong{color:#e5c99a}
+        .install-guide-card button{width:min(100%,360px);margin-top:3px;border:1px solid #c1a57b;border-radius:999px;background:linear-gradient(135deg,#751f29,#4b151b);color:#fff;padding:13px 20px;font-size:16px;font-weight:800;box-shadow:0 8px 20px #0007}
+        .install-share-pointer{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));width:92px;height:118px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(229,201,154,.95)) drop-shadow(0 0 22px rgba(92,26,33,.9));animation:sharePointer 1.05s ease-in-out infinite}
+        .install-share-pointer::before{content:"";position:absolute;left:40px;top:6px;width:12px;height:66px;border-radius:8px;background:linear-gradient(#fff1c9,#c1a57b);box-shadow:0 0 14px rgba(229,201,154,.9)}
+        .install-share-pointer::after{content:"";position:absolute;left:22px;bottom:17px;width:48px;height:48px;border-right:12px solid #c1a57b;border-bottom:12px solid #c1a57b;border-radius:5px;transform:rotate(45deg);box-shadow:7px 7px 8px rgba(92,26,33,.72)}
+        @keyframes sharePointer{0%,100%{transform:translate(-50%,0) scale(.96);opacity:.88}50%{transform:translate(-50%,13px) scale(1.05);opacity:1}}
+        @media(prefers-reduced-motion:reduce){.install-share-pointer{animation:none}}
         .app-prompt{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#211719;border:1px solid rgba(193,165,123,.7);border-radius:14px;box-shadow:0 12px 36px #000b;padding:10px 12px}
         .push-prompt-backdrop{position:fixed;z-index:85;inset:auto 12px calc(88px + env(safe-area-inset-bottom));display:grid;place-items:end center;padding:0;background:transparent;pointer-events:none}
         .push-prompt-backdrop[hidden],.app-prompt[hidden]{display:none!important}
@@ -376,9 +384,14 @@
             <button id="close-install-banner" type="button" aria-label="Kurulum uyarısını kapat" class="p-1 text-gray-300 text-xl">×</button>
         </div>
     </aside>
-    <aside id="install-share-guide" class="install-share-guide" hidden aria-label="Ana ekrana ekleme adımları" role="status">
-        <div class="flex-1"><strong>Şimdi Ana Ekrana Ekle 📲</strong><p>Paylaş menüsünü yukarı kaydırıp <b>“Ana Ekrana Ekle”</b> seçeneğine dokun. Sonra sağ üstten <b>“Ekle”</b>ye bas. Seçenek görünmezse Safari’nin kendi paylaş simgesini kullan.</p></div>
-        <button id="close-install-share-guide" type="button" aria-label="Yönlendirmeyi kapat">×</button>
+    <aside id="install-share-guide" class="install-share-guide" hidden role="dialog" aria-modal="true" aria-labelledby="install-guide-title">
+        <section class="install-guide-card">
+            <h2 id="install-guide-title">Ana Ekrana Nasıl Eklenir?</h2>
+            <p>1. Ekranın altındaki <strong>Paylaş (📤)</strong> butonuna dokun.</p>
+            <p>2. Açılan menüde aşağı kaydırıp <strong>“Ana Ekrana Ekle”</strong> seçeneğine dokun. Sonraki ekranda <strong>“Ekle”</strong>ye bas.</p>
+            <button id="close-install-share-guide" type="button">Tamam, Anladım</button>
+        </section>
+        <div class="install-share-pointer" aria-hidden="true"></div>
     </aside>
     <div id="push-prompt" class="push-prompt-backdrop" hidden>
         <section class="push-prompt-card" role="dialog" aria-modal="true" aria-labelledby="push-prompt-title">
@@ -506,6 +519,6 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260925-8"></script>
-    <script src="site-features.js?v=20260925-12"></script>
+    <script src="site-features.js?v=20260925-13"></script>
 </body>
 </html>
