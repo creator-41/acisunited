@@ -175,7 +175,12 @@
               <label class="flex items-center gap-2 text-sm"><input name="published" type="checkbox" checked> Sitede yayımla</label>
               <label class="field">Bizim skor<input name="our_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
               <label class="field">Rakip skor<input name="their_score" type="number" min="0" max="99" placeholder="Oynandıysa gir"></label>
-              <label class="field sm:col-span-2">Gol atanlar<input name="goal_scorers" maxlength="500" placeholder="Örn. Hamza 2, Yasir 1"></label>
+              <input type="hidden" name="goal_scorers">
+              <div class="sm:col-span-2 rounded-xl border border-white/10 bg-black/20 p-4">
+                <h4 class="font-semibold text-altin mb-1">Goller ve asistler</h4>
+                <p id="match-goal-assignment-hint" class="muted text-xs mb-3">Önce bu maçın kadrosunu Maç Kadrosu sekmesinden kaydet.</p>
+                <div id="match-goal-assignments" class="space-y-3"></div>
+              </div>
               <div class="sm:col-span-2 flex flex-wrap gap-3"><button class="action" type="submit">Maçı kaydet</button><button type="reset" class="outline-action">Temizle</button></div>
             </form>
           </div>
@@ -256,7 +261,7 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-9"></script>
+  <script src="admin.js?v=20260925-10"></script>
   <script src="admin-features.js?v=20260925-3"></script>
   <script src="admin-pwa.js?v=20260925-2"></script>
 </body>
