@@ -152,7 +152,7 @@
     if (sessionStorage.getItem("acisu_install_prompt_closed") === "1"
       || window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) return;
     if (/iPhone|iPad/i.test(navigator.userAgent))
-      $("install-app-sub").textContent = "Safari Paylaş menüsünden Ana Ekrana Ekle.";
+      $("install-app-sub").textContent = "Ekle’ye dokun; paylaş ekranından Ana Ekrana Ekle’yi seç.";
     setTimeout(() => { $("install-app-banner").hidden = false; }, 700);
   }
   function maybeShowPushPrompt() {
