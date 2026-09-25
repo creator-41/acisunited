@@ -45,7 +45,7 @@
           <div class="w-20 h-20 rounded-full bg-yellow-900/20 border border-yellow-700/30 flex items-center justify-center mb-4">
             <span class="font-baslik text-sm text-yellow-600 text-center break-words px-1">${esc(m.opponent)}</span>
           </div><h3 class="font-baslik text-2xl font-bold text-gray-400 text-center">${esc(m.opponent)}</h3></div>`;
-      const score = m.played
+      const score = m.played || m.is_live
         ? `<div class="bg-siyah border-2 border-white/10 px-8 py-4 rounded-xl flex items-center gap-4 shadow-inner">
              <span class="font-baslik text-5xl font-bold text-white">${m.home ? m.our_score : m.their_score}</span>
              <span class="text-gray-500 text-2xl">-</span>
@@ -55,7 +55,7 @@
       return `<article class="bg-siyah border border-bordo/30 rounded-2xl p-6 md:p-10 mb-5 shadow-[0_0_30px_rgba(92,26,33,0.2)] relative overflow-hidden">
         <img src="image_09a3ea.png" alt="" class="absolute -right-20 -bottom-20 w-96 opacity-5 pointer-events-none">
         <div class="text-center mb-6 relative">
-          <span class="bg-bordo text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">${m.played ? "Maç Sonucu" : "Yaklaşan Maç"}</span>
+          <span class="${m.is_live ? "bg-red-600 live-pulse" : "bg-bordo"} text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">${m.is_live ? "🔴 CANLI" : m.played ? "Maç Sonucu" : "Yaklaşan Maç"}</span>
           <p class="text-gray-400 text-sm mt-3">${esc(m.venue)} · ${esc(dateText(m.match_at, m.time_confirmed))}</p>
         </div>
         <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative">
@@ -96,5 +96,6 @@
         <div><h4 class="font-bold mb-2">Yedekler</h4><ul>${group("yedek") || "Henüz seçilmedi"}</ul></div>
       </div>`;
   }
+  window.acisuReloadSite = load;
   load();
 })();
