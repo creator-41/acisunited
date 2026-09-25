@@ -95,12 +95,16 @@
     players = p.data || []; matches = m.data || [];
     $("player-count").textContent = players.length;
     $("match-count").textContent = matches.length;
+    $("stat-players").textContent = players.filter(x => x.active).length;
+    $("stat-matches").textContent = matches.length;
+    $("stat-played").textContent = matches.filter(x => x.played).length;
+    $("stat-live").textContent = matches.filter(x => x.is_live).length;
     $("players-list").innerHTML = players.map(x => `<div class="list-row">
       <span><strong class="text-white">#${x.number} ${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.position)} ${x.active ? "" : "· Gizli"}</span></span>
       <span class="list-actions"><button data-edit-player="${x.id}" type="button">Düzenle</button>
       <button data-delete-player="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz oyuncu yok. Oyuncu ekle düğmesiyle başla.</p>';
     $("matches-list").innerHTML = matches.map(x => `<div class="list-row">
-      <span><strong class="text-white">${escapeHtml(x.opponent)}</strong><span class="block muted text-xs mt-1">${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span></span>
+      <span><strong class="text-white">${escapeHtml(x.opponent)}</strong><span class="block muted text-xs mt-1">${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${x.is_live ? `🔴 CANLI ${x.our_score}-${x.their_score}` : x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span></span>
       <span class="list-actions"><button data-edit-match="${x.id}" type="button">Düzenle</button>
       <button data-delete-match="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz maç yok. Maç ekle düğmesiyle başla.</p>';
     const selectedMatch = $("lineup-match").value;
@@ -111,6 +115,7 @@
     }));
     if (matches.some(x => x.id === selectedMatch)) $("lineup-match").value = selectedMatch;
     await showLineup();
+    window.dispatchEvent(new Event("acisu:refreshed"));
   }
   async function showLineup() {
     const matchId = $("lineup-match").value;
@@ -204,6 +209,9 @@
   });
   $("match-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
+    if (matches.some(x => x.id === formValue(f, "id") && x.is_live)) {
+      notice("Canlı maçın skorunu Canlı Maç sekmesinden yönet."); return;
+    }
     const played = f.elements.namedItem("played").checked;
     if (played && (!formValue(f, "our_score") || !formValue(f, "their_score"))) {
       notice("Oynanan maçın iki skorunu da gir."); return;
@@ -211,7 +219,7 @@
     const payload = {
       opponent: formValue(f, "opponent"), match_at: toIso(formValue(f, "match_at")), time_confirmed: true,
       venue: formValue(f, "venue"), home: formValue(f, "home") === "true",
-      played, published: f.elements.namedItem("published").checked,
+      played, is_live: false, published: f.elements.namedItem("published").checked,
       our_score: played ? Number(formValue(f, "our_score")) : null,
       their_score: played ? Number(formValue(f, "their_score")) : null,
       goal_scorers: played ? formValue(f, "goal_scorers") : ""
@@ -276,5 +284,8 @@
       notice(error ? error.message : "Maç silindi."); if (!error) await refresh();
     }
   });
+  window.acisuAdmin = { db, getPlayers: () => players, getMatches: () => matches,
+    refresh, notice, activateTab, escapeHtml };
+  activateTab("overview");
   boot();
 })();
