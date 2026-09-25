@@ -54,7 +54,7 @@
     }]));
     if (initialized && [...current].some(([id, value]) => {
       const old = scores.get(id);
-      return old?.live && (value.us > old.us || value.them > old.them);
+      return old?.live && value.us > old.us;
     })) goalFx();
     scores=current; initialized=true;
   }
