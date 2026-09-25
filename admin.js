@@ -12,6 +12,29 @@
     return;
   }
   const db = window.supabase.createClient(window.ACISU_SUPABASE_URL, window.ACISU_SUPABASE_KEY);
+  const photoBucket = "acisu-player-photos";
+  const photoTypes = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+  const photoPrefix = `${window.ACISU_SUPABASE_URL}/storage/v1/object/public/${photoBucket}/`;
+  const storedPhotoPath = url => url.startsWith(photoPrefix) ? url.slice(photoPrefix.length) : null;
+  let previewUrl;
+  function showPhoto(src) {
+    const preview = $("photo-preview");
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    preview.hidden = !src;
+    if (src) preview.src = src;
+    else preview.removeAttribute("src");
+  }
+  $("player-form").addEventListener("reset", () => setTimeout(() => showPhoto(""), 0));
+  $("player-form").elements.namedItem("photo").addEventListener("change", e => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(file);
+      $("photo-preview").src = previewUrl;
+      $("photo-preview").hidden = false;
+    } else showPhoto($("player-form").elements.namedItem("image_url").value);
+  });
   let players = [], matches = [];
   const tabs = [...document.querySelectorAll("#admin-tabs [role=tab]")];
   function activateTab(name, focus = false) {
@@ -139,22 +162,45 @@
   $("logout").addEventListener("click", async () => { await db.auth.signOut(); await boot(); notice("Çıkış yapıldı."); });
   $("player-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
-    const image = formValue(f, "image_url");
-    if (image && !/^(?:[a-zA-Z0-9_-]+\.(?:png|jpe?g|webp)|https:\/\/[a-zA-Z0-9.-]+\/[^\s"'<>]*)$/i.test(image)) {
-      notice("Fotoğraf için depodaki dosya adını veya HTTPS adresi gir."); return;
+    const file = f.elements.namedItem("photo").files?.[0];
+    if (file && (!photoTypes[file.type] || file.size > 5 * 1024 * 1024 || !file.size)) {
+      notice("JPG, PNG veya WebP fotoğraf seç; dosya en fazla 5 MB olmalı."); return;
     }
+    const oldImage = formValue(f, "image_url");
     const payload = {
       name: formValue(f, "name"), number: Number(formValue(f, "number")),
-      position: formValue(f, "position"), image_url: image || null,
+      position: formValue(f, "position"), image_url: oldImage || null,
       rating: Number(formValue(f, "rating")), pace: Number(formValue(f, "pace")),
       passing: Number(formValue(f, "passing")), defense: Number(formValue(f, "defense")),
       active: f.elements.namedItem("active").checked
     };
     const id = formValue(f, "id");
-    const { error } = id ? await db.from("acisu_players").update(payload).eq("id", id)
-      : await db.from("acisu_players").insert(payload);
-    if (error) { notice(error.message); return; }
-    f.reset(); editor("player", false); notice("Oyuncu kaydedildi."); await refresh();
+    const submit = f.querySelector('[type="submit"]');
+    submit.disabled = true; submit.textContent = file ? "Fotoğraf yükleniyor…" : "Kaydediliyor…";
+    let uploadedPath, saved = false;
+    try {
+      if (file) {
+        uploadedPath = `${crypto.randomUUID()}.${photoTypes[file.type]}`;
+        const { error: uploadError } = await db.storage.from(photoBucket)
+          .upload(uploadedPath, file, { contentType: file.type, upsert: false });
+        if (uploadError) throw uploadError;
+        payload.image_url = db.storage.from(photoBucket).getPublicUrl(uploadedPath).data.publicUrl;
+      }
+      const { error } = id ? await db.from("acisu_players").update(payload).eq("id", id)
+        : await db.from("acisu_players").insert(payload);
+      if (error) throw error;
+      saved = true;
+      if (uploadedPath && storedPhotoPath(oldImage)) {
+        const { error: cleanupError } = await db.storage.from(photoBucket).remove([storedPhotoPath(oldImage)]);
+        if (cleanupError) console.warn("Eski fotoğraf silinemedi:", cleanupError);
+      }
+      f.reset(); editor("player", false); notice("Oyuncu ve fotoğrafı kaydedildi."); await refresh();
+    } catch (error) {
+      if (!saved && uploadedPath) await db.storage.from(photoBucket).remove([uploadedPath]);
+      notice((saved ? "Oyuncu kaydedildi, liste yenilenemedi: " : "Oyuncu kaydedilemedi: ") + error.message);
+    } finally {
+      submit.disabled = false; submit.textContent = "Oyuncuyu kaydet";
+    }
   });
   $("match-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
@@ -197,11 +243,18 @@
       const p = players.find(x => x.id === edit.dataset.editPlayer), f = $("player-form");
       for (const field of ["id", "name", "number", "position", "image_url", "rating", "pace", "passing", "defense"])
         f.elements.namedItem(field).value = p[field] ?? "";
+      f.elements.namedItem("photo").value = "";
+      showPhoto(p.image_url || "");
       f.elements.namedItem("active").checked = p.active;
       editor("player", true, true); return;
     }
     if (del && confirm("Oyuncu silinsin mi? Maç kadrolarından da kaldırılır.")) {
+      const oldImage = players.find(x => x.id === del.dataset.deletePlayer)?.image_url || "";
       const { error } = await db.from("acisu_players").delete().eq("id", del.dataset.deletePlayer);
+      if (!error && storedPhotoPath(oldImage)) {
+        const { error: cleanupError } = await db.storage.from(photoBucket).remove([storedPhotoPath(oldImage)]);
+        if (cleanupError) console.warn("Oyuncu fotoğrafı silinemedi:", cleanupError);
+      }
       notice(error ? error.message : "Oyuncu silindi."); if (!error) await refresh();
     }
   });
