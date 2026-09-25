@@ -38,17 +38,34 @@
     const fallback = document.getElementById("match-fallback");
     fallback.hidden = true;
     list.innerHTML = matches.length ? matches.map(m => {
+      const ourTeam = `<div class="flex flex-col items-center w-full md:w-1/3">
+          <img src="image_09a3ea.png" alt="Acısu United" class="w-20 h-20 object-contain mb-4">
+          <h3 class="font-baslik text-2xl font-bold text-white text-center">ACISU UNITED</h3></div>`;
+      const opponent = `<div class="flex flex-col items-center w-full md:w-1/3">
+          <div class="w-20 h-20 rounded-full bg-yellow-900/20 border border-yellow-700/30 flex items-center justify-center mb-4">
+            <span class="font-baslik text-sm text-yellow-600 text-center break-words px-1">${esc(m.opponent)}</span>
+          </div><h3 class="font-baslik text-2xl font-bold text-gray-400 text-center">${esc(m.opponent)}</h3></div>`;
       const score = m.played
-        ? `<span class="text-4xl text-white font-bold">${m.our_score} <span class="text-gray-500">-</span> <span class="text-altin">${m.their_score}</span></span>`
-        : '<span class="text-altin font-bold">Yaklaşan Maç</span>';
-      return `<article class="bg-siyah border border-bordo/30 rounded-2xl p-6 mb-5">
-        <p class="text-center text-sm text-gray-300 mb-5">${esc(dateText(m.match_at, m.time_confirmed))} · ${esc(m.venue)}</p>
-        <div class="flex items-center justify-between gap-2 text-center font-baslik text-lg sm:text-2xl">
-          <span class="w-1/3">${m.home ? "ACISU UNITED" : esc(m.opponent)}</span>
-          <span class="w-1/3">${score}</span>
-          <span class="w-1/3">${m.home ? esc(m.opponent) : "ACISU UNITED"}</span>
+        ? `<div class="bg-siyah border-2 border-white/10 px-8 py-4 rounded-xl flex items-center gap-4 shadow-inner">
+             <span class="font-baslik text-5xl font-bold text-white">${m.home ? m.our_score : m.their_score}</span>
+             <span class="text-gray-500 text-2xl">-</span>
+             <span class="font-baslik text-5xl font-bold text-altin">${m.home ? m.their_score : m.our_score}</span>
+           </div>`
+        : '<div class="bg-siyah border-2 border-white/10 px-5 py-4 rounded-xl text-altin font-bold">VS</div>';
+      return `<article class="bg-siyah border border-bordo/30 rounded-2xl p-6 md:p-10 mb-5 shadow-[0_0_30px_rgba(92,26,33,0.2)] relative overflow-hidden">
+        <img src="image_09a3ea.png" alt="" class="absolute -right-20 -bottom-20 w-96 opacity-5 pointer-events-none">
+        <div class="text-center mb-6 relative">
+          <span class="bg-bordo text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">${m.played ? "Maç Sonucu" : "Yaklaşan Maç"}</span>
+          <p class="text-gray-400 text-sm mt-3">${esc(m.venue)} · ${esc(dateText(m.match_at, m.time_confirmed))}</p>
         </div>
-        ${m.played && m.goal_scorers ? `<p class="text-center mt-5 text-sm text-altin">⚽ ${esc(m.goal_scorers)}</p>` : ""}
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative">
+          ${m.home ? ourTeam : opponent}
+          <div class="flex flex-col items-center w-full md:w-1/3">${score}</div>
+          ${m.home ? opponent : ourTeam}
+        </div>
+        ${m.played && m.goal_scorers ? `<div class="mt-10 pt-6 border-t border-white/10 text-center relative">
+          <h4 class="text-altin font-bold text-sm uppercase tracking-widest mb-4">Acısu United Golleri</h4>
+          <p class="text-gray-300">⚽ ${esc(m.goal_scorers)}</p></div>` : ""}
       </article>`;
     }).join("") : '<p class="text-center text-gray-300">Henüz maç eklenmedi.</p>';
 
