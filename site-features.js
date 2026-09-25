@@ -190,7 +190,11 @@
   }
   window.addEventListener("beforeinstallprompt", e=>{e.preventDefault();installPrompt=e;});
   $("install-app").addEventListener("click",install);
-  $("close-install-share-guide").addEventListener("click",()=>{$("install-share-guide").hidden=true;});
+  $("close-install-share-guide").addEventListener("click",()=>{
+    $("install-share-guide").hidden=true;
+    $("install-app-banner").hidden=true;
+    try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
+  });
   $("close-install-banner").addEventListener("click",closeInstallPrompt);
   $("enable-push").addEventListener("click",enablePush);
   $("close-push-prompt").addEventListener("click",closePushPrompt);
