@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#120e10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Acısu Admin">
+  <link rel="manifest" href="admin-manifest.json">
+  <link rel="apple-touch-icon" href="image_09a3ea.png">
   <title>Acısu United | Yönetim</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -47,6 +51,7 @@
         <div><div class="font-baslik text-xl sm:text-2xl tracking-wide leading-none">ACISU UNITED</div><div class="eyebrow mt-1">Yönetim merkezi</div></div>
       </div>
       <div class="flex items-center gap-4 text-xs sm:text-sm font-semibold">
+        <button id="admin-install" type="button" class="text-altin hover:text-white">📲 Uygulamayı yükle</button>
         <a href="index.html" class="text-altin hover:text-white">← Siteyi görüntüle</a>
         <button id="logout" type="button" class="text-[#d7c6c8] hover:text-white" hidden>Çıkış yap</button>
       </div>
@@ -70,14 +75,31 @@
         <h1 class="font-baslik text-3xl sm:text-4xl tracking-wide">İçerik paneli</h1>
         <p class="muted text-sm mt-2">Oyuncuları, maç sonuçlarını ve maç kadrosunu ayrı sekmelerden yönet.</p>
       </div>
-      <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 overflow-x-auto">
+      <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 overflow-x-auto sticky top-2 z-30">
         <div id="admin-tabs" role="tablist" aria-label="Yönetim bölümleri" class="flex gap-1 min-w-max">
-          <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="true" tabindex="0" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
+          <button id="tab-button-overview" class="tab" type="button" role="tab" aria-controls="tab-overview" aria-selected="true" tabindex="0" data-tab="overview">Genel bakış</button>
+          <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="false" tabindex="-1" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
           <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
           <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
+          <button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button>
+          <button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button>
+          <button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button>
+          <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
+          <button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button>
+          <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
         </div>
       </nav>
-      <section id="tab-players" role="tabpanel" aria-labelledby="tab-button-players">
+      <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
+        <p class="eyebrow mb-1">Kulübün durumu</p><h2 class="font-baslik text-3xl mb-5">Genel bakış</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div class="surface p-5"><p class="muted text-xs">Oyuncular</p><strong id="stat-players" class="font-baslik text-3xl text-altin">0</strong></div>
+          <div class="surface p-5"><p class="muted text-xs">Maçlar</p><strong id="stat-matches" class="font-baslik text-3xl text-altin">0</strong></div>
+          <div class="surface p-5"><p class="muted text-xs">Oynanan</p><strong id="stat-played" class="font-baslik text-3xl text-altin">0</strong></div>
+          <div class="surface p-5"><p class="muted text-xs">Canlı</p><strong id="stat-live" class="font-baslik text-3xl text-altin">0</strong></div>
+        </div>
+        <div id="overview-next" class="surface p-5 muted text-sm">Maçlar yükleniyor…</div>
+      </section>
+      <section id="tab-players" role="tabpanel" aria-labelledby="tab-button-players" hidden>
         <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div><p class="eyebrow mb-1">Takım</p><h2 class="font-baslik text-3xl">Oyuncular</h2><p class="muted text-sm mt-1">Oyuncu bilgilerini ve sitede görünürlüğünü düzenle.</p></div>
           <button type="button" class="action" data-open-form="player">+ Oyuncu ekle</button>
@@ -138,10 +160,74 @@
           <button id="save-lineup" type="button" class="action mt-6">Kadroyu kaydet</button>
         </div>
       </section>
+      <section id="tab-live" role="tabpanel" aria-labelledby="tab-button-live" hidden>
+        <p class="eyebrow mb-1">Maç günü</p><h2 class="font-baslik text-3xl mb-5">Canlı maç yönetimi</h2>
+        <div class="surface p-5 sm:p-7 max-w-4xl">
+          <label class="field">Maç seç<select id="live-match"></select></label>
+          <div id="live-panel" class="mt-5"></div>
+        </div>
+      </section>
+      <section id="tab-stats" role="tabpanel" aria-labelledby="tab-button-stats" hidden>
+        <p class="eyebrow mb-1">Oyuncu katkıları</p><h2 class="font-baslik text-3xl mb-5">İstatistikler</h2>
+        <div class="surface p-5 sm:p-7 mb-5">
+          <label class="field mb-4">Maç seç<select id="stats-match"></select></label>
+          <div id="stats-player-list" class="space-y-3"></div>
+        </div>
+      </section>
+      <section id="tab-points" role="tabpanel" aria-labelledby="tab-button-points" hidden>
+        <p class="eyebrow mb-1">Sezon performansı</p><h2 class="font-baslik text-3xl mb-2">Puan hesaplama</h2>
+        <p class="muted text-sm mb-5">Oynama +2 · Gol +5 · Asist +2 · Sarı kart -1 · Kırmızı kart -3</p>
+        <div id="points-list" class="surface p-5 sm:p-7"></div>
+      </section>
+      <section id="tab-news" role="tabpanel" aria-labelledby="tab-button-news" hidden>
+        <p class="eyebrow mb-1">Kulüp haberleri</p><h2 class="font-baslik text-3xl mb-5">Haberler</h2>
+        <div class="grid lg:grid-cols-2 gap-5 items-start">
+          <div class="surface p-5 sm:p-7">
+            <h3 id="news-form-title" class="font-baslik text-xl mb-4">Haber oluştur</h3>
+            <form id="news-form" class="space-y-4">
+              <input type="hidden" name="id">
+              <label class="field">Başlık<input name="title" maxlength="180" required></label>
+              <label class="field">Haber metni<textarea name="body" maxlength="1500" rows="5" required class="mt-2 w-full bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"></textarea></label>
+              <label class="field">Bağlı maç (isteğe bağlı)<select id="news-match" name="match_id"></select></label>
+              <label class="flex items-center gap-2 text-sm"><input name="published" type="checkbox" checked> Sitede yayımla</label>
+              <div class="flex flex-wrap gap-3"><button class="action" type="submit">Haberi kaydet</button><button class="outline-action" type="reset">Yeni haber</button></div>
+            </form>
+            <div class="border-t border-white/10 mt-6 pt-5"><p class="muted text-sm mb-3">Maç sonucundan haber taslağı üret:</p><div class="flex flex-col sm:flex-row gap-2"><select id="auto-news-match" class="bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white flex-1"></select><button id="generate-news" class="outline-action" type="button">✨ Manşet üret</button></div></div>
+          </div>
+          <div class="surface p-5 sm:p-7"><h3 class="font-baslik text-xl mb-3">Haber listesi</h3><div id="news-list"></div></div>
+        </div>
+      </section>
+      <section id="tab-seasons" role="tabpanel" aria-labelledby="tab-button-seasons" hidden>
+        <p class="eyebrow mb-1">Kulüp tarihi</p><h2 class="font-baslik text-3xl mb-5">Sezon arşivi</h2>
+        <div class="grid lg:grid-cols-2 gap-5 items-start">
+          <form id="season-form" class="surface p-5 sm:p-7 space-y-4">
+            <p class="muted text-sm">Yılı seçip maç sonuçlarından sezon özetini çıkar. Önce önizle, sonra arşivle.</p>
+            <label class="field">Sezon yılı<input name="year" type="number" min="2020" max="2100" value="2026" required></label>
+            <label class="field">Sezon notu<textarea name="note" maxlength="500" rows="3" class="mt-2 w-full bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"></textarea></label>
+            <button type="button" id="preview-season" class="outline-action">Özeti önizle</button>
+            <div id="season-preview" class="muted text-sm"></div>
+            <button type="submit" class="action">Sezonu arşivle</button>
+          </form>
+          <div class="surface p-5 sm:p-7"><h3 class="font-baslik text-xl mb-3">Arşiv</h3><div id="seasons-list"></div></div>
+        </div>
+      </section>
+      <section id="tab-push" role="tabpanel" aria-labelledby="tab-button-push" hidden>
+        <p class="eyebrow mb-1">Taraftarlara ulaş</p><h2 class="font-baslik text-3xl mb-5">Bildirim gönder</h2>
+        <form id="push-form" class="surface p-5 sm:p-7 max-w-2xl space-y-4">
+          <p class="muted text-sm">Bildirim izni veren cihazlara anlık mesaj gönder.</p>
+          <label class="field">Başlık<input name="title" maxlength="100" value="Acısu United" required></label>
+          <label class="field">Mesaj<textarea name="body" maxlength="500" rows="4" required class="mt-2 w-full bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"></textarea></label>
+          <div class="flex flex-wrap gap-2 text-xs"><button type="button" class="outline-action" data-preset="goal">⚽ Gol</button><button type="button" class="outline-action" data-preset="lineup">📋 Kadro</button><button type="button" class="outline-action" data-preset="start">🔴 Maç başladı</button><button type="button" class="outline-action" data-preset="result">🏁 Sonuç</button></div>
+          <button class="action" type="submit">🔔 Herkese gönder</button>
+          <p id="push-result" role="status" class="muted text-sm"></p>
+        </form>
+      </section>
     </div>
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-4"></script>
+  <script src="admin.js?v=20260925-5"></script>
+  <script src="admin-features.js?v=20260925-1"></script>
+  <script src="admin-pwa.js?v=20260925-1"></script>
 </body>
 </html>
