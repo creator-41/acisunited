@@ -15,6 +15,6 @@
 5. Acısu projesinin Project URL ve **publishable key** değerleri `supabase-config.js` içine girildi. `service_role` ya da secret key dosyaya kesinlikle koyma.
 6. GitHub Pages üzerinden `admin.html` sayfasına gir ve e-postan/şifrenle oturum aç.
 
-Oyuncu fotoğrafları için depodaki `oyuncu.png` gibi dosya adları veya HTTPS görsel adresleri kullanılabilir. Fotoğraf yükleme henüz panelde yok; dosyayı önce GitHub reposuna koyman gerekir. Oyuncu, maç ve kadro kayıtları Supabase'e yazılır; anasayfa her açıldığında veritabanından okur. Maç kadrosu bölümünde yayımlanan en yakın oynanmamış maçın oyuncuları görünür.
+Admin panelinde oyuncu fotoğrafı telefondan veya bilgisayardan doğrudan seçilir (JPG, PNG veya WebP; en fazla 5 MB). Fotoğraf Acısu projesinin `acisu-player-photos` adlı public Supabase Storage alanına yüklenir ve URL'si oyuncu kaydına otomatik bağlanır. Sadece `acisu_admins` içindeki yöneticiler fotoğraf yükleyip silebilir. Yeni fotoğraflar GitHub reposuna otomatik commit edilmez; repodaki mevcut oyuncu görselleri kullanılmaya devam eder. Oyuncu, maç ve kadro kayıtları Supabase'e yazılır; anasayfa her açıldığında veritabanından okur. Maç kadrosu bölümünde yayımlanan en yakın oynanmamış maçın oyuncuları görünür.
 
 **Not:** Kod ana dala alındı; anasayfa ayrı Acısu projesinden veri okuyor. Genel kayıt düğmesi kaldırıldı; admin paneli yalnızca tanımlı hesaplarla kullanılır.
