@@ -89,17 +89,6 @@
     if (error) { notice(error.message); return; }
     form.reset(); await boot();
   });
-  $("register").addEventListener("click", async () => {
-    const f = $("login-form");
-    const email = formValue(f, "email");
-    const password = formValue(f, "password");
-    if (!email || !password) { notice("E-posta ve şifreni gir."); return; }
-    const { error } = await db.auth.signUp({ email, password });
-    if (error) { notice(error.message); return; }
-    f.reset();
-    await db.auth.signOut();
-    notice("Hesap başvurusu alındı. E-postana gelen doğrulama bağlantısını aç; admin yetkisi tanımlanınca giriş yapabilirsin.");
-  });
   $("logout").addEventListener("click", async () => { await db.auth.signOut(); await boot(); notice("Çıkış yapıldı."); });
   $("player-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
