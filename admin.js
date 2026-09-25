@@ -1,6 +1,11 @@
 (function () {
   const $ = id => document.getElementById(id);
-  const notice = message => { $("notice").textContent = message; };
+  let noticeTimer;
+  const notice = message => {
+    $("notice").textContent = message;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => { $("notice").textContent = ""; }, 7000);
+  };
   if (!window.ACISU_SUPABASE_URL || !window.ACISU_SUPABASE_KEY || !window.supabase) {
     notice("Önce supabase-config.js dosyasına Acısu projesinin URL ve publishable key değerlerini gir.");
     $("login-form").hidden = true;
@@ -8,6 +13,43 @@
   }
   const db = window.supabase.createClient(window.ACISU_SUPABASE_URL, window.ACISU_SUPABASE_KEY);
   let players = [], matches = [];
+  const tabs = [...document.querySelectorAll("#admin-tabs [role=tab]")];
+  function activateTab(name, focus = false) {
+    for (const tab of tabs) {
+      const active = tab.dataset.tab === name;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      $(tab.getAttribute("aria-controls")).hidden = !active;
+      if (active && focus) tab.focus();
+    }
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+    tab.addEventListener("keydown", e => {
+      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
+      e.preventDefault();
+      const target = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
+        : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      activateTab(tabs[target].dataset.tab, true);
+    });
+  });
+  function editor(kind, open, editing = false) {
+    $(kind + "-editor").hidden = !open;
+    $(kind + "-form-title").textContent = editing
+      ? (kind === "player" ? "Oyuncuyu düzenle" : "Maçı düzenle")
+      : (kind === "player" ? "Yeni oyuncu" : "Yeni maç");
+    if (open) $(kind + "-editor").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  document.querySelectorAll("[data-open-form]").forEach(button => button.addEventListener("click", () => {
+    const kind = button.dataset.openForm;
+    $(kind + "-form").reset();
+    editor(kind, true);
+  }));
+  document.querySelectorAll("[data-close-form]").forEach(button => button.addEventListener("click", () => {
+    const kind = button.dataset.closeForm;
+    $(kind + "-form").reset();
+    editor(kind, false);
+  }));
   const formValue = (form, key) => form.elements.namedItem(key).value.trim();
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -28,20 +70,23 @@
     ]);
     if (p.error || m.error) throw p.error || m.error;
     players = p.data || []; matches = m.data || [];
-    $("players-list").innerHTML = players.map(x => `<div class="border-t border-white/10 py-2 flex justify-between gap-2">
-      <span>#${x.number} ${escapeHtml(x.name)} · ${escapeHtml(x.position)} ${x.active ? "" : "· Gizli"}</span>
-      <span class="shrink-0"><button data-edit-player="${x.id}" class="underline text-altin">Düzenle</button>
-      <button data-delete-player="${x.id}" class="underline ml-3">Sil</button></span></div>`).join("") || "Henüz oyuncu yok.";
-    $("matches-list").innerHTML = matches.map(x => `<div class="border-t border-white/10 py-2 flex justify-between gap-2">
-      <span>${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${escapeHtml(x.opponent)}
-      ${x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span>
-      <span class="shrink-0"><button data-edit-match="${x.id}" class="underline text-altin">Düzenle</button>
-      <button data-delete-match="${x.id}" class="underline ml-3">Sil</button></span></div>`).join("") || "Henüz maç yok.";
+    $("player-count").textContent = players.length;
+    $("match-count").textContent = matches.length;
+    $("players-list").innerHTML = players.map(x => `<div class="list-row">
+      <span><strong class="text-white">#${x.number} ${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.position)} ${x.active ? "" : "· Gizli"}</span></span>
+      <span class="list-actions"><button data-edit-player="${x.id}" type="button">Düzenle</button>
+      <button data-delete-player="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz oyuncu yok. Oyuncu ekle düğmesiyle başla.</p>';
+    $("matches-list").innerHTML = matches.map(x => `<div class="list-row">
+      <span><strong class="text-white">${escapeHtml(x.opponent)}</strong><span class="block muted text-xs mt-1">${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span></span>
+      <span class="list-actions"><button data-edit-match="${x.id}" type="button">Düzenle</button>
+      <button data-delete-match="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz maç yok. Maç ekle düğmesiyle başla.</p>';
+    const selectedMatch = $("lineup-match").value;
     $("lineup-match").replaceChildren(...matches.map(x => {
       const o = document.createElement("option");
       o.value = x.id; o.textContent = `${x.opponent} · ${localInput(x.match_at).replace("T", " ")}`;
       return o;
     }));
+    if (matches.some(x => x.id === selectedMatch)) $("lineup-match").value = selectedMatch;
     await showLineup();
   }
   async function showLineup() {
@@ -53,9 +98,11 @@
     const box = $("lineup-players");
     box.replaceChildren(...players.filter(p => p.active).map(p => {
       const label = document.createElement("label");
+      label.className = "lineup-item text-sm font-semibold";
       label.textContent = `#${p.number} ${p.name}`;
       const select = document.createElement("select");
       select.dataset.playerId = p.id;
+      select.className = "mt-2 w-full bg-[#120e10] border border-[#644b52] text-white rounded-lg px-3 py-2";
       [["", "Kadro dışı"], ["ilk11", "İlk kadro"], ["yedek", "Yedek"]].forEach(([value, text]) => {
         const o = document.createElement("option"); o.value = value; o.textContent = text;
         select.appendChild(o);
@@ -67,16 +114,16 @@
   }
   async function boot() {
     const { data: { user }, error } = await db.auth.getUser();
-    if (error || !user) { $("login-form").hidden = false; $("dashboard").hidden = true; return; }
+    if (error || !user) { $("login-form").hidden = false; $("dashboard").hidden = true; $("logout").hidden = true; return; }
     const { data: admin, error: adminError } = await db.from("acisu_admins")
       .select("user_id").eq("user_id", user.id).maybeSingle();
     if (adminError || !admin) {
       await db.auth.signOut();
-      $("dashboard").hidden = true; $("login-form").hidden = false;
+      $("dashboard").hidden = true; $("login-form").hidden = false; $("logout").hidden = true;
       notice("Bu hesap yönetici olarak tanımlı değil.");
       return;
     }
-    $("login-form").hidden = true; $("dashboard").hidden = false;
+    $("login-form").hidden = true; $("dashboard").hidden = false; $("logout").hidden = false;
     try { await refresh(); notice("Yönetim paneli hazır."); }
     catch (e) { notice("Veriler yüklenemedi: " + e.message); }
   }
@@ -107,7 +154,7 @@
     const { error } = id ? await db.from("acisu_players").update(payload).eq("id", id)
       : await db.from("acisu_players").insert(payload);
     if (error) { notice(error.message); return; }
-    f.reset(); notice("Oyuncu kaydedildi."); await refresh();
+    f.reset(); editor("player", false); notice("Oyuncu kaydedildi."); await refresh();
   });
   $("match-form").addEventListener("submit", async e => {
     e.preventDefault(); const f = e.currentTarget;
@@ -127,7 +174,7 @@
     const { error } = id ? await db.from("acisu_matches").update(payload).eq("id", id)
       : await db.from("acisu_matches").insert(payload);
     if (error) { notice(error.message); return; }
-    f.reset(); notice("Maç kaydedildi."); await refresh();
+    f.reset(); editor("match", false); notice("Maç kaydedildi."); await refresh();
   });
   $("lineup-match").addEventListener("change", showLineup);
   $("save-lineup").addEventListener("click", async () => {
@@ -151,7 +198,7 @@
       for (const field of ["id", "name", "number", "position", "image_url", "rating", "pace", "passing", "defense"])
         f.elements.namedItem(field).value = p[field] ?? "";
       f.elements.namedItem("active").checked = p.active;
-      f.scrollIntoView({ behavior: "smooth" }); return;
+      editor("player", true, true); return;
     }
     if (del && confirm("Oyuncu silinsin mi? Maç kadrolarından da kaldırılır.")) {
       const { error } = await db.from("acisu_players").delete().eq("id", del.dataset.deletePlayer);
@@ -169,7 +216,7 @@
       f.elements.namedItem("home").value = String(m.home);
       f.elements.namedItem("played").checked = m.played;
       f.elements.namedItem("published").checked = m.published;
-      f.scrollIntoView({ behavior: "smooth" }); return;
+      editor("match", true, true); return;
     }
     if (del && confirm("Maç ve maç kadrosu silinsin mi?")) {
       const { error } = await db.from("acisu_matches").delete().eq("id", del.dataset.deleteMatch);
