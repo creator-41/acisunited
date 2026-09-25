@@ -17,4 +17,4 @@
 
 Oyuncu fotoğrafları için depodaki `oyuncu.png` gibi dosya adları veya HTTPS görsel adresleri kullanılabilir. Fotoğraf yükleme henüz panelde yok; dosyayı önce GitHub reposuna koyman gerekir. Oyuncu, maç ve kadro kayıtları Supabase'e yazılır; anasayfa her açıldığında veritabanından okur. Maç kadrosu bölümünde yayımlanan en yakın oynanmamış maçın oyuncuları görünür.
 
-**Not:** Kod şu anda taslak PR dalındadır. Admin kullanıcı oluşturulup `acisu_admins` tablosuna eklenene kadar veri girişi yapılamaz. PR birleştirilince anasayfa ayrı Acısu projesinden veri okur.
+**Not:** Kod ana dala alındı; anasayfa ayrı Acısu projesinden veri okuyor. Admin hesabı oluşturulup `acisu_admins` tablosuna eklenene kadar veri girişi yapılamaz.
