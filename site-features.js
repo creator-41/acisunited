@@ -123,12 +123,90 @@
     const b64=value.replace(/-/g,"+").replace(/_/g,"/");
     return Uint8Array.from(atob(b64.padEnd(Math.ceil(b64.length/4)*4,"=")),c=>c.charCodeAt(0));
   }
+  let installAnimFrame = null, installAnimStart = null, installAnimCycle = -1;
+  function generateInstallGoalPath() {
+    const path = $("install-goal-path"), goal = $("install-mini-goal");
+    if (!path || !goal) return;
+    const w = window.innerWidth, h = window.innerHeight;
+    const goalRect = goal.getBoundingClientRect();
+    const cardBottom = document.querySelector(".install-guide-card")?.getBoundingClientRect().bottom || h * .42;
+    const endX = goalRect.left + goalRect.width / 2;
+    const endY = goalRect.top + goalRect.height * .25;
+    const startX = w / 2;
+    const startY = Math.min(endY - 105, Math.max(cardBottom + 22, h * .46));
+    const dir = Math.random() > .5 ? 1 : -1;
+    const spread = Math.min(w * .38, 155);
+    const cp1X = startX + dir * spread * (.45 + Math.random() * .45);
+    const cp2X = startX - dir * spread * (.45 + Math.random() * .45);
+    path.setAttribute("d", `M ${startX} ${startY} C ${cp1X} ${startY+(endY-startY)*.3}, ${cp2X} ${startY+(endY-startY)*.7}, ${endX} ${endY}`);
+  }
+  function runInstallGoalAnimation(timestamp) {
+    if ($("install-share-guide")?.hidden) { stopInstallGoalAnimation(); return; }
+    if (installAnimStart === null) installAnimStart = timestamp;
+    const duration = 2800, elapsed = timestamp - installAnimStart;
+    const cycle = Math.floor(elapsed / duration), progress = (elapsed % duration) / duration;
+    if (cycle !== installAnimCycle) { installAnimCycle = cycle; generateInstallGoalPath(); }
+    const path = $("install-goal-path"), player = $("install-goal-player");
+    const ball = $("install-goal-ball"), net = $("install-goal-net");
+    if (!path || !player || !ball || !net) return;
+    const length = path.getTotalLength();
+    if (!length) { installAnimFrame = requestAnimationFrame(runInstallGoalAnimation); return; }
+    const runEnd = .65, shootEnd = .80;
+    let playerDistance, ballDistance, state;
+    if (progress < runEnd) {
+      const phase = progress / runEnd;
+      playerDistance = phase * length * .82; ballDistance = playerDistance; state = "run";
+    } else if (progress < shootEnd) {
+      playerDistance = length * .82;
+      ballDistance = (.82 + ((progress-runEnd)/(shootEnd-runEnd))*.18) * length; state = "kick";
+    } else {
+      playerDistance = length * .82; ballDistance = length; state = "celebrate";
+    }
+    const pp = path.getPointAtLength(playerDistance), bp = path.getPointAtLength(ballDistance);
+    const prev = path.getPointAtLength(Math.max(0,playerDistance-1)), dx = pp.x-prev.x;
+    const facing = dx >= 0 ? -1 : 1;
+    let playerTransform;
+    if (state === "run") {
+      const bounce = Math.abs(Math.sin(progress*Math.PI*22))*6;
+      playerTransform = `translate(-50%,calc(-50% - ${bounce}px)) scaleX(${facing})`;
+    } else if (state === "kick") {
+      playerTransform = `translate(-50%,-50%) scaleX(${facing}) rotate(${dx>=0?-20:20}deg)`;
+    } else {
+      const jump = Math.abs(Math.sin((progress-shootEnd)*Math.PI*5))*12;
+      playerTransform = `translate(-50%,calc(-50% - ${jump}px)) scaleX(${facing})`;
+    }
+    player.style.left = pp.x+"px"; player.style.top = (pp.y-12)+"px"; player.style.transform = playerTransform;
+    ball.style.left = bp.x+"px"; ball.style.top = (bp.y+2)+"px";
+    if (state === "celebrate") {
+      const phase = (progress-shootEnd)/(1-shootEnd);
+      net.setAttribute("d", `M15 25 Q50 ${35+Math.sin(phase*Math.PI)*25} 85 25 Z`);
+      ball.style.transform = `translate(-50%,-50%) scale(${Math.max(0,1-phase*.5)})`;
+      ball.style.opacity = Math.max(0,1-phase);
+    } else {
+      net.setAttribute("d","M15 25 Q50 35 85 25 Z");
+      ball.style.transform = `translate(-50%,-50%) rotate(${(ballDistance/length)*1200}deg)`;
+      ball.style.opacity = 1;
+    }
+    installAnimFrame = requestAnimationFrame(runInstallGoalAnimation);
+  }
+  function startInstallGoalAnimation() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    stopInstallGoalAnimation();
+    installAnimStart = null; installAnimCycle = -1;
+    installAnimFrame = requestAnimationFrame(runInstallGoalAnimation);
+  }
+  function stopInstallGoalAnimation() {
+    if (installAnimFrame !== null) cancelAnimationFrame(installAnimFrame);
+    installAnimFrame = null;
+  }
+
   async function install() {
     if (isStandaloneApp()) return;
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
       || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     if (isIOS) {
       $("install-share-guide").hidden = false;
+      startInstallGoalAnimation();
       return;
     }
     if (installPrompt) {
@@ -192,6 +270,7 @@
   $("install-app").addEventListener("click",install);
   $("close-install-share-guide").addEventListener("click",()=>{
     $("install-share-guide").hidden=true;
+    stopInstallGoalAnimation();
     $("install-app-banner").hidden=true;
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
   });
@@ -203,8 +282,9 @@
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
   window.addEventListener("appinstalled",()=>{
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
-    $("install-app-banner").hidden=true;$("install-share-guide").hidden=true;
+    stopInstallGoalAnimation();$("install-app-banner").hidden=true;$("install-share-guide").hidden=true;
   });
+  window.addEventListener("resize",()=>{ if (!$("install-share-guide")?.hidden) installAnimCycle=-1; });
   showInstallPrompt();
   showSiteTab("home", false);
   // Sekmeler ve yükleme düğmesi Supabase hazır olmasa da çalışmalı.
