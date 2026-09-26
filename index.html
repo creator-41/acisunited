@@ -101,11 +101,19 @@
         .safari-share-icon{display:inline-flex;width:27px;height:29px;margin:0 2px;color:#0a84ff;vertical-align:-8px}
         .safari-share-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
         .install-guide-card button{width:min(100%,360px);margin-top:3px;border:1px solid #c1a57b;border-radius:999px;background:linear-gradient(135deg,#751f29,#4b151b);color:#fff;padding:13px 20px;font-size:16px;font-weight:800;box-shadow:0 8px 20px #0007}
-        .install-share-pointer{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));width:92px;height:118px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(229,201,154,.95)) drop-shadow(0 0 22px rgba(92,26,33,.9));animation:sharePointer 1.05s ease-in-out infinite}
+        .install-guide-card{z-index:5}
+        .install-goal-stage{position:absolute;z-index:2;inset:0;overflow:hidden;pointer-events:none}
+        .install-goal-path{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+        .install-goal-player,.install-goal-ball{position:absolute;display:block;transform-origin:center;will-change:left,top,transform,opacity}
+        .install-goal-player{z-index:3;font-size:30px;filter:drop-shadow(0 0 8px rgba(92,26,33,.95))}
+        .install-goal-ball{z-index:4;font-size:21px;filter:drop-shadow(0 0 10px rgba(229,201,154,.95))}
+        .install-mini-goal{position:absolute;z-index:2;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));width:96px;height:96px;transform:translateX(-50%);filter:drop-shadow(0 8px 9px #000b)}
+        .install-mini-goal svg{width:100%;height:100%;overflow:visible}
+        .install-share-pointer{position:absolute;z-index:3;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));width:92px;height:118px;transform:translateX(-50%);filter:drop-shadow(0 0 8px rgba(229,201,154,.95)) drop-shadow(0 0 22px rgba(92,26,33,.9));animation:sharePointer 1.05s ease-in-out infinite}
         .install-share-pointer::before{content:"";position:absolute;left:40px;top:6px;width:12px;height:66px;border-radius:8px;background:linear-gradient(#fff1c9,#c1a57b);box-shadow:0 0 14px rgba(229,201,154,.9)}
         .install-share-pointer::after{content:"";position:absolute;left:22px;bottom:17px;width:48px;height:48px;border-right:12px solid #c1a57b;border-bottom:12px solid #c1a57b;border-radius:5px;transform:rotate(45deg);box-shadow:7px 7px 8px rgba(92,26,33,.72)}
         @keyframes sharePointer{0%,100%{transform:translate(-50%,0) scale(.96);opacity:.88}50%{transform:translate(-50%,13px) scale(1.05);opacity:1}}
-        @media(prefers-reduced-motion:reduce){.install-share-pointer{animation:none}}
+        @media(prefers-reduced-motion:reduce){.install-share-pointer{animation:none}.install-goal-stage,.install-mini-goal{display:none}}
         .app-prompt{position:fixed;z-index:80;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#211719;border:1px solid rgba(193,165,123,.7);border-radius:14px;box-shadow:0 12px 36px #000b;padding:10px 12px}
         .push-prompt-backdrop{position:fixed;z-index:85;inset:auto 12px calc(88px + env(safe-area-inset-bottom));display:grid;place-items:end center;padding:0;background:transparent;pointer-events:none}
         .push-prompt-backdrop[hidden],.app-prompt[hidden]{display:none!important}
@@ -393,6 +401,19 @@
             <p>2. Açılan menüde aşağı kaydırıp <strong>“Ana Ekrana Ekle”</strong> seçeneğine dokun. Sonraki ekranda <strong>“Ekle”</strong>ye bas.</p>
             <button id="close-install-share-guide" type="button">Tamam, Anladım</button>
         </section>
+        <div class="install-goal-stage" id="install-goal-stage" aria-hidden="true">
+            <svg class="install-goal-path"><path id="install-goal-path" d="" fill="none" stroke="transparent" stroke-width="0"/></svg>
+            <span id="install-goal-player" class="install-goal-player">🏃‍♂️</span>
+            <span id="install-goal-ball" class="install-goal-ball">⚽️</span>
+        </div>
+        <div class="install-mini-goal" id="install-mini-goal" aria-hidden="true">
+            <svg viewBox="0 0 100 100" fill="none">
+                <defs><pattern id="install-net-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0L6 6M6 0L0 6" stroke="rgba(255,255,255,.62)" stroke-width=".8"/></pattern></defs>
+                <path id="install-goal-net" d="M15 25 Q50 35 85 25 Z" fill="url(#install-net-pattern)" stroke="rgba(255,255,255,.9)" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M12 25H88" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="15" cy="25" r="3" fill="#e5e7eb"/><circle cx="85" cy="25" r="3" fill="#e5e7eb"/>
+            </svg>
+        </div>
         <div class="install-share-pointer" aria-hidden="true"></div>
     </aside>
     <div id="push-prompt" class="push-prompt-backdrop" hidden>
@@ -521,6 +542,6 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260925-8"></script>
-    <script src="site-features.js?v=20260925-14"></script>
+    <script src="site-features.js?v=20260926-15"></script>
 </body>
 </html>
