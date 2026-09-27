@@ -16,9 +16,9 @@
   if (isStandaloneApp()) {
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
   }
-  const status = message => {
+  const status = (message, duration = 6500) => {
     const el = $("app-status"); el.textContent = message;
-    clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, 6500);
+    clearTimeout(statusTimer); statusTimer = setTimeout(() => { el.textContent = ""; }, duration);
   };
   const pageIds = {
     home:["ana-sayfa","hikayemiz","instagram","sponsorlar"], squad:["kadro","teknik-direktor"], fixtures:["fikstur"], lineup:["mac-kadrosu"],
@@ -259,7 +259,7 @@
     try {
       // iOS, izin isteğinin kullanıcı dokunuşundan önce hiçbir await geçmemesini ister.
       const permission=await Notification.requestPermission();
-      if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}
+      if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}\n      closePushPrompt();
       const registration=await navigator.serviceWorker.ready;
       const {data:config,error:configError}=await db.functions.invoke("acisu-push",{body:{action:"config"}});
       if(configError || !config?.publicKey) throw configError||new Error("Bildirim anahtarı alınamadı.");
@@ -268,7 +268,7 @@
           applicationServerKey:urlBase64ToBytes(config.publicKey)});
       const {data,error}=await db.functions.invoke("acisu-push",{body:{action:"subscribe",subscription:subscription.toJSON()}});
       if(error || data?.error) throw error||new Error(data.error);
-      status("Bildirimler açıldı! 🔔");
+      status("Bildirimler açıldı! 🔔", 2000);
       return true;
     } catch(e) {status("Bildirim açılamadı: "+(e.message||"Bilinmeyen hata"));return false;}
   }
@@ -284,7 +284,7 @@
   $("enable-push").addEventListener("click",enablePush);
   $("close-push-prompt").addEventListener("click",closePushPrompt);
   $("later-push-prompt").addEventListener("click",closePushPrompt);
-  $("accept-push-prompt").addEventListener("click",async()=>{if(await enablePush()){closePushPrompt();updateBell();}});
+  $("accept-push-prompt").addEventListener("click",async()=>{await enablePush();updateBell();});
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
   window.addEventListener("appinstalled",()=>{
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
