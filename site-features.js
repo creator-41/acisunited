@@ -259,7 +259,8 @@
     try {
       // iOS, izin isteğinin kullanıcı dokunuşundan önce hiçbir await geçmemesini ister.
       const permission=await Notification.requestPermission();
-      if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}\n      closePushPrompt();
+      if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}
+      closePushPrompt();
       const registration=await navigator.serviceWorker.ready;
       const {data:config,error:configError}=await db.functions.invoke("acisu-push",{body:{action:"config"}});
       if(configError || !config?.publicKey) throw configError||new Error("Bildirim anahtarı alınamadı.");
