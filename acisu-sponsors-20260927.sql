@@ -71,5 +71,5 @@ create policy "Acisu admins delete sponsor logos" on storage.objects
 
 -- Mevcut anasayfadaki sponsor kaydını korur; sadece eksikse ekler.
 insert into public.acisu_sponsors(name,tier,active,sort_order)
-values ('ASAY İNŞAAT','main',true,0)
-on conflict do nothing;
+select 'ASAY İNŞAAT','main',true,0
+where not exists (select 1 from public.acisu_sponsors where name='ASAY İNŞAAT');
