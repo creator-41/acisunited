@@ -3,7 +3,7 @@
   if (!api) return;
   const { db, getPlayers, getMatches, refresh, notice, escapeHtml: esc } = api;
   const $ = id => document.getElementById(id);
-  let stats = [], goals = [], news = [], seasons = [];
+  let stats = [], goals = [], news = [], seasons = [], lastPushStatus = "";
   const dateText = iso => new Intl.DateTimeFormat("tr-TR", {
     timeZone: "Europe/Istanbul", day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit"
@@ -113,9 +113,18 @@
     try {
       const { data, error } = await db.functions.invoke("acisu-push", { body: { action: "send", title, body } });
       if (error || data?.error) throw error || new Error(data.error);
-      if (!silent) notice(`Bildirim gönderildi: ${data?.sent || 0} cihaz.`);
-      return true;
-    } catch (e) { if (!silent) notice("Bildirim gönderilemedi: " + e.message); return false; }
+      const sent = Number(data?.sent || 0), failed = Number(data?.failed || 0);
+      lastPushStatus = sent === 0
+        ? (failed ? `Bildirim hiç gönderilemedi (${failed} cihaz hatası).` : "Bildirim gönderilemedi; geçerli abonelik bulunamadı.")
+        : failed ? `Bildirim ${sent} cihaza ulaştı; ${failed} cihazda hata oluştu.`
+          : `Bildirim ${sent} cihaza gönderildi.`;
+      if (!silent) notice(lastPushStatus);
+      return sent > 0 && failed === 0;
+    } catch (e) {
+      lastPushStatus = "Bildirim gönderilemedi: " + e.message;
+      if (!silent) notice(lastPushStatus);
+      return false;
+    }
   }
   async function autoNews(match) {
     if (!match?.played) return false;
@@ -158,6 +167,7 @@
     const match = getMatches().find(m => m.id === $("live-match").value);
     if (!match) return;
     let error, pushFailed = false, newsFailed = false;
+    lastPushStatus = "";
     if (action === "start") {
       if (!confirm(`${match.opponent} maçını canlı başlat?`)) return;
       ({error} = await db.from("acisu_matches").update({is_live:true,played:false,our_score:0,their_score:0}).eq("id",match.id).eq("played",false));
@@ -181,7 +191,7 @@
     }
     if (error) { notice(error.message); return; }
     await refresh();
-    notice(`Maç güncellendi.${newsFailed ? " Haber oluşturulamadı." : ""}${pushFailed ? " Bildirim gönderilemedi." : ""}`);
+    notice(`Maç güncellendi.${newsFailed ? " Haber oluşturulamadı." : ""}${lastPushStatus ? " " + lastPushStatus : ""}`);
   }
   $("overview-next").addEventListener("click", e => { if (e.target.id === "overview-live") api.activateTab("live"); });
   $("live-match").addEventListener("change", renderLive);
@@ -258,7 +268,7 @@
     e.preventDefault();const f=e.currentTarget, button=f.querySelector('[type="submit"]');
     button.disabled=true;
     const sent=await push(f.elements.namedItem("title").value.trim(),f.elements.namedItem("body").value.trim());
-    $("push-result").textContent=sent?"Bildirim isteği işlendi.":"Gönderim başarısız.";
+    $("push-result").textContent=lastPushStatus|| (sent?"Bildirim isteği işlendi.":"Gönderim başarısız.");
     button.disabled=false;
   });
   window.addEventListener("acisu:refreshed", reload);
