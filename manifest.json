@@ -1,16 +1,26 @@
 {
-  "id": "./index.html",
+  "id": "./",
   "name": "Acısu United",
-  "short_name": "Acısu",
+  "short_name": "Acısu United",
   "description": "Acısu United maçları, kadro, istatistikler ve haberler",
-  "start_url": "./index.html?source=pwa",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#100d0f",
   "theme_color": "#5c1a21",
   "lang": "tr",
   "icons": [
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
-    { "src": "./image_09a3ea.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./image_09a3ea.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
