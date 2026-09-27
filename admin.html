@@ -83,6 +83,8 @@
           <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
           <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
           <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
+          <button id="tab-button-share" class="tab" type="button" role="tab" aria-controls="tab-share" aria-selected="false" tabindex="-1" data-tab="share">🎨 Görsel atölyesi</button>
+          <button id="tab-button-sponsors" class="tab" type="button" role="tab" aria-controls="tab-sponsors" aria-selected="false" tabindex="-1" data-tab="sponsors">🤝 Sponsorlar</button>
           <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="false" tabindex="-1" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
           <button id="tab-button-staff" class="tab" type="button" role="tab" aria-controls="tab-staff" aria-selected="false" tabindex="-1" data-tab="staff"><span>Teknik heyet</span><span id="staff-count" class="tab-number">0</span></button>
           <button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button>
@@ -92,13 +94,16 @@
       </nav>
       <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
         <p class="eyebrow mb-1">Kulübün durumu</p><h2 class="font-baslik text-3xl mb-5">Genel bakış</h2>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
           <div class="surface p-5"><p class="muted text-xs">Oyuncular</p><strong id="stat-players" class="font-baslik text-3xl text-altin">0</strong></div>
           <div class="surface p-5"><p class="muted text-xs">Maçlar</p><strong id="stat-matches" class="font-baslik text-3xl text-altin">0</strong></div>
           <div class="surface p-5"><p class="muted text-xs">Oynanan</p><strong id="stat-played" class="font-baslik text-3xl text-altin">0</strong></div>
           <div class="surface p-5"><p class="muted text-xs">Canlı</p><strong id="stat-live" class="font-baslik text-3xl text-altin">0</strong></div>
+          <div class="surface p-5"><p class="muted text-xs">Sponsorlar</p><strong id="stat-sponsors" class="font-baslik text-3xl text-altin">0</strong></div>
         </div>
         <div id="overview-next" class="surface p-5 muted text-sm">Maçlar yükleniyor…</div>
+        <div class="surface p-5 sm:p-6 mt-4"><h3 class="font-baslik text-xl mb-3">Hızlı işlemler</h3><div class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button type="button" class="action" data-open-form="match">＋ Maç ekle</button><button type="button" class="outline-action" data-open-form="player">＋ Oyuncu ekle</button><button type="button" class="outline-action" data-tab-open="share">🎨 Görsel hazırla</button><button type="button" class="outline-action" data-tab-open="sponsors">🤝 Sponsor yönet</button><button type="button" class="outline-action col-span-2 sm:col-span-1" id="download-admin-backup">⬇ Verileri yedekle</button></div><p class="muted text-xs mt-3">Yedek yalnızca Acısu kayıtlarını içerir ve cihazına JSON olarak iner.</p></div>
+        <div id="overview-activity" class="surface p-5 sm:p-6 mt-4"><h3 class="font-baslik text-xl mb-3">Son maçlar</h3><div class="muted text-sm">Yükleniyor…</div></div>
       </section>
       <section id="tab-players" role="tabpanel" aria-labelledby="tab-button-players" hidden>
         <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
@@ -232,6 +237,36 @@
           <div class="surface p-5 sm:p-7"><h3 class="font-baslik text-xl mb-3">Haber listesi</h3><div id="news-list"></div></div>
         </div>
       </section>
+      <section id="tab-sponsors" role="tabpanel" aria-labelledby="tab-button-sponsors" hidden>
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-5"><div><p class="eyebrow mb-1">Kulüp ortakları</p><h2 class="font-baslik text-3xl">Sponsor yönetimi</h2><p class="muted text-sm mt-1">Ana sponsor ve destekçileri düzenle; logo yükleyebilir, görünürlük tarihlerini ayarlayabilirsin.</p></div><button type="button" class="action" id="new-sponsor">＋ Sponsor ekle</button></div>
+        <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] gap-5 items-start">
+          <div class="surface p-5 sm:p-6"><div class="flex justify-between items-center mb-3"><h3 class="font-baslik text-xl">Sponsorlar</h3><span id="sponsor-count" class="muted text-xs">0 kayıt</span></div><div id="sponsors-list" class="space-y-2">Yükleniyor…</div></div>
+          <form id="sponsor-form" class="surface p-5 sm:p-6 space-y-4" hidden>
+            <h3 id="sponsor-form-title" class="font-baslik text-xl">Sponsor ekle</h3><input type="hidden" name="id"><input type="hidden" name="logo_url">
+            <label class="field">Sponsor adı<input name="name" maxlength="120" required></label>
+            <label class="field">Sponsor türü<select name="tier" required><option value="main">Ana sponsor</option><option value="supporter">Destekçimiz</option></select></label>
+            <label class="field">Web sitesi (isteğe bağlı)<input name="website_url" type="url" placeholder="https://"></label>
+            <label class="field">Logo yükle (PNG, JPG, WebP veya SVG)<input name="logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml"></label>
+            <img id="sponsor-logo-preview" alt="Logo önizleme" class="hidden max-h-24 max-w-48 object-contain rounded bg-white/5 p-2">
+            <div class="grid grid-cols-2 gap-3"><label class="field">Sıra<input name="sort_order" type="number" min="0" value="0"></label><label class="field">Yayın durumu<select name="active"><option value="true">Yayında</option><option value="false">Taslak</option></select></label></div>
+            <div class="grid grid-cols-2 gap-3"><label class="field">Başlangıç<input name="starts_at" type="date"></label><label class="field">Bitiş<input name="ends_at" type="date"></label></div>
+            <div class="flex gap-2"><button class="action flex-1" type="submit">Kaydet</button><button id="cancel-sponsor" class="outline-action" type="button">Vazgeç</button></div>
+          </form>
+        </div>
+      </section>
+      <section id="tab-share" role="tabpanel" aria-labelledby="tab-button-share" hidden>
+        <p class="eyebrow mb-1">Sosyal medya içerikleri</p><h2 class="font-baslik text-3xl mb-2">Görsel atölyesi</h2><p class="muted text-sm mb-5">Maç ve oyuncu bilgilerini seç; Acısu renklerinde paylaşım görseli oluşturup telefona kaydet.</p>
+        <div class="grid lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)] gap-5 items-start">
+          <form id="share-form" class="surface p-5 sm:p-6 space-y-4">
+            <label class="field">Görsel türü<select name="kind"><option value="match-day">Maç günü</option><option value="result">Maç sonucu</option><option value="player">Oyuncu profili</option></select></label>
+            <label class="field" id="share-match-field">Maç<select name="match_id"></select></label>
+            <label class="field hidden" id="share-player-field">Oyuncu<select name="player_id"></select></label>
+            <button class="action w-full" type="submit">Görseli oluştur</button>
+            <button id="download-share" class="outline-action w-full" type="button" disabled>⬇ PNG olarak indir</button>
+          </form>
+          <div class="surface p-3 sm:p-5"><div id="share-preview" class="min-h-[320px] rounded-xl bg-black/30 grid place-items-center text-center muted p-5">Önizleme burada görünecek.</div></div>
+        </div>
+      </section>
       <section id="tab-seasons" role="tabpanel" aria-labelledby="tab-button-seasons" hidden>
         <p class="eyebrow mb-1">Kulüp tarihi</p><h2 class="font-baslik text-3xl mb-5">Sezon arşivi</h2>
         <div class="grid lg:grid-cols-2 gap-5 items-start">
@@ -261,8 +296,11 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260925-13"></script>
-  <script src="admin-features.js?v=20260925-3"></script>
+  <script src="admin.js?v=20260927-1"></script>
+  <script src="admin-features.js?v=20260927-1"></script>
+  <script src="admin-sponsors.js?v=20260927-1"></script>
+  <script src="admin-share.js?v=20260927-1"></script>
+  <script src="admin-enhancements.js?v=20260927-1"></script>
   <script src="admin-pwa.js?v=20260925-2"></script>
 </body>
 </html>
