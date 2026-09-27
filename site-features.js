@@ -239,9 +239,13 @@
     setTimeout(() => { $("push-prompt").hidden = false; }, 1500);
   }
   function updateBell() {
-    const bell = $("enable-push");
-    const dot = bell?.querySelector("span");
-    if (dot && window.Notification?.permission === "granted") dot.hidden = true;
+    const dot = $("enable-push")?.querySelector("span");
+    if (!dot) return;
+    dot.hidden = false;
+    if (window.Notification?.permission === "granted" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription())
+        .then(subscription => { dot.hidden = Boolean(subscription); }).catch(() => {});
+    }
   }
   async function enablePush() {
     if (!db) { status("Bildirim servisi şu an hazır değil."); return; }
@@ -253,9 +257,10 @@
       status("iPhone'da önce siteyi ana ekrana ekleyip uygulamadan aç.");return;
     }
     try {
-      const registration=await navigator.serviceWorker.ready;
+      // iOS, izin isteğinin kullanıcı dokunuşundan önce hiçbir await geçmemesini ister.
       const permission=await Notification.requestPermission();
-      if(permission!=="granted"){status("Bildirim izni verilmedi.");return;}
+      if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}
+      const registration=await navigator.serviceWorker.ready;
       const {data:config,error:configError}=await db.functions.invoke("acisu-push",{body:{action:"config"}});
       if(configError || !config?.publicKey) throw configError||new Error("Bildirim anahtarı alınamadı.");
       const subscription=await registration.pushManager.getSubscription()
@@ -264,7 +269,8 @@
       const {data,error}=await db.functions.invoke("acisu-push",{body:{action:"subscribe",subscription:subscription.toJSON()}});
       if(error || data?.error) throw error||new Error(data.error);
       status("Bildirimler açıldı! 🔔");
-    } catch(e) {status("Bildirim açılamadı: "+(e.message||"Bilinmeyen hata"));}
+      return true;
+    } catch(e) {status("Bildirim açılamadı: "+(e.message||"Bilinmeyen hata"));return false;}
   }
   window.addEventListener("beforeinstallprompt", e=>{e.preventDefault();installPrompt=e;});
   $("install-app").addEventListener("click",install);
@@ -278,7 +284,7 @@
   $("enable-push").addEventListener("click",enablePush);
   $("close-push-prompt").addEventListener("click",closePushPrompt);
   $("later-push-prompt").addEventListener("click",closePushPrompt);
-  $("accept-push-prompt").addEventListener("click",async()=>{closePushPrompt();await enablePush();updateBell();});
+  $("accept-push-prompt").addEventListener("click",async()=>{if(await enablePush()){closePushPrompt();updateBell();}});
   $("push-prompt").addEventListener("click",e=>{if(e.target.id==="push-prompt")closePushPrompt();});
   window.addEventListener("appinstalled",()=>{
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
@@ -290,8 +296,8 @@
   // Sekmeler ve yükleme düğmesi Supabase hazır olmasa da çalışmalı.
   if (!url || !key || !window.supabase) return;
   db = window.acisuDb || (window.acisuDb = window.supabase.createClient(url, key));
-  maybeShowPushPrompt(); updateBell();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(console.warn);
+  maybeShowPushPrompt(); updateBell();
   loadExtras();
   db.channel("acisu-live-site").on("postgres_changes",
     {event:"UPDATE",schema:"public",table:"acisu_matches"}, async () => {
