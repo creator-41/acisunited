@@ -17,6 +17,7 @@
   }).format(new Date(value));
 
 
+  let profileData = { players: [], matches: [], stats: [] };
   function renderPublicSponsors(records) {
     const box = document.getElementById("public-sponsors");
     if (!box) return;
@@ -39,6 +40,7 @@
     }).join("");
   }
   function wirePlayerProfiles(players, matches, stats) {
+    profileData = { players, matches, stats };
     const box = document.getElementById("squad-container");
     if (!box || box.dataset.profileWired) return;
     box.dataset.profileWired = "1";
@@ -49,6 +51,7 @@
     modal?.addEventListener("click", event => { if (event.target === modal) close(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
     const show = playerId => {
+      const { players, matches, stats } = profileData;
       const player = players.find(p => p.id === playerId);
       if (!player) return;
       const own = stats.filter(s => s.player_id === playerId);
