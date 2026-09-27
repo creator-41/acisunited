@@ -74,7 +74,7 @@
     form.elements.namedItem(fileName).addEventListener("change", e =>
       showPreview(preview, form.elements.namedItem(oldName).value, e.target.files?.[0]));
   }
-  let players = [], matches = [], staff = [];
+  let players = [], matches = [], staff = [], sponsors = [];
   let editingMatchId = null;
   let matchGoalRoster = [];
   let matchHasSpecificLineup = false;
@@ -221,13 +221,14 @@
   });
 
   async function refresh() {
-    const [p, m, s] = await Promise.all([
+    const [p, m, s, sp] = await Promise.all([
       db.from("acisu_players").select("*").order("number"),
       db.from("acisu_matches").select("*").order("match_at", { ascending: false }),
-      db.from("acisu_staff").select("*").order("sort_order").order("created_at")
+      db.from("acisu_staff").select("*").order("sort_order").order("created_at"),
+      db.from("acisu_sponsors").select("*").order("sort_order")
     ]);
-    if (p.error || m.error || s.error) throw p.error || m.error || s.error;
-    players = p.data || []; matches = m.data || []; staff = s.data || [];
+    if (p.error || m.error || s.error || sp.error) throw p.error || m.error || s.error || sp.error;
+    players = p.data || []; matches = m.data || []; staff = s.data || []; sponsors = sp.data || [];
     $("player-count").textContent = players.length;
     $("staff-count").textContent = staff.length;
     $("match-count").textContent = matches.length;
@@ -235,6 +236,8 @@
     $("stat-matches").textContent = matches.length;
     $("stat-played").textContent = matches.filter(x => x.played).length;
     $("stat-live").textContent = matches.filter(x => x.is_live).length;
+    $("stat-sponsors").textContent = sponsors.filter(x => x.active).length;
+    window.dispatchEvent(new Event("acisu:admin-refreshed"));
     $("players-list").innerHTML = players.map(x => `<div class="list-row">
       <span><strong class="text-white">#${x.number} ${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.position)} ${x.active ? "" : "· Gizli"}</span></span>
       <span class="list-actions"><button data-edit-player="${x.id}" type="button">Düzenle</button>
@@ -538,8 +541,28 @@
       notice(error ? error.message : "Maç silindi."); if (!error) await refresh();
     }
   });
-  window.acisuAdmin = { db, getPlayers: () => players, getMatches: () => matches,
+  window.acisuAdmin = { db, getPlayers: () => players, getMatches: () => matches, getSponsors: () => sponsors,
     refresh, notice, activateTab, escapeHtml };
+  document.querySelectorAll("[data-tab-open]").forEach(button => button.addEventListener("click", () => activateTab(button.dataset.tabOpen)));
+  $("download-admin-backup")?.addEventListener("click", async () => {
+    const button = $("download-admin-backup");
+    button.disabled = true; button.textContent = "Yedek hazırlanıyor…";
+    try {
+      const tables = ["acisu_players","acisu_matches","acisu_match_lineup","acisu_player_stats","acisu_goal_log","acisu_news","acisu_seasons","acisu_staff","acisu_sponsors"];
+      const entries = await Promise.all(tables.map(async table => {
+        const {data,error}=await db.from(table).select("*");
+        if(error) throw new Error(table+": "+error.message);
+        return [table,data||[]];
+      }));
+      const payload={project:"Acısu United",created_at:new Date().toISOString(),tables:Object.fromEntries(entries)};
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob), link=document.createElement("a");
+      link.href=url; link.download="acisu-united-yedek-"+new Date().toISOString().slice(0,10)+".json";
+      link.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+      notice("Acısu verileri JSON yedeği olarak indirildi.");
+    } catch(error) { notice("Yedek alınamadı: "+error.message); }
+    finally { button.disabled=false; button.textContent="⬇ Verileri yedekle"; }
+  });
   activateTab("overview");
   boot();
 })();
