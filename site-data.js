@@ -16,22 +16,96 @@
     year: "numeric", ...(timeConfirmed ? { hour: "2-digit", minute: "2-digit" } : {})
   }).format(new Date(value));
 
+
+  function renderPublicSponsors(records) {
+    const box = document.getElementById("public-sponsors");
+    if (!box) return;
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+    const today = `${parts.find(x=>x.type==="year").value}-${parts.find(x=>x.type==="month").value}-${parts.find(x=>x.type==="day").value}`;
+    const sponsors = records.filter(s => s.active && (!s.starts_at || s.starts_at <= today)
+      && (!s.ends_at || s.ends_at >= today))
+      .sort((a,b) => (a.tier === "main" ? -1 : 1) - (b.tier === "main" ? -1 : 1) || a.sort_order-b.sort_order);
+    if (!sponsors.length) {
+      box.innerHTML = '<p class="text-gray-400">Sponsorlarımız çok yakında burada.</p>';
+      return;
+    }
+    box.innerHTML = sponsors.map(s => {
+      const website = (() => { try { const u=new URL(s.website_url); return u.protocol==="https:" ? u.href : ""; } catch (_) { return ""; } })();
+      const logo = s.logo_url ? `<img src="${esc(safeImage(s.logo_url))}" alt="${esc(s.name)} logosu" class="max-w-48 h-20 object-contain mb-3" loading="lazy">` : "";
+      const content = `<span class="text-xs text-gray-400 uppercase tracking-widest mb-2">${s.tier==="main"?"Ana Sponsor":"Destekçimiz"}</span>${logo}<h3 class="font-baslik text-2xl sm:text-3xl font-bold text-white text-center">${esc(s.name)}</h3>`;
+      return website
+        ? `<a href="${esc(website)}" target="_blank" rel="noopener noreferrer" class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl hover:bg-white/10 transition-colors flex flex-col items-center">${content}<span class="sr-only">Sponsor sitesini yeni sekmede aç</span></a>`
+        : `<div class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl flex flex-col items-center">${content}</div>`;
+    }).join("");
+  }
+  function wirePlayerProfiles(players, matches, stats) {
+    const box = document.getElementById("squad-container");
+    if (!box || box.dataset.profileWired) return;
+    box.dataset.profileWired = "1";
+    const modal = document.getElementById("player-profile-modal");
+    const content = document.getElementById("player-profile-content");
+    const close = () => { modal.hidden = true; document.body.classList.remove("overflow-hidden"); };
+    document.getElementById("close-player-profile")?.addEventListener("click", close);
+    modal?.addEventListener("click", event => { if (event.target === modal) close(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
+    const show = playerId => {
+      const player = players.find(p => p.id === playerId);
+      if (!player) return;
+      const own = stats.filter(s => s.player_id === playerId);
+      const total = key => own.reduce((sum,s) => sum + Number(s[key] || 0),0);
+      const games = own.filter(s => s.played).length, goals=total("goals"), assists=total("assists");
+      const points=games*2+goals*5+assists*2-total("yellow_cards")-total("red_cards")*3;
+      const seasonMap = new Map();
+      for (const stat of own) {
+        const match = matches.find(m => m.id === stat.match_id);
+        if (!match) continue;
+        const year = new Intl.DateTimeFormat("en-US",{year:"numeric",timeZone:"Europe/Istanbul"}).format(new Date(match.match_at));
+        const row=seasonMap.get(year)||{year,games:0,goals:0,assists:0};
+        if(stat.played) row.games++;
+        row.goals+=Number(stat.goals||0); row.assists+=Number(stat.assists||0); seasonMap.set(year,row);
+      }
+      const recent = own.map(stat => ({stat,match:matches.find(m=>m.id===stat.match_id)}))
+        .filter(x=>x.match && (x.match.played || x.match.is_live))
+        .sort((a,b)=>new Date(b.match.match_at)-new Date(a.match.match_at)).slice(0,5);
+      const safePic = safeImage(player.image_url);
+      content.innerHTML = `<div class="text-center pt-3">
+        <img src="${esc(safePic)}" alt="${esc(player.name)}" class="w-28 h-28 rounded-full object-cover mx-auto border-2 border-altin/70 shadow-lg" onerror="this.onerror=null;this.src='image_09a3ea.png'">
+        <p class="text-altin font-baslik text-lg mt-3">#${player.number} · ${esc(player.position)}</p>
+        <h2 id="profile-name" class="font-baslik text-3xl text-white uppercase mt-1">${esc(player.name)}</h2>
+        <p class="text-gray-400 text-xs mt-2">ACISU UNITED OYUNCU PROFİLİ</p></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-6">
+          ${[[games,"MAÇ"],[goals,"GOL"],[assists,"ASİST"],[points+" P","PUAN"]].map(([v,l])=>`<div class="rounded-xl border border-white/10 bg-white/5 text-center py-3"><strong class="font-baslik text-2xl text-altin">${v}</strong><span class="block text-[10px] text-gray-400 tracking-wider">${l}</span></div>`).join("")}
+        </div>
+        <div class="mt-6"><h3 class="font-baslik text-xl text-altin mb-2">Sezonlara göre</h3>
+          <div class="divide-y divide-white/10">${[...seasonMap.values()].sort((a,b)=>b.year-a.year).map(x=>`<div class="py-2 flex justify-between gap-2 text-sm"><strong>${x.year}</strong><span class="text-gray-300">${x.games} maç · ${x.goals} gol · ${x.assists} asist</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz sezon istatistiği yok.</p>'}</div></div>
+        <div class="mt-5"><h3 class="font-baslik text-xl text-altin mb-2">Son maç katkıları</h3>
+          <div class="space-y-2">${recent.map(({stat:s,match:m})=>`<div class="rounded-lg bg-white/5 p-3 flex justify-between gap-3 text-sm"><span>${esc(m.opponent)}<small class="block text-gray-500">${esc(dateText(m.match_at,false))} · ${m.our_score??0}-${m.their_score??0}</small></span><span class="text-right text-gray-300">${s.played?"Oynadı":"-"}${s.goals?" · ⚽ "+s.goals:""}${s.assists?" · 🅰 "+s.assists:""}</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz maç katkısı yok.</p>'}</div></div>
+        <button id="profile-share-player" type="button" class="mt-5 w-full rounded-xl border border-altin/40 py-3 text-altin font-bold">Oyuncu görseli hazırla</button>`;
+      const share=document.getElementById("profile-share-player");
+      share?.addEventListener("click",()=>{close();window.dispatchEvent(new CustomEvent("acisu:share-player",{detail:{playerId}}));});
+      modal.hidden=false; document.body.classList.add("overflow-hidden");
+    };
+    box.addEventListener("click",event=>{const card=event.target.closest("[data-player-id]");if(card)show(card.dataset.playerId);});
+    box.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-player-id]")){event.preventDefault();show(event.target.dataset.playerId);}});
+  }
+
   async function load() {
-    const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult, statsResult] = await Promise.all([
+    const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult, statsResult, sponsorsResult] = await Promise.all([
       db.from("acisu_players").select("*").eq("active", true).order("number"),
       db.from("acisu_matches").select("*").eq("published", true).order("match_at", { ascending: false }),
       db.from("acisu_goal_log").select("match_id,side,scorer_id,assist_id,created_at").order("created_at"),
       db.from("acisu_players").select("id,name"),
       db.from("acisu_staff").select("*").eq("active", true).order("sort_order").order("created_at"),
-      db.from("acisu_player_stats").select("match_id,player_id,goals,assists")
+      db.from("acisu_player_stats").select("match_id,player_id,played,goals,assists,yellow_cards,red_cards"),
+      db.from("acisu_sponsors").select("*").order("sort_order")
     ]);
-    if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error) {
-      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error);
+    if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error || sponsorsResult.error) {
+      console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error || sponsorsResult.error);
       return;
     }
     const players = playersResult.data || [];
     window.teamSquad = players.map(p => ({
-      name: esc(p.name), pos: esc(p.position),
+      id: p.id, name: esc(p.name), pos: esc(p.position),
       img: esc(safeImage(p.image_url)), number: p.number,
       ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
     }));
@@ -43,6 +117,9 @@
     window.renderCoach();
 
     const matches = matchesResult.data || [];
+    const profileStats = statsResult.data || [];
+    renderPublicSponsors(sponsorsResult.data || []);
+    wirePlayerProfiles(players, matches, profileStats);
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
     const goalsByMatch = new Map();
     for (const goal of goalResult.data || []) {
