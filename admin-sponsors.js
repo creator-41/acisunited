@@ -56,4 +56,5 @@
     }
   });
   window.addEventListener("acisu:admin-refreshed",render);
+  window.addEventListener("acisu:refreshed",render);
 })();
