@@ -149,6 +149,7 @@
       });
       modal.hidden=false; document.body.classList.add("overflow-hidden");
     };
+    window.openAcisuPlayerProfile = show;
     box.addEventListener("click",event=>{const card=event.target.closest("[data-player-id]");if(card)show(card.dataset.playerId);});
     document.getElementById("lineup-content")?.addEventListener("click",event=>{const card=event.target.closest("[data-player-id]");if(card)show(card.dataset.playerId);});
     box.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-player-id]")){event.preventDefault();show(event.target.dataset.playerId);}});
@@ -333,12 +334,15 @@
         ${goalDetails ? `<div class="mt-8 pt-5 border-t border-white/10 text-center relative">
           <h4 class="text-altin font-bold text-sm uppercase tracking-widest mb-3">${goalHeading}</h4>
           <ul class="grid gap-2">${scored || statsDetails || legacyScorers}</ul></div>` : ""}
+        <div class="relative mt-6 border-t border-white/10 pt-5 text-center"><button type="button" data-match-center-id="${esc(m.id)}" class="min-h-11 rounded-xl border border-altin/65 bg-bordo/60 px-6 py-2 text-sm font-bold text-altin hover:bg-bordo focus-visible:outline focus-visible:outline-2 focus-visible:outline-altin">Maç Merkezi →</button></div>
       </article>`;
     }).join("") : '<p class="text-center text-gray-300">Henüz maç eklenmedi.</p>';
 
     const lineupBox = document.getElementById("lineup-content");
     const { data: allLineup, error } = await db.from("acisu_match_lineup")
       .select("match_id, player_id, role, slot_index, player:acisu_players(name, number, position)");
+    window.acisuMatchCenterData = { matches, players, goalPlayers:goalPlayersResult.data || [], goals:goalResult.data || [], stats:profileStats, staff:staffResult.data || [], lineup:allLineup || [] };
+    document.dispatchEvent(new CustomEvent("acisu:matches-loaded", {detail:window.acisuMatchCenterData}));
     if (error) {
       lineupBox.textContent = "Maç kadrosu yüklenemedi.";
       return;
