@@ -81,6 +81,7 @@
           <button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button>
           <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
           <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
+          <button id="tab-button-attendance" class="tab" type="button" role="tab" aria-controls="tab-attendance" aria-selected="false" tabindex="-1" data-tab="attendance">🙌 Katılım</button>
           <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
           <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
           <button id="tab-button-share" class="tab" type="button" role="tab" aria-controls="tab-share" aria-selected="false" tabindex="-1" data-tab="share">🎨 Görsel atölyesi</button>
@@ -90,6 +91,7 @@
           <button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button>
           <button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button>
           <button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button>
+          <button id="tab-button-audit" class="tab" type="button" role="tab" aria-controls="tab-audit" aria-selected="false" tabindex="-1" data-tab="audit">🕘 İşlem geçmişi</button>
         </div>
       </nav>
       <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
@@ -293,6 +295,14 @@
           <div class="surface p-5 sm:p-7"><h3 class="font-baslik text-xl mb-3">Arşiv</h3><div id="seasons-list"></div></div>
         </div>
       </section>
+      <section id="tab-attendance" role="tabpanel" aria-labelledby="tab-button-attendance" hidden>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><p class="eyebrow mb-1">Taraftar katılımı</p><h2 class="font-baslik text-3xl">Maça gel</h2><p class="muted text-sm mt-1">Maç bazında katılacağını belirten cihazların sayısı.</p></div><button id="refresh-attendance" type="button" class="outline-action">Yenile</button></div>
+        <div id="attendance-list" class="surface p-5 sm:p-6 text-sm" role="status">Katılım bilgileri yükleniyor…</div>
+      </section>
+      <section id="tab-audit" role="tabpanel" aria-labelledby="tab-button-audit" hidden>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><p class="eyebrow mb-1">Yönetim kaydı</p><h2 class="font-baslik text-3xl">İşlem geçmişi</h2><p class="muted text-sm mt-1">Yönetici girişleri ve Acısu içerik değişiklikleri.</p></div><button id="refresh-audit" type="button" class="outline-action">Yenile</button></div>
+        <div id="audit-list" class="surface p-5 sm:p-6 text-sm" role="status">İşlem geçmişi yükleniyor…</div>
+      </section>
       <section id="tab-push" role="tabpanel" aria-labelledby="tab-button-push" hidden>
         <p class="eyebrow mb-1">Taraftarlara ulaş</p><h2 class="font-baslik text-3xl mb-5">Bildirim gönder</h2>
         <div class="surface p-5 sm:p-6 max-w-2xl mb-4">
@@ -318,7 +328,7 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260928-5"></script>
+  <script src="admin.js?v=20260929-1"></script>
   <script src="admin-features.js?v=20260928-3"></script>
   <script src="admin-sponsors.js?v=20260927-1"></script>
   <script src="admin-share.js?v=20260928-7"></script>
