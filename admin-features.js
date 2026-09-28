@@ -115,9 +115,9 @@
       if (error || data?.error) throw error || new Error(data.error);
       const sent = Number(data?.sent || 0), failed = Number(data?.failed || 0);
       lastPushStatus = sent === 0
-        ? (failed ? `Bildirim hiç gönderilemedi (${failed} cihaz hatası).` : "Bildirim gönderilemedi; geçerli abonelik bulunamadı.")
-        : failed ? `Bildirim ${sent} cihaza ulaştı; ${failed} cihazda hata oluştu.`
-          : `Bildirim ${sent} cihaza gönderildi.`;
+        ? (failed ? `Push servisi ${failed} cihaz isteğini reddetti.` : "Push isteği kabul edilmedi; geçerli abonelik bulunamadı.")
+        : failed ? `Push servisi ${sent} cihaz isteğini kabul etti; ${failed} cihazda hata oluştu. Telefonlarda gösterim ayrıca doğrulanamıyor.`
+          : `Push servisi ${sent} cihaz isteğini kabul etti. Telefonlarda gösterim ayrıca doğrulanamıyor.`;
       if (!silent) notice(lastPushStatus);
       return sent > 0 && failed === 0;
     } catch (e) {
