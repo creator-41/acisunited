@@ -283,6 +283,15 @@
       </section>
       <section id="tab-push" role="tabpanel" aria-labelledby="tab-button-push" hidden>
         <p class="eyebrow mb-1">Taraftarlara ulaş</p><h2 class="font-baslik text-3xl mb-5">Bildirim gönder</h2>
+        <div class="surface p-5 sm:p-6 max-w-2xl mb-4">
+          <h3 class="font-baslik text-xl mb-2">Bu cihazın bildirimleri</h3>
+          <p id="admin-push-status" role="status" class="muted text-sm">Bildirim durumu kontrol ediliyor…</p>
+          <div class="flex flex-col sm:flex-row gap-2 mt-4">
+            <button id="admin-enable-push" type="button" class="action">🔔 Bu cihazda aç</button>
+            <button id="admin-test-push" type="button" class="outline-action">Test bildirimi göster</button>
+          </div>
+          <p class="muted text-xs mt-3">Yönetim panelini ayrı bir uygulama olarak yüklediysen bildirimleri burada da aç.</p>
+        </div>
         <form id="push-form" class="surface p-5 sm:p-7 max-w-2xl space-y-4">
           <p class="muted text-sm">Bildirim izni veren cihazlara anlık mesaj gönder.</p>
           <label class="field">Başlık<input name="title" maxlength="100" value="Acısu United" required></label>
@@ -301,6 +310,6 @@
   <script src="admin-sponsors.js?v=20260927-1"></script>
   <script src="admin-share.js?v=20260927-1"></script>
   <script src="admin-enhancements.js?v=20260927-1"></script>
-  <script src="admin-pwa.js?v=20260925-2"></script>
+  <script src="admin-pwa.js?v=20260928-1"></script>
 </body>
 </html>
