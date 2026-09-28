@@ -599,7 +599,7 @@
     const button = $("download-admin-backup");
     button.disabled = true; button.textContent = "Yedek hazırlanıyor…";
     try {
-      const tables = ["acisu_players","acisu_matches","acisu_match_lineup","acisu_player_stats","acisu_goal_log","acisu_news","acisu_seasons","acisu_staff","acisu_sponsors","acisu_admin_audit","acisu_match_attendance"];
+      const tables = ["acisu_players","acisu_matches","acisu_match_lineup","acisu_player_stats","acisu_goal_log","acisu_news","acisu_seasons","acisu_staff","acisu_sponsors","acisu_admin_audit","acisu_match_attendance","acisu_goal_videos"];
       const entries = await Promise.all(tables.map(async table => {
         const {data,error}=await db.from(table).select("*");
         if(error) throw new Error(table+": "+error.message);
