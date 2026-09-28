@@ -26,7 +26,9 @@
   });
   refreshOptions();updateFields();
   const rounded=(ctx,x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
-  const text=(ctx,value,x,y,size,color,weight="600",align="left",maxWidth)=>{ctx.font=weight+" "+size+"px system-ui, -apple-system, sans-serif";ctx.fillStyle=color;ctx.textAlign=align;if(maxWidth)ctx.fillText(String(value??""),x,y,maxWidth);else ctx.fillText(String(value??""),x,y);};
+  const display='"Oswald", Impact, sans-serif', brush='"Permanent Marker", "Arial Black", sans-serif', body='"Montserrat", system-ui, sans-serif';
+  const text=(ctx,value,x,y,size,color,weight="600",align="left",maxWidth,font=body)=>{ctx.font=weight+" "+size+"px "+font;ctx.fillStyle=color;ctx.textAlign=align;if(maxWidth)ctx.fillText(String(value??""),x,y,maxWidth);else ctx.fillText(String(value??""),x,y);};
+  const loadFonts=()=>document.fonts?Promise.race([Promise.allSettled([document.fonts.load('80px "Permanent Marker"'),document.fonts.load('80px "Oswald"')]),new Promise(resolve=>setTimeout(resolve,2500))]):Promise.resolve();
   const imageLoad=src=>new Promise(resolve=>{const img=new Image();img.crossOrigin="anonymous";img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src;});
   const drawImageCover=(ctx,img,x,y,w,h)=>{
     if(!img)return;const scale=Math.max(w/img.width,h/img.height),sw=w/scale,sh=h/scale,sx=(img.width-sw)/2,sy=(img.height-sh)/2;
@@ -39,6 +41,7 @@
     if(isPlayer&&!player){api.notice("Görsel için önce bir oyuncu seç.");return;}
     if(!isPlayer&&!match){api.notice("Görsel için önce bir maç ekle.");return;}
     preview.textContent="Görsel hazırlanıyor…";download.disabled=true;
+    await loadFonts();
     const c=document.createElement("canvas");c.width=1080;c.height=1350;const ctx=c.getContext("2d");
     const crest=await imageLoad("image_09a3ea.png");
     const matchdayImage=!isPlayer&&kind.value!=="result"?await imageLoad("assets/acisu-matchday-v1.jpg"):null;
@@ -89,33 +92,36 @@
       ctx.beginPath();ctx.moveTo(x+dx*58,y);ctx.lineTo(x,y);ctx.lineTo(x,y+dy*58);ctx.stroke();
     }
     if(crest)ctx.drawImage(crest,84,80,94,94);
-    text(ctx,"ACISU",208,135,44,"#f6f1e8","900");text(ctx,"UNITED",370,135,44,"#c7a878","900");
+    text(ctx,"ACISU",208,144,52,"#f6f1e8","700","left",null,display);text(ctx,"UNITED",360,144,52,"#c7a878","700","left",null,display);
     ctx.fillStyle="#c7a878";ctx.fillRect(86,205,908,2);
     ctx.fillStyle="rgba(199,168,120,.65)";
     ctx.beginPath();ctx.moveTo(540,224);ctx.lineTo(547,231);ctx.lineTo(540,238);ctx.lineTo(533,231);ctx.fill();
     const selectedKind=kind.value;
     if(isPlayer){
-      text(ctx,"OYUNCU PROFİLİ",540,300,29,"#c7a878","800","center");
+      text(ctx,"OYUNCU PROFİLİ",540,300,45,"#c7a878","700","center",850,display);
       const portrait=await imageLoad(player.image_url||"image_09a3ea.png");
       if(portrait)drawImageCover(ctx,portrait,390,355,300,300);
       else if(crest)ctx.drawImage(crest,390,355,300,300);
       ctx.strokeStyle="#c7a878";ctx.lineWidth=8;ctx.beginPath();ctx.arc(540,505,150,0,Math.PI*2);ctx.stroke();
       text(ctx,"#"+player.number+" · "+player.position,540,725,30,"#d5bb92","700","center");
-      text(ctx,player.name,540,805,58,"#fff","900","center");
+      text(ctx,player.name,540,805,78,"#fff","700","center",880,display);
       const {data:rows=[]}=await api.db.from("acisu_player_stats").select("played,goals,assists,yellow_cards,red_cards").eq("player_id",player.id);
       const sum=k=>rows.reduce((n,r)=>n+Number(r[k]||0),0),games=rows.filter(r=>r.played).length;
       const points=games*2+sum("goals")*5+sum("assists")*2-sum("yellow_cards")-sum("red_cards")*3;
       const vals=[[games,"MAÇ"],[sum("goals"),"GOL"],[sum("assists"),"ASİST"],[points,"PUAN"]];
-      vals.forEach((v,i)=>{const x=95+i*225;rounded(ctx,x,930,200,150,18,"rgba(255,255,255,.07)");text(ctx,v[0],x+100,1003,46,"#dfc18e","900","center");text(ctx,v[1],x+100,1055,22,"#fff","700","center");});
+      vals.forEach((v,i)=>{const x=95+i*225;rounded(ctx,x,930,200,150,18,"rgba(255,255,255,.07)");text(ctx,v[0],x+100,1003,58,"#dfc18e","700","center",185,display);text(ctx,v[1],x+100,1055,27,"#fff","700","center",185,display);});
       text(ctx,"Birlikte, daha güçlü.",540,1190,29,"#d3c4ac","600","center");
     }else{
       const isResult=selectedKind==="result";
       const title=isResult?"MAÇ SONUCU":"MAÇ GÜNÜ";
-      ctx.fillStyle="rgba(213,179,123,.66)";ctx.fillRect(170,304,176,2);ctx.fillRect(734,304,176,2);
-      ctx.save();ctx.shadowColor="rgba(210,157,98,.42)";ctx.shadowBlur=24;
-      text(ctx,title,540,320,40,"#d3b47f","900","center");ctx.restore();
-      text(ctx,isResult?String(match.our_score??0)+"  —  "+String(match.their_score??0):"ACISU UNITED",540,isResult?530:520,isResult?92:62,"#fff","900","center");
-      text(ctx,isResult?String(match.opponent||"Rakip takım"): "VS  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,isResult?630:640,38,"#dfc18e","800","center",850);
+      ctx.save();ctx.translate(540,316);ctx.rotate(-.055);
+      ctx.shadowColor="rgba(11,4,6,.9)";ctx.shadowBlur=17;ctx.shadowOffsetY=7;
+      text(ctx,title,0,0,88,"#f2d19e","400","center",820,brush);ctx.restore();
+      ctx.save();ctx.strokeStyle="#b68460";ctx.lineWidth=7;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(310,357);ctx.quadraticCurveTo(556,370,775,348);ctx.stroke();ctx.restore();
+      ctx.save();ctx.shadowColor="rgba(8,3,6,.95)";ctx.shadowBlur=16;ctx.shadowOffsetY=5;
+      text(ctx,isResult?String(match.our_score??0)+"  —  "+String(match.their_score??0):"ACISU UNITED",540,isResult?530:520,isResult?112:88,"#fff","700","center",860,display);
+      text(ctx,isResult?String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"): "VS  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,isResult?630:640,58,"#e7bb7c","700","center",850,display);ctx.restore();
       if(!isResult)text(ctx,dateText(match.match_at),540,750,31,"#fff","600","center",840);
       else text(ctx,dateText(match.match_at),540,735,28,"#c7bba8","600","center");
       if(match.venue)text(ctx,match.venue,540,810,27,"#fff","500","center",840);
@@ -123,7 +129,7 @@
       ribbon.addColorStop(0,"rgba(110,35,47,.76)");ribbon.addColorStop(1,"rgba(34,17,22,.84)");
       rounded(ctx,180,920,720,175,22,ribbon);
       ctx.fillStyle="rgba(220,180,117,.82)";ctx.fillRect(222,944,636,3);
-      text(ctx,isResult?(Number(match.our_score)>Number(match.their_score)?"GALİBİYET":Number(match.our_score)<Number(match.their_score)?"MÜCADELE DEVAM EDİYOR":"BERABERLİK"):"BİRLİKTE MÜCADELE",540,1020,36,"#e1c190","900","center");
+      text(ctx,isResult?(Number(match.our_score)>Number(match.their_score)?"GALİBİYET":Number(match.our_score)<Number(match.their_score)?"MÜCADELE DEVAM EDİYOR":"BERABERLİK"):"BİRLİKTE MÜCADELE",540,1032,54,"#f1cd91","700","center",650,display);
       text(ctx,"#AcısuUnited  ·  #BirlikteDahaGüçlü",540,1185,27,"#ddd","600","center");
     }
     text(ctx,"ACISU UNITED",540,1260,18,"rgba(255,255,255,.58)","700","center");
