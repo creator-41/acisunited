@@ -82,6 +82,7 @@
           <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
           <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
           <button id="tab-button-attendance" class="tab" type="button" role="tab" aria-controls="tab-attendance" aria-selected="false" tabindex="-1" data-tab="attendance">🙌 Katılım</button>
+          <button id="tab-button-goal-videos" class="tab" type="button" role="tab" aria-controls="tab-goal-videos" aria-selected="false" tabindex="-1" data-tab="goal-videos">🎥 Gol videoları</button>
           <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
           <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
           <button id="tab-button-share" class="tab" type="button" role="tab" aria-controls="tab-share" aria-selected="false" tabindex="-1" data-tab="share">🎨 Görsel atölyesi</button>
@@ -295,6 +296,21 @@
           <div class="surface p-5 sm:p-7"><h3 class="font-baslik text-xl mb-3">Arşiv</h3><div id="seasons-list"></div></div>
         </div>
       </section>
+      <section id="tab-goal-videos" role="tabpanel" aria-labelledby="tab-button-goal-videos" hidden>
+        <p class="eyebrow mb-1">Gol anları</p><h2 class="font-baslik text-3xl mb-2">Gol videoları</h2>
+        <p class="muted text-sm mb-5">Golü kaydedilmiş maç ve oyuncuyu seç; YouTube, Instagram veya başka bir HTTPS video bağlantısı ekle. Bağlantı yoksa sitede video alanı görünmez.</p>
+        <label class="field max-w-lg mb-5">Maç<select id="goal-video-match"><option value="">Maç seç</option></select></label>
+        <div class="grid lg:grid-cols-2 gap-5 items-start">
+          <form id="goal-video-form" class="surface p-5 sm:p-6 space-y-4">
+            <h3 class="font-baslik text-xl">Video bağlantısı ekle</h3>
+            <label class="field">Golcü<select id="goal-video-player" required><option value="">Önce maç seç</option></select></label>
+            <label class="field">Başlık<input name="title" maxlength="100" placeholder="Örn. Mert Ali'nin golü" value="Gol videosu" required></label>
+            <label class="field">Video bağlantısı<input name="video_url" type="url" inputmode="url" maxlength="2048" placeholder="https://…" required></label>
+            <div class="flex gap-2"><button class="action" type="submit">Videoyu kaydet</button><button id="goal-video-cancel" class="outline-action" type="button">Formu temizle</button></div>
+          </form>
+          <div class="surface p-5 sm:p-6"><h3 class="font-baslik text-xl mb-3">Eklenen videolar</h3><div id="goal-video-list" class="text-sm">Önce maç seç.</div></div>
+        </div>
+      </section>
       <section id="tab-attendance" role="tabpanel" aria-labelledby="tab-button-attendance" hidden>
         <div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><p class="eyebrow mb-1">Taraftar katılımı</p><h2 class="font-baslik text-3xl">Maça gel</h2><p class="muted text-sm mt-1">Maç bazında katılacağını belirten cihazların sayısı.</p></div><button id="refresh-attendance" type="button" class="outline-action">Yenile</button></div>
         <div id="attendance-list" class="surface p-5 sm:p-6 text-sm" role="status">Katılım bilgileri yükleniyor…</div>
@@ -328,7 +344,8 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260929-1"></script>
+  <script src="admin.js?v=20260929-2"></script>
+  <script src="admin-goal-videos.js?v=20260929-1"></script>
   <script src="admin-features.js?v=20260928-3"></script>
   <script src="admin-sponsors.js?v=20260927-1"></script>
   <script src="admin-share.js?v=20260928-7"></script>
