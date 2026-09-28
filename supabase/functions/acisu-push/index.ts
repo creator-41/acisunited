@@ -67,7 +67,7 @@ Deno.serve(async (request) => {
     return error ? reply({ error: "Abonelik kaydedilemedi." }, 500) : reply({ ok: true });
   }
 
-  if (input.action === "send") {
+  if (input.action === "send" || input.action === "test") {
     const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     if (!token) return reply({ error: "Oturum açmalısın." }, 401);
     const { data: { user }, error: authError } = await client.auth.getUser(token);
@@ -82,6 +82,29 @@ Deno.serve(async (request) => {
     const secrets = await sql`select decrypted_secret from vault.decrypted_secrets where name = 'acisu_vapid_private' limit 1`;
     const privateKey = secrets[0]?.decrypted_secret;
     if (!privateKey) return reply({ error: "Bildirim anahtarı bulunamadı." }, 503);
+    if (input.action === "test") {
+      const endpoint = typeof input.endpoint === "string" ? input.endpoint : "";
+      if (!allowedEndpoint(endpoint) || endpoint.length > 2048)
+        return reply({ error: "Geçersiz cihaz aboneliği." }, 400);
+      const { data: sub, error: subError } = await service.from("acisu_push_subscriptions")
+        .select("endpoint,p256dh,auth").eq("endpoint", endpoint).maybeSingle();
+      if (subError || !sub) return reply({ error: "Bu cihaz kayıtlı değil. Önce bildirimleri aç." }, 404);
+      try {
+        const payload = await buildPushPayload(
+          { data: JSON.stringify({ title: "Acısu United test", body: "Canlı maç bildirimleri bu cihaza ulaşıyor.", url: "https://acisunited.com.tr/admin.html" }), options: { ttl: 3600 } },
+          { endpoint: sub.endpoint, expirationTime: null, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          { ...vapid, privateKey },
+        );
+        const result = await fetch(sub.endpoint, payload);
+        console.info("Push test gateway", new URL(sub.endpoint).hostname, result.status);
+        if (result.status === 404 || result.status === 410)
+          await service.from("acisu_push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        return reply({ accepted: result.ok, status: result.status });
+      } catch (error) {
+        console.error("Push test başarısız:", error);
+        return reply({ accepted: false, error: "Push test gönderimi başarısız." }, 502);
+      }
+    }
     const title = typeof input.title === "string" ? input.title.trim().slice(0, 100) : "";
     const body = typeof input.body === "string" ? input.body.trim().slice(0, 500) : "";
     if (!title || !body) return reply({ error: "Başlık ve mesaj gerekli." }, 400);
