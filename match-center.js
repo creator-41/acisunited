@@ -123,6 +123,17 @@
     content.querySelector("[data-mc-attend-count]").textContent =
       `${Number(result.count) || 0} taraftar katılacağını belirtti`;
   });
+  function videoSection(match) {
+    const rows = (data.videos || []).filter(v => v.match_id === match.id).map(v => {
+      let url;
+      try { url = new URL(v.video_url); if (url.protocol !== "https:") return ""; }
+      catch { return ""; }
+      const player = (data.goalPlayers || []).find(p => p.id === v.player_id)
+        || (data.players || []).find(p => p.id === v.player_id);
+      return `<a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer" class="mc-video-link"><span>▶</span><span><strong>${esc(v.title || "Gol videosu")}</strong><small>${esc(player?.name || "Acısu United")}</small></span><span aria-hidden="true">↗</span></a>`;
+    }).filter(Boolean);
+    return rows.length ? `<section class="mc-panel"><h3>🎥 Gol videoları</h3><div class="mc-video-list">${rows.join("")}</div></section>` : "";
+  }
   function render() {
     if (!activeId || !data) return;
     const match = data.matches.find(x => String(x.id) === activeId);
@@ -143,7 +154,7 @@
       </section>
       <p class="mc-detail">${esc(dateText(match.match_at, match.time_confirmed))}${match.venue ? ` · ${esc(match.venue)}` : ""}</p>
       ${coach ? `<button type="button" class="mc-coach" data-coach-id="${esc(coach.id)}">🧢 Teknik direktör: ${esc(coach.name)}</button>` : ""}
-      ${attendanceSection(match)}${goalSection(match)}${lineupSection(match)}`;
+      ${attendanceSection(match)}${goalSection(match)}${videoSection(match)}${lineupSection(match)}`;
     loadAttendance(match);
   }
   function urlFor(id) {
