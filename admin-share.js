@@ -6,7 +6,10 @@
   const preview=document.getElementById("share-preview"),download=document.getElementById("download-share");
   let canvas=null, currentPlayerId=null;
   const esc=api.escapeHtml;
-  const dateText=value=>{if(!value)return "";try{return new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(value));}catch(_){return "";}};
+  const datePart=(value,options)=>{if(!value)return "";try{return new Intl.DateTimeFormat("tr-TR",{timeZone:"Europe/Istanbul",...options}).format(new Date(value));}catch(_){return "";}};
+  const dateOnly=value=>datePart(value,{day:"2-digit",month:"long",year:"numeric"});
+  const timeOnly=value=>datePart(value,{hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+  const dateText=value=>[dateOnly(value),timeOnly(value)].filter(Boolean).join(" ");
   const refreshOptions=()=>{
     const matches=api.getMatches(),players=api.getPlayers();
     const oldMatch=matchSelect.value,oldPlayer=playerSelect.value;
@@ -28,6 +31,8 @@
   const rounded=(ctx,x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
   const display='"Oswald", Impact, sans-serif', brush='"Permanent Marker", "Arial Black", sans-serif', body='"Montserrat", system-ui, sans-serif';
   const text=(ctx,value,x,y,size,color,weight="600",align="left",maxWidth,font=body)=>{ctx.font=weight+" "+size+"px "+font;ctx.fillStyle=color;ctx.textAlign=align;if(maxWidth)ctx.fillText(String(value??""),x,y,maxWidth);else ctx.fillText(String(value??""),x,y);};
+  const clubName=(ctx,y,size)=>{ctx.save();ctx.font="700 "+size+"px "+display;ctx.textAlign="center";ctx.lineJoin="round";ctx.shadowColor="rgba(0,0,0,.85)";ctx.shadowBlur=18;ctx.shadowOffsetY=6;ctx.lineWidth=11;ctx.strokeStyle="#581720";ctx.strokeText("ACISU UNITED",540,y,860);const gold=ctx.createLinearGradient(0,y-size,0,y+8);gold.addColorStop(0,"#fff2d8");gold.addColorStop(.48,"#e5bb7c");gold.addColorStop(1,"#bd824f");ctx.fillStyle=gold;ctx.fillText("ACISU UNITED",540,y,860);ctx.restore();};
+  const detailLine=(ctx,value,y,type)=>{if(!value)return;const fontSize=type==="clock"?37:29,limit=type==="clock"?700:790;ctx.save();ctx.font="600 "+fontSize+"px "+body;const width=Math.min(ctx.measureText(value).width,limit),left=540-(width+50)/2,x=left+16,mid=y-12;ctx.strokeStyle="#e5bb7c";ctx.fillStyle="#e5bb7c";ctx.lineWidth=3.5;ctx.lineCap="round";ctx.lineJoin="round";if(type==="clock"){ctx.beginPath();ctx.arc(x,mid,15,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(x,mid-9);ctx.lineTo(x,mid);ctx.lineTo(x+8,mid+5);ctx.stroke();}else{ctx.beginPath();ctx.moveTo(x,mid+18);ctx.bezierCurveTo(x-3,mid+13,x-14,mid+2,x-14,mid-6);ctx.arc(x,mid-6,14,Math.PI,0);ctx.bezierCurveTo(x+14,mid+2,x+3,mid+13,x,mid+18);ctx.closePath();ctx.stroke();ctx.beginPath();ctx.arc(x,mid-6,4,0,Math.PI*2);ctx.fill();}ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=9;text(ctx,value,left+48,y,fontSize,"#fff8ed","600","left",limit,body);ctx.restore();};
   const loadFonts=()=>document.fonts?Promise.race([Promise.allSettled([document.fonts.load('80px "Permanent Marker"'),document.fonts.load('80px "Oswald"')]),new Promise(resolve=>setTimeout(resolve,2500))]):Promise.resolve();
   const imageLoad=src=>new Promise(resolve=>{const img=new Image();img.crossOrigin="anonymous";img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src;});
   const drawImageCover=(ctx,img,x,y,w,h)=>{
@@ -44,7 +49,7 @@
     await loadFonts();
     const c=document.createElement("canvas");c.width=1080;c.height=1350;const ctx=c.getContext("2d");
     const crest=await imageLoad("image_09a3ea.png");
-    const matchdayImage=!isPlayer&&kind.value!=="result"?await imageLoad("assets/acisu-matchday-v1.jpg"):null;
+    const matchdayImage=!isPlayer?await imageLoad("assets/acisu-matchday-v1.jpg"):null;
     const bg=ctx.createLinearGradient(0,0,1080,1350);
     bg.addColorStop(0,"#0c090b");bg.addColorStop(.42,"#38151c");bg.addColorStop(1,"#090809");
     ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
@@ -119,17 +124,35 @@
       text(ctx,title,0,0,88,"#f2d19e","400","center",820,brush);ctx.restore();
       ctx.save();ctx.strokeStyle="#b68460";ctx.lineWidth=7;ctx.lineCap="round";
       ctx.beginPath();ctx.moveTo(310,357);ctx.quadraticCurveTo(556,370,775,348);ctx.stroke();ctx.restore();
-      ctx.save();ctx.shadowColor="rgba(8,3,6,.95)";ctx.shadowBlur=16;ctx.shadowOffsetY=5;
-      text(ctx,isResult?String(match.our_score??0)+"  —  "+String(match.their_score??0):"ACISU UNITED",540,isResult?530:520,isResult?112:88,"#fff","700","center",860,display);
-      text(ctx,isResult?String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"): "VS  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,isResult?630:640,58,"#e7bb7c","700","center",850,display);ctx.restore();
-      if(!isResult)text(ctx,dateText(match.match_at),540,750,31,"#fff","600","center",840);
-      else text(ctx,dateText(match.match_at),540,735,28,"#c7bba8","600","center");
-      if(match.venue)text(ctx,match.venue,540,810,27,"#fff","500","center",840);
+      const homeScore=Number(match.our_score??0),awayScore=Number(match.their_score??0);
+      const resultState=homeScore>awayScore?"GALİBİYET":homeScore<awayScore?"MÜCADELE DEVAM EDİYOR":"BERABERLİK";
+      const resultColor=homeScore>awayScore?"#d7aa68":homeScore<awayScore?"#e5a8a8":"#e7c987";
+      if(isResult){
+        ctx.save();rounded(ctx,132,386,816,448,34,"rgba(14,7,11,.72)");
+        ctx.strokeStyle="rgba(225,187,124,.58)";ctx.lineWidth=3;ctx.strokeRect(132,386,816,448);
+        ctx.fillStyle="rgba(225,187,124,.62)";ctx.fillRect(210,420,660,2);ctx.fillRect(210,799,660,2);ctx.restore();
+        text(ctx,"MAÇ SONUCU",540,453,25,"#e3bf88","700","center",700,display);
+        clubName(ctx,542,54);
+        text(ctx,String(homeScore)+"  —  "+String(awayScore),540,585,124,"#fff","700","center",790,display);
+        text(ctx,"ACISU UNITED  ·  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,680,42,"#f2eee9","700","center",850,display);
+        rounded(ctx,365,720,350,62,31,"rgba(110,35,47,.82)");
+        ctx.strokeStyle=resultColor;ctx.lineWidth=2;ctx.strokeRect(365,720,350,62);
+        text(ctx,resultState,540,762,27,resultColor,"700","center",320,display);
+      }else{
+        clubName(ctx,519,88);
+        ctx.fillStyle="#d9ad75";ctx.fillRect(355,577,135,2);ctx.fillRect(590,577,135,2);
+        text(ctx,"VS",540,591,34,"#e5bb7c","700","center",90,display);
+        text(ctx,String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,666,60,"#f5f1ed","700","center",850,display);
+        text(ctx,dateOnly(match.match_at),540,734,31,"#fff8ed","600","center",820,body);
+        detailLine(ctx,timeOnly(match.match_at),791,"clock");
+        detailLine(ctx,match.venue,852,"pin");
+      }
+      if(isResult)detailLine(ctx,dateOnly(match.match_at)+"  ·  "+timeOnly(match.match_at),884,"clock");
       const ribbon=ctx.createLinearGradient(180,920,900,1095);
       ribbon.addColorStop(0,"rgba(110,35,47,.76)");ribbon.addColorStop(1,"rgba(34,17,22,.84)");
       rounded(ctx,180,920,720,175,22,ribbon);
       ctx.fillStyle="rgba(220,180,117,.82)";ctx.fillRect(222,944,636,3);
-      text(ctx,isResult?(Number(match.our_score)>Number(match.their_score)?"GALİBİYET":Number(match.our_score)<Number(match.their_score)?"MÜCADELE DEVAM EDİYOR":"BERABERLİK"):"BİRLİKTE MÜCADELE",540,1032,54,"#f1cd91","700","center",650,display);
+      text(ctx,isResult?resultState:"BİRLİKTE MÜCADELE",540,1032,54,"#f1cd91","700","center",650,display);
       text(ctx,"#AcısuUnited  ·  #BirlikteDahaGüçlü",540,1185,27,"#ddd","600","center");
     }
     text(ctx,"ACISU UNITED",540,1260,18,"rgba(255,255,255,.58)","700","center");
