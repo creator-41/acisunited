@@ -119,6 +119,17 @@
     const fx=document.createElement("div");fx.className="acisu-goal-flash";fx.textContent="⚽ GOL!";
     document.body.appendChild(fx);setTimeout(()=>fx.remove(),1700);
   }
+  async function readyPushWorker() {
+    await navigator.serviceWorker.register("./sw.js");
+    let timeout;
+    try {
+      return await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => { timeout = setTimeout(() =>
+          reject(new Error("Bildirim servisi başlatılamadı. Uygulamayı kapatıp yeniden aç.")), 12000); })
+      ]);
+    } finally { clearTimeout(timeout); }
+  }
   function urlBase64ToBytes(value) {
     const b64=value.replace(/-/g,"+").replace(/_/g,"/");
     return Uint8Array.from(atob(b64.padEnd(Math.ceil(b64.length/4)*4,"=")),c=>c.charCodeAt(0));
@@ -261,7 +272,7 @@
       const permission=await Notification.requestPermission();
       if(permission!=="granted"){status("Bildirim izni verilmedi. iPhone Ayarlar > Bildirimler bölümünü kontrol et.");return false;}
       closePushPrompt();
-      const registration=await navigator.serviceWorker.ready;
+      const registration=await readyPushWorker();
       const {data:config,error:configError}=await db.functions.invoke("acisu-push",{body:{action:"config"}});
       if(configError || !config?.publicKey) throw configError||new Error("Bildirim anahtarı alınamadı.");
       const subscription=await registration.pushManager.getSubscription()
