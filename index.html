@@ -392,7 +392,7 @@
 
         <div id="player-profile-modal" class="fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm p-4 grid place-items-center" hidden>
       <section class="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-2xl border border-altin/50 bg-[#160f11] p-5 sm:p-7 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="profile-name">
-        <button id="close-player-profile" class="absolute right-3 top-3 rounded-full border border-white/20 w-10 h-10 text-2xl text-gray-300" type="button" aria-label="Oyuncu profilini kapat">×</button>
+        <button id="close-player-profile" class="absolute right-3 top-3 rounded-full border border-white/20 w-10 h-10 text-2xl text-gray-300" type="button" aria-label="Profili kapat">×</button>
         <div id="player-profile-content"></div>
       </section>
     </div>
@@ -512,7 +512,7 @@
         function renderCoach() {
             const container = document.getElementById('coach-container');
             container.innerHTML = window.technicalStaff.length ? window.technicalStaff.map(coachData => `
-                <div class="fifa-card p-5 relative overflow-hidden group flex flex-col justify-between w-full max-w-sm sm:w-72">
+                <div class="fifa-card p-5 relative overflow-hidden group flex flex-col justify-between w-full max-w-sm sm:w-72 cursor-pointer" data-coach-id="${coachData.id}" role="button" tabindex="0" aria-label="${coachData.name} teknik heyet profilini görüntüle">
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-500">
                         <img src="image_09a3ea.png" alt="" class="w-96 h-96 object-contain scale-150">
                     </div>
@@ -557,7 +557,7 @@
         renderSquad();
         renderCoach();
     </script>
-    <script src="site-data.js?v=20260928-4"></script>
+    <script src="site-data.js?v=20260928-5"></script>
     <script src="site-features.js?v=20260928-1"></script>
 </body>
 </html>

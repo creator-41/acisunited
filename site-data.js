@@ -148,6 +148,40 @@
     box.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-player-id]")){event.preventDefault();show(event.target.dataset.playerId);}});
   }
 
+  function wireCoachProfiles(staff) {
+    window.acisuPublicStaff=staff;
+    const modal=document.getElementById("player-profile-modal");
+    const content=document.getElementById("player-profile-content");
+    if(!modal||!content||modal.dataset.coachProfileWired)return;
+    modal.dataset.coachProfileWired="1";
+    const open=coachId=>{
+      const coach=(window.acisuPublicStaff||[]).find(x=>x.id===coachId);
+      if(!coach)return;
+      content.innerHTML=`<div class="pt-3 text-center">
+        <img src="${esc(safeImage(coach.image_url))}" alt="${esc(coach.name)}" class="mx-auto h-28 w-28 rounded-full border-2 border-altin/70 object-cover shadow-lg" onerror="this.onerror=null;this.src='image_09a3ea.png'">
+        <p class="mt-3 font-baslik text-lg text-altin">${esc(coach.role)}</p>
+        <h2 id="profile-name" class="mt-1 font-baslik text-3xl uppercase text-white">${esc(coach.name)}</h2>
+        <p class="mt-2 text-xs text-gray-400">ACISU UNITED · TEKNİK HEYET</p>
+       </div>
+       <div class="mt-6 grid grid-cols-2 gap-3">
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">GENEL</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.rating)||0}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">TAKIM YÖNETİMİ</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.pace)||0}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">TAKTİK</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.passing)||0}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">DEFANS</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.defense)||0}</strong></div>
+       </div>`;
+      modal.hidden=false;document.body.classList.add("overflow-hidden");
+    };
+    document.addEventListener("click",event=>{
+      const card=event.target.closest("[data-coach-id]");
+      if(card)open(card.dataset.coachId);
+    });
+    document.addEventListener("keydown",event=>{
+      if(event.key!=="Enter"&&event.key!==" ")return;
+      const card=event.target.closest("[data-coach-id]");
+      if(card&&card.getAttribute("role")==="button"){event.preventDefault();open(card.dataset.coachId);}
+    });
+  }
+
   async function load() {
     const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult, statsResult, sponsorsResult] = await Promise.all([
       db.from("acisu_players").select("*").eq("active", true).order("number"),
@@ -170,7 +204,7 @@
     }));
     window.renderSquad();
     window.technicalStaff = (staffResult.data || []).map(p => ({
-      name: esc(p.name), pos: esc(p.role), img: esc(safeImage(p.image_url)),
+      id: p.id, name: esc(p.name), pos: esc(p.role), img: esc(safeImage(p.image_url)),
       ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
     }));
     window.renderCoach();
@@ -179,7 +213,9 @@
     const profileStats = statsResult.data || [];
     renderPublicSponsors(sponsorsResult.data || []);
     wirePlayerProfiles(players, matches, profileStats);
+    wireCoachProfiles(staffResult.data || []);
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
+    const coachById = new Map((staffResult.data || []).map(p => [p.id, p]));
     const goalsByMatch = new Map();
     for (const goal of goalResult.data || []) {
       if (goal.side !== "acisu") continue;
@@ -197,6 +233,7 @@
     const fallback = document.getElementById("match-fallback");
     fallback.hidden = true;
     list.innerHTML = matches.length ? matches.map(m => {
+      const matchCoach=coachById.get(m.head_coach_id);
       const ourTeam = `<div class="flex flex-col items-center w-full md:w-1/3">
           <img src="image_09a3ea.png" alt="Acısu United" class="w-20 h-20 object-contain mb-4">
           <h3 class="font-baslik text-2xl font-bold text-white text-center">ACISU UNITED</h3></div>`;
@@ -243,7 +280,7 @@
         <img src="image_09a3ea.png" alt="" class="absolute -right-20 -bottom-20 w-96 opacity-5 pointer-events-none">
         <div class="text-center mb-6 relative">
           <span class="${m.is_live ? "bg-red-600 live-pulse" : "bg-bordo"} text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">${m.is_live ? "🔴 CANLI" : m.played ? "Maç Sonucu" : "Yaklaşan Maç"}</span>
-          <p class="text-gray-400 text-sm mt-3">${esc(m.venue)} · ${esc(dateText(m.match_at, m.time_confirmed))}</p>
+          <p class="text-gray-400 text-sm mt-3">${esc(m.venue)} · ${esc(dateText(m.match_at, m.time_confirmed))}</p>${matchCoach?`<button type="button" data-coach-id="${esc(matchCoach.id)}" class="mt-2 rounded-full border border-altin/30 bg-white/5 px-3 py-1 text-xs text-altin hover:bg-white/10">🧢 Teknik direktör: ${esc(matchCoach.name)}</button>`:""}
         </div>
         <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative">
           ${m.home ? ourTeam : opponent}
@@ -293,11 +330,12 @@
     const benchList=substitutes.length?substitutes.map(x=>`<button type="button" data-player-id="${esc(x.player_id)}" class="flex min-h-[88px] flex-col items-center justify-center rounded-xl border border-white/10 bg-[#111a2a] px-2 py-2 text-center hover:border-altin/70">
       ${jersey(x.player.number)}<span class="mt-1 max-w-full truncate text-[11px] font-bold text-white">#${esc(x.player.number)} ${esc(x.player.name)}</span><span class="mt-0.5 text-[9px] text-altin">${esc(x.player.position||"Yedek")}</span></button>`).join(""):'<p class="col-span-2 py-5 text-center text-sm text-gray-400">Yedek seçilmedi</p>';
     const matchTime=dateText(next.match_at);
+    const lineupCoach=coachById.get(next.head_coach_id);
     const opponentCrest=next.opponent_image_url?`<img src="${esc(next.opponent_image_url)}" alt="${esc(next.opponent)} arması" class="h-12 w-12 rounded-full border border-white/20 bg-white/10 object-contain p-1">`:`<span class="grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-white/5 text-sm font-black text-gray-300">${esc(String(next.opponent||"?").slice(0,2).toLocaleUpperCase("tr-TR"))}</span>`;
     lineupBox.className="overflow-hidden rounded-3xl border border-[#574348] bg-[#0d0c11] p-3 shadow-[0_20px_55px_rgba(0,0,0,.45)] sm:p-5";
     lineupBox.innerHTML=`<header class="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-altin/35 bg-gradient-to-r from-[#171217] via-[#26151a] to-[#171217] px-3 py-3 sm:px-5">
       <img src="image_09a3ea.png" alt="Acısu United arması" class="h-12 w-12 rounded-full object-contain drop-shadow-[0_0_12px_rgba(193,165,123,.4)] sm:h-16 sm:w-16">
-      <div class="min-w-0 text-center"><p class="font-baslik text-lg font-bold tracking-wide text-altin sm:text-2xl">ACISU UNITED</p><p class="mt-1 truncate text-xs font-bold text-white sm:text-sm">VS · ${esc(next.opponent)}</p><p class="mt-1 text-[10px] text-gray-300 sm:text-xs">${esc(formation)} · ${esc(matchTime)} · ${esc(next.venue||"Maç kadrosu")}</p></div>
+      <div class="min-w-0 text-center"><p class="font-baslik text-lg font-bold tracking-wide text-altin sm:text-2xl">ACISU UNITED</p><p class="mt-1 truncate text-xs font-bold text-white sm:text-sm">VS · ${esc(next.opponent)}</p><p class="mt-1 text-[10px] text-gray-300 sm:text-xs">${esc(formation)} · ${esc(matchTime)} · ${esc(next.venue||"Maç kadrosu")}</p>${lineupCoach?`<button type="button" data-coach-id="${esc(lineupCoach.id)}" class="mt-1 rounded-full border border-altin/30 bg-white/5 px-3 py-1 text-[10px] text-altin">🧢 ${esc(lineupCoach.name)} · ${esc(lineupCoach.role)}</button>`:""}</div>
       ${opponentCrest}
     </header>
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">

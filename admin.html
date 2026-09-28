@@ -175,6 +175,11 @@
               <div class="sm:col-span-2 flex items-center gap-3"><img id="opponent-photo-preview" alt="Rakip arması önizlemesi" class="w-16 h-16 rounded-lg object-contain border border-white/20" hidden><span class="muted text-xs">JPG, PNG veya WebP; en fazla 5 MB.</span></div>
               <label class="field sm:col-span-2">Tarih ve saat<input name="match_at" type="datetime-local" required></label>
               <label class="field sm:col-span-2">Saha<input name="venue" maxlength="150"></label>
+              <label class="field sm:col-span-2">Teknik direktör
+                <select id="match-head-coach" name="head_coach_id">
+                  <option value="">Teknik direktör seçilmedi</option>
+                </select>
+              </label>
               <label class="field sm:col-span-2">Ev/deplasman<select name="home"><option value="true">Ev sahibi</option><option value="false">Deplasman</option></select></label>
               <label class="flex items-center gap-2 text-sm"><input name="played" type="checkbox"> Maç oynandı</label>
               <label class="flex items-center gap-2 text-sm"><input name="published" type="checkbox" checked> Sitede yayımla</label>
@@ -313,7 +318,7 @@
   </main>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260928-2"></script>
+  <script src="admin.js?v=20260928-4"></script>
   <script src="admin-features.js?v=20260928-3"></script>
   <script src="admin-sponsors.js?v=20260927-1"></script>
   <script src="admin-share.js?v=20260928-7"></script>

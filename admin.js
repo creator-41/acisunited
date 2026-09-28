@@ -246,6 +246,12 @@
       <span><strong class="text-white">${escapeHtml(x.name)}</strong><span class="block muted text-xs mt-1">${escapeHtml(x.role)} ${x.active ? "" : "· Gizli"}</span></span>
       <span class="list-actions"><button data-edit-staff="${x.id}" type="button">Düzenle</button>
       <button data-delete-staff="${x.id}" type="button">Sil</button></span></div>`).join("") || '<p class="muted py-5">Henüz teknik heyet üyesi yok.</p>';
+    const coachSelect = $("match-head-coach");
+    const currentCoach = coachSelect.value;
+    const availableStaff = staff.filter(x => x.active || x.id === currentCoach);
+    coachSelect.replaceChildren(new Option("Teknik direktör seçilmedi", ""),
+      ...availableStaff.map(x => new Option(`${x.name} · ${x.role}${x.active ? "" : " · Gizli"}`, x.id)));
+    if (availableStaff.some(x => x.id === currentCoach)) coachSelect.value = currentCoach;
     $("matches-list").innerHTML = matches.map(x => `<div class="list-row">
       <span><strong class="text-white">${escapeHtml(x.opponent)}</strong><span class="block muted text-xs mt-1">${escapeHtml(new Date(x.match_at).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }))} · ${x.is_live ? `🔴 CANLI ${x.our_score}-${x.their_score}` : x.played ? `${x.our_score}-${x.their_score}` : "Yaklaşan"} ${x.published ? "" : "· Taslak"}</span></span>
       <span class="list-actions"><button data-edit-match="${x.id}" type="button">Düzenle</button>
@@ -441,7 +447,8 @@
       played, is_live: false, published: f.elements.namedItem("published").checked,
       our_score: played ? Number(formValue(f, "our_score")) : null,
       their_score: played ? Number(formValue(f, "their_score")) : null,
-      goal_scorers: played ? formValue(f, "goal_scorers") : ""
+      goal_scorers: played ? formValue(f, "goal_scorers") : "",
+      head_coach_id: formValue(f, "head_coach_id") || null
     };
     const previous = matches.find(x => x.id === id);
     const reset = previous?.played && !played;
@@ -559,7 +566,7 @@
       const m = matches.find(x => x.id === edit.dataset.editMatch), f = $("match-form");
       if (!m) { notice("Maç bulunamadı. Listeyi yenileyip tekrar dene."); return; }
       setMatchFormMode(m.id);
-      for (const field of ["id", "opponent", "opponent_image_url", "venue", "our_score", "their_score", "goal_scorers"])
+      for (const field of ["id", "opponent", "opponent_image_url", "venue", "our_score", "their_score", "goal_scorers", "head_coach_id"])
         f.elements.namedItem(field).value = m[field] ?? "";
       f.elements.namedItem("opponent_photo").value = "";
       showPreview("opponent-photo-preview", m.opponent_image_url || "");
