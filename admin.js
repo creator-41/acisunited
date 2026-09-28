@@ -115,6 +115,8 @@
   }
   document.querySelectorAll("[data-open-form]").forEach(button => button.addEventListener("click", () => {
     const kind = button.dataset.openForm;
+    const targetTab = kind === "player" ? "players" : kind === "match" ? "matches" : kind === "staff" ? "staff" : null;
+    if (targetTab) activateTab(targetTab);
     $(kind + "-form").reset();
     if (kind === "match") { setMatchFormMode(); renderMatchGoalAssignments([]); }
     editor(kind, true);
