@@ -70,7 +70,12 @@
       const photo=new Image();photo.crossOrigin="anonymous";photo.src=safeImage(player.image_url);
       try{await photo.decode();}catch{}
       ctx.save();ctx.beginPath();ctx.arc(540,492,170,0,Math.PI*2);ctx.clip();
-      if(photo.complete&&photo.naturalWidth)ctx.drawImage(photo,370,322,340,340);
+      if(photo.complete&&photo.naturalWidth){
+        const size=340,scale=Math.max(size/photo.naturalWidth,size/photo.naturalHeight);
+        const cropW=size/scale,cropH=size/scale;
+        const cropX=(photo.naturalWidth-cropW)/2,cropY=(photo.naturalHeight-cropH)/2;
+        ctx.drawImage(photo,cropX,cropY,cropW,cropH,370,322,size,size);
+      }
       else if(crest.complete&&crest.naturalWidth)ctx.drawImage(crest,370,322,340,340);
       else{ctx.fillStyle="#26141a";ctx.fillRect(370,322,340,340);}
       ctx.restore();ctx.strokeStyle="#dfbd85";ctx.lineWidth=9;ctx.beginPath();ctx.arc(540,492,174,0,Math.PI*2);ctx.stroke();
@@ -177,7 +182,7 @@
         </li>`;
       }).join("");
       content.innerHTML=`<div class="pt-3 text-center">
-        <img src="${esc(safeImage(coach.image_url))}" alt="${esc(coach.name)}" class="mx-auto h-28 w-28 rounded-full border-2 border-altin/70 object-cover shadow-lg" onerror="this.onerror=null;this.src='image_09a3ea.png'">
+        <img src="${esc(safeImage(coach.image_url))}" alt="${esc(coach.name)}" class="mx-auto h-28 w-28 rounded-full border-2 border-altin/70 object-cover shadow-lg" style="object-position:50% 8%" onerror="this.onerror=null;this.src='image_09a3ea.png'">
         <p class="mt-3 font-baslik text-lg text-altin">${esc(coach.role)}</p>
         <h2 id="profile-name" class="mt-1 font-baslik text-3xl uppercase text-white">${esc(coach.name)}</h2>
         <p class="mt-2 text-xs text-gray-400">ACISU UNITED · TEKNİK HEYET</p>
