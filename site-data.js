@@ -46,10 +46,45 @@
     box.dataset.profileWired = "1";
     const modal = document.getElementById("player-profile-modal");
     const content = document.getElementById("player-profile-content");
-    const close = () => { modal.hidden = true; document.body.classList.remove("overflow-hidden"); };
+    let visualUrl=null,visualBlob=null;
+    const close = () => { modal.hidden = true; document.body.classList.remove("overflow-hidden"); if(visualUrl){URL.revokeObjectURL(visualUrl);visualUrl=null;} };
     document.getElementById("close-player-profile")?.addEventListener("click", close);
     modal?.addEventListener("click", event => { if (event.target === modal) close(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
+    const createPlayerVisual = async player => {
+      const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1350;
+      const ctx=canvas.getContext("2d");
+      const gradient=ctx.createLinearGradient(0,0,1080,1350);
+      gradient.addColorStop(0,"#10090d");gradient.addColorStop(.52,"#471923");gradient.addColorStop(1,"#09080a");
+      ctx.fillStyle=gradient;ctx.fillRect(0,0,1080,1350);
+      const crest=new Image();crest.src="image_09a3ea.png";
+      try{await crest.decode();}catch{}
+      ctx.save();ctx.globalAlpha=.13;if(crest.complete&&crest.naturalWidth){ctx.drawImage(crest,530,350,500,500);}ctx.restore();
+      ctx.strokeStyle="#c7a878";ctx.lineWidth=4;ctx.strokeRect(48,48,984,1254);
+      ctx.strokeStyle="#e0bc81";ctx.lineWidth=8;
+      for(const [x,y,dx,dy] of [[48,48,1,1],[1032,48,-1,1],[48,1302,1,-1],[1032,1302,-1,-1]]){ctx.beginPath();ctx.moveTo(x+dx*54,y);ctx.lineTo(x,y);ctx.lineTo(x,y+dy*54);ctx.stroke();}
+      if(crest.complete&&crest.naturalWidth)ctx.drawImage(crest,82,78,100,100);
+      ctx.textAlign="left";ctx.font='700 50px "Oswald",Impact,sans-serif';ctx.fillStyle="#f7f1e7";ctx.fillText("ACISU",208,142);ctx.fillStyle="#c7a878";ctx.fillText("UNITED",362,142);
+      ctx.fillStyle="#c7a878";ctx.fillRect(86,204,908,2);
+      ctx.textAlign="center";ctx.font='700 43px "Oswald",Impact,sans-serif';ctx.fillText("OYUNCU PROFİLİ",540,286);
+      const photo=new Image();photo.crossOrigin="anonymous";photo.src=safeImage(player.image_url);
+      try{await photo.decode();}catch{}
+      ctx.save();ctx.beginPath();ctx.arc(540,492,170,0,Math.PI*2);ctx.clip();
+      if(photo.complete&&photo.naturalWidth)ctx.drawImage(photo,370,322,340,340);
+      else if(crest.complete&&crest.naturalWidth)ctx.drawImage(crest,370,322,340,340);
+      else{ctx.fillStyle="#26141a";ctx.fillRect(370,322,340,340);}
+      ctx.restore();ctx.strokeStyle="#dfbd85";ctx.lineWidth=9;ctx.beginPath();ctx.arc(540,492,174,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle="#e4c48f";ctx.font='700 33px "Oswald",Impact,sans-serif';ctx.fillText("#"+(player.number??"—")+"  ·  "+(player.position||"OYUNCU").toLocaleUpperCase("tr-TR"),540,725);
+      let nameSize=82;ctx.font='700 '+nameSize+'px "Oswald",Impact,sans-serif';
+      while(ctx.measureText(player.name||"").width>890&&nameSize>48){nameSize-=2;ctx.font='700 '+nameSize+'px "Oswald",Impact,sans-serif';}
+      ctx.fillStyle="#fff";ctx.fillText((player.name||"").toLocaleUpperCase("tr-TR"),540,817);
+      const own=profileData.stats.filter(s=>s.player_id===player.id),sum=k=>own.reduce((n,r)=>n+Number(r[k]||0),0),games=own.filter(r=>r.played).length;
+      const values=[[games,"MAÇ"],[sum("goals"),"GOL"],[sum("assists"),"ASİST"],[games*2+sum("goals")*5+sum("assists")*2-sum("yellow_cards")-sum("red_cards")*3,"PUAN"]];
+      values.forEach((v,i)=>{const x=76+i*232;ctx.fillStyle="rgba(255,255,255,.075)";ctx.beginPath();ctx.roundRect(x,925,210,162,20);ctx.fill();ctx.fillStyle="#dfbd85";ctx.font='700 61px "Oswald",Impact,sans-serif';ctx.fillText(String(v[0]),x+105,1000);ctx.fillStyle="#fff";ctx.font='700 27px "Oswald",Impact,sans-serif';ctx.fillText(v[1],x+105,1050);});
+      ctx.fillStyle="#e8d8bf";ctx.font='600 30px "Montserrat",Arial,sans-serif';ctx.fillText("Birlikte, daha güçlü.",540,1185);
+      ctx.fillStyle="rgba(255,255,255,.65)";ctx.font='700 19px "Oswald",Impact,sans-serif';ctx.fillText("ACISU UNITED  ·  #ACISUUNITED",540,1260);
+      return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Görsel hazırlanamadı.")),"image/png"));
+    };
     const show = playerId => {
       const { players, matches, stats } = profileData;
       const player = players.find(p => p.id === playerId);
@@ -83,9 +118,30 @@
           <div class="divide-y divide-white/10">${[...seasonMap.values()].sort((a,b)=>b.year-a.year).map(x=>`<div class="py-2 flex justify-between gap-2 text-sm"><strong>${x.year}</strong><span class="text-gray-300">${x.games} maç · ${x.goals} gol · ${x.assists} asist</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz sezon istatistiği yok.</p>'}</div></div>
         <div class="mt-5"><h3 class="font-baslik text-xl text-altin mb-2">Son maç katkıları</h3>
           <div class="space-y-2">${recent.map(({stat:s,match:m})=>`<div class="rounded-lg bg-white/5 p-3 flex justify-between gap-3 text-sm"><span>${esc(m.opponent)}<small class="block text-gray-500">${esc(dateText(m.match_at,false))} · ${m.our_score??0}-${m.their_score??0}</small></span><span class="text-right text-gray-300">${s.played?"Oynadı":"-"}${s.goals?" · ⚽ "+s.goals:""}${s.assists?" · 🅰 "+s.assists:""}</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz maç katkısı yok.</p>'}</div></div>
-        <button id="profile-share-player" type="button" class="mt-5 w-full rounded-xl border border-altin/40 py-3 text-altin font-bold">Oyuncu görseli hazırla</button>`;
+        <button id="profile-share-player" type="button" class="mt-5 w-full rounded-xl border border-altin/40 py-3 text-altin font-bold">Paylaşım görseli oluştur</button><div id="player-share-actions" hidden class="mt-4 space-y-3"><img id="player-share-image" alt="Oyuncu paylaşım görseli" class="w-full rounded-xl border border-altin/40"><div class="grid grid-cols-2 gap-2"><button id="player-share-native" type="button" class="rounded-xl bg-bordo px-3 py-3 font-bold text-white">Paylaş</button><button id="player-share-download" type="button" class="rounded-xl border border-altin/50 px-3 py-3 font-bold text-altin">İndir</button></div></div>`;
+      if(visualUrl){URL.revokeObjectURL(visualUrl);visualUrl=null;}visualBlob=null;
       const share=document.getElementById("profile-share-player");
-      share?.addEventListener("click",()=>{close();window.location.assign("admin.html?share_player="+encodeURIComponent(playerId));});
+      share?.addEventListener("click",async()=>{
+        const original=share.textContent;share.disabled=true;share.textContent="Görsel hazırlanıyor…";
+        try{
+          visualBlob=await createPlayerVisual(player);
+          visualUrl=URL.createObjectURL(visualBlob);
+          const image=document.getElementById("player-share-image");
+          image.src=visualUrl;
+          document.getElementById("player-share-actions").hidden=false;
+          share.textContent="Görseli yenile";
+        }catch(error){share.textContent=original;alert("Oyuncu görseli hazırlanamadı. Tekrar dener misin?");}
+        finally{share.disabled=false;}
+      });
+      document.getElementById("player-share-download")?.addEventListener("click",()=>{
+        if(!visualBlob)return;const a=document.createElement("a");a.href=visualUrl;a.download="acisu-united-"+(player.name||"oyuncu").toLocaleLowerCase("tr-TR").replace(/[^a-z0-9]+/gi,"-")+".png";a.click();
+      });
+      document.getElementById("player-share-native")?.addEventListener("click",async()=>{
+        if(!visualBlob)return;
+        const file=new File([visualBlob],"acisu-united-oyuncu.png",{type:"image/png"});
+        if(navigator.share&&navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:player.name+" · Acısu United"});}catch(error){if(error.name!=="AbortError")alert("Paylaşım açılamadı; görseli indirip paylaşabilirsin.");}}
+        else alert("Bu tarayıcı doğrudan görsel paylaşımını desteklemiyor. Görseli indirip paylaşabilirsin.");
+      });
       modal.hidden=false; document.body.classList.add("overflow-hidden");
     };
     box.addEventListener("click",event=>{const card=event.target.closest("[data-player-id]");if(card)show(card.dataset.playerId);});
