@@ -260,28 +260,56 @@
     await showLineup();
     window.dispatchEvent(new Event("acisu:refreshed"));
   }
+  const sevenSideFormations = {
+    "2-3-1": [{name:"GK",x:50,y:88},{name:"DF",x:34,y:69},{name:"DF",x:66,y:69},{name:"MF",x:20,y:48},{name:"MF",x:50,y:52},{name:"MF",x:80,y:48},{name:"FW",x:50,y:29}],
+    "3-2-1": [{name:"GK",x:50,y:88},{name:"DF",x:20,y:69},{name:"DF",x:50,y:72},{name:"DF",x:80,y:69},{name:"MF",x:35,y:49},{name:"MF",x:65,y:49},{name:"FW",x:50,y:29}],
+    "2-2-2": [{name:"GK",x:50,y:88},{name:"DF",x:34,y:69},{name:"DF",x:66,y:69},{name:"MF",x:34,y:49},{name:"MF",x:66,y:49},{name:"FW",x:34,y:29},{name:"FW",x:66,y:29}]
+  };
+  const lineupJersey = number => `<svg viewBox="0 0 48 48" class="h-8 w-8 drop-shadow" aria-hidden="true"><path d="M14 5 5 9 1 20l8 4 3-5v24h24V19l3 5 8-4-4-11-9-4-5 5h-8z" fill="#eee5d5" stroke="#641d27" stroke-width="2.5" stroke-linejoin="round"/><text x="24" y="32" text-anchor="middle" font-size="14" font-weight="900" fill="#5c1a21">${escapeHtml(number ?? "")}</text></svg>`;
+  function renderLineupEditor(matchId, formation, slotAssignments) {
+    const box = $("lineup-players");
+    const playersMarkup = players.filter(p => p.active).sort((a,b)=>a.number-b.number)
+      .map(p => `<option value="${escapeHtml(p.id)}">#${p.number} ${escapeHtml(p.name)}</option>`).join("");
+    const slots = sevenSideFormations[formation] || sevenSideFormations["2-3-1"];
+    const selector = (index, label, position, x, y) => `<label class="absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl border border-white/15 bg-[#121116]/95 px-1 py-1 text-center shadow-lg" style="left:${x}%;top:${y}%">
+      ${lineupJersey(slotAssignments.get(index) ? players.find(p=>p.id===slotAssignments.get(index))?.number : "")}
+      <span class="mt-0.5 text-[9px] font-black text-[#f0cd91]">${label} · ${position}</span>
+      <select data-lineup-slot="${index}" aria-label="${label} oyuncu seçimi" class="mt-1 w-full rounded-md border border-[#836b56] bg-[#1d171a] px-1 py-1 text-[10px] text-white">
+       <option value="">Oyuncu seç</option>${playersMarkup}
+      </select>
+    </label>`;
+    const fieldPlayers = slots.map((slot,index)=>selector(index+1,`Saha ${index+1}`,slot.name,slot.x,slot.y)).join("");
+    const benchPlayers = Array.from({length:4},(_,i)=>selector(i+8,`Yedek ${i+1}`,"YEDEK",50,15+i*23).replace("absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2","flex w-full").replace(`style="left:50%;top:${15+i*23}%"`,"")).join("");
+    box.innerHTML = `<div class="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+      <div class="relative mx-auto h-[590px] w-full max-w-[360px] shrink-0 overflow-hidden rounded-[24px] border-[3px] border-white/80 bg-[#078b66]">
+       <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#0a9b71_0%,#0a9b71_8.33%,#078b66_8.33%,#078b66_16.66%)]"></div>
+       <div class="absolute inset-x-[26%] top-0 h-[13%] border-x-2 border-b-2 border-white/80"></div><div class="absolute left-1/2 top-0 h-[7%] w-[42%] -translate-x-1/2 border-x-2 border-b-2 border-white/80"></div>
+       <div class="absolute left-1/2 top-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-b-full border-b-2 border-x-2 border-white/80"></div>
+       <div class="absolute inset-x-0 top-1/2 border-t-2 border-white/90"></div><div class="absolute left-1/2 top-1/2 h-[15%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90"></div>
+       <div class="absolute inset-x-[26%] bottom-0 h-[13%] border-x-2 border-t-2 border-white/80"></div><div class="absolute left-1/2 bottom-0 h-[7%] w-[42%] border-x-2 border-t-2 border-white/80 -translate-x-1/2"></div>
+       <div class="absolute left-1/2 bottom-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-t-full border-t-2 border-x-2 border-white/80"></div>
+       <div class="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-[.13]"><img src="image_09a3ea.png" alt="" class="h-36 w-36 object-contain"></div>
+       ${fieldPlayers}
+      </div>
+      <aside class="w-full rounded-2xl border border-white/10 bg-[#17151a] p-3 text-white lg:max-w-[190px]">
+       <h3 class="mb-1 text-center text-sm font-black uppercase tracking-wide text-[#f0cd91]">Yedekler <span class="text-gray-400">(en fazla 4)</span></h3>
+       <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">${benchPlayers}</div>
+      </aside>
+     </div>`;
+    for(const [index,id] of slotAssignments){const select=box.querySelector(`[data-lineup-slot="${index}"]`);if(select)select.value=id;}
+  }
   async function showLineup() {
     const matchId = $("lineup-match").value;
     if (!matchId) { $("lineup-players").textContent = "Önce maç ekle."; return; }
-    const { data, error } = await db.from("acisu_match_lineup").select("player_id,role").eq("match_id", matchId);
+    const { data, error } = await db.from("acisu_match_lineup").select("player_id,role,slot_index").eq("match_id", matchId).order("slot_index");
     if (error) { notice(error.message); return; }
-    const roles = new Map((data || []).map(x => [x.player_id, x.role]));
-    const box = $("lineup-players");
-    box.replaceChildren(...players.filter(p => p.active).map(p => {
-      const label = document.createElement("label");
-      label.className = "lineup-item text-sm font-semibold";
-      label.textContent = `#${p.number} ${p.name}`;
-      const select = document.createElement("select");
-      select.dataset.playerId = p.id;
-      select.className = "mt-2 w-full bg-[#120e10] border border-[#644b52] text-white rounded-lg px-3 py-2";
-      [["", "Kadro dışı"], ["ilk11", "İlk kadro"], ["yedek", "Yedek"]].forEach(([value, text]) => {
-        const o = document.createElement("option"); o.value = value; o.textContent = text;
-        select.appendChild(o);
-      });
-      select.value = roles.get(p.id) || "";
-      label.appendChild(select);
-      return label;
-    }));
+    const match = matches.find(x=>x.id===matchId);
+    const formation = match?.lineup_formation || "2-3-1";
+    $("lineup-formation").value = formation;
+    const rows=(data||[]).slice().sort((a,b)=>Number(a.slot_index||99)-Number(b.slot_index||99));
+    const assignments=new Map();
+    rows.forEach((row,index)=>assignments.set(Number(row.slot_index)||index+1,row.player_id));
+    renderLineupEditor(matchId,formation,assignments);
   }
   async function boot() {
     const { data: { user }, error } = await db.auth.getUser();
@@ -459,18 +487,29 @@
     } finally { submit.disabled = false; submit.textContent = "Maçı kaydet"; }
   });
   $("lineup-match").addEventListener("change", showLineup);
+  $("lineup-formation").addEventListener("change", () => {
+    const values=new Map([...$("lineup-players").querySelectorAll("[data-lineup-slot]")].map(x=>[Number(x.dataset.lineupSlot),x.value]).filter(x=>x[1]));
+    renderLineupEditor($("lineup-match").value,$("lineup-formation").value,values);
+  });
   $("save-lineup").addEventListener("click", async () => {
     const matchId = $("lineup-match").value;
     if (!matchId) return;
-    const selected = [...$("lineup-players").querySelectorAll("select")]
-      .filter(x => x.value).map(x => ({ match_id: matchId, player_id: x.dataset.playerId, role: x.value }));
+    const controls=[...$("lineup-players").querySelectorAll("[data-lineup-slot]")];
+    const picked=controls.filter(x=>x.value).map(x=>({slot:Number(x.dataset.lineupSlot),player_id:x.value}));
+    const starters=picked.filter(x=>x.slot<=7), reserves=picked.filter(x=>x.slot>=8);
+    if(starters.length!==7){notice("Sahaya tam 7 oyuncu seçmelisin (kaleci dahil).");return;}
+    if(reserves.length>4){notice("En fazla 4 yedek seçebilirsin.");return;}
+    if(new Set(picked.map(x=>x.player_id)).size!==picked.length){notice("Aynı oyuncuyu birden fazla slota seçemezsin.");return;}
+    const formation=$("lineup-formation").value;
+    const {error:matchError}=await db.from("acisu_matches").update({lineup_formation:formation}).eq("id",matchId);
+    if(matchError){notice("Diziliş kaydedilemedi: "+matchError.message);return;}
     const { error: delError } = await db.from("acisu_match_lineup").delete().eq("match_id", matchId);
     if (delError) { notice(delError.message); return; }
-    if (selected.length) {
-      const { error } = await db.from("acisu_match_lineup").insert(selected);
-      if (error) { notice("Kadro kaydedilemedi: " + error.message); return; }
-    }
-    notice("Maç kadrosu kaydedildi.");
+    const selected=picked.map(x=>({match_id:matchId,player_id:x.player_id,role:x.slot<=7?"ilk11":"yedek",slot_index:x.slot}));
+    const { error } = await db.from("acisu_match_lineup").insert(selected);
+    if (error) { notice("Kadro kaydedilemedi: " + error.message); return; }
+    const match=matches.find(x=>x.id===matchId);if(match)match.lineup_formation=formation;
+    notice("Maç kadrosu ve dizilişi kaydedildi.");
   });
   $("players-list").addEventListener("click", async e => {
     const edit = e.target.closest("[data-edit-player]");

@@ -258,7 +258,7 @@
 
     const lineupBox = document.getElementById("lineup-content");
     const { data: allLineup, error } = await db.from("acisu_match_lineup")
-      .select("match_id, player_id, role, player:acisu_players(name, number, position)");
+      .select("match_id, player_id, role, slot_index, player:acisu_players(name, number, position)");
     if (error) {
       lineupBox.textContent = "Maç kadrosu yüklenemedi.";
       return;
@@ -274,30 +274,22 @@
       return;
     }
     const lineup = allLineup.filter(x => x.match_id === next.id && x.player);
-    const orderByNumber = (a,b) => Number(a.player.number)-Number(b.player.number);
-    const firstEleven = lineup.filter(x=>x.role==="ilk11").sort(orderByNumber);
-    const substitutes = lineup.filter(x=>x.role==="yedek").sort(orderByNumber);
-    const unassigned=[...firstEleven];
-    const takePosition=regex=>{const index=unassigned.findIndex(x=>regex.test(String(x.player.position||"").toLocaleLowerCase("tr-TR")));return index<0?null:unassigned.splice(index,1)[0];};
-    const slots=[
-      {role:"GK",x:50,y:88,match:/(^|[^a-z])(gk|kaleci|keeper)([^a-z]|$)/i},
-      {role:"DF",x:18,y:70,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
-      {role:"DF",x:39,y:74,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
-      {role:"DF",x:61,y:74,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
-      {role:"DF",x:82,y:70,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
-      {role:"MF",x:26,y:53,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
-      {role:"MF",x:50,y:57,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
-      {role:"MF",x:74,y:53,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
-      {role:"ST",x:21,y:31,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i},
-      {role:"ST",x:50,y:27,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i},
-      {role:"ST",x:79,y:31,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i}
-    ];
-    const placed=slots.map(slot=>({slot,entry:takePosition(slot.match)}));
-    for(const item of placed)if(!item.entry&&unassigned.length)item.entry=unassigned.shift();
+    const orderBySlot=(a,b)=>Number(a.slot_index||99)-Number(b.slot_index||99)||Number(a.player.number)-Number(b.player.number);
+    const firstEleven=lineup.filter(x=>x.role==="ilk11").sort(orderBySlot);
+    const substitutes=lineup.filter(x=>x.role==="yedek").sort(orderBySlot).slice(0,4);
+    const formation=next.lineup_formation||"2-3-1";
+    const formations={
+      "2-3-1":[{role:"K",x:50,y:88},{role:"DF",x:34,y:69},{role:"DF",x:66,y:69},{role:"OS",x:20,y:48},{role:"OS",x:50,y:52},{role:"OS",x:80,y:48},{role:"FV",x:50,y:29}],
+      "3-2-1":[{role:"K",x:50,y:88},{role:"DF",x:20,y:69},{role:"DF",x:50,y:72},{role:"DF",x:80,y:69},{role:"OS",x:35,y:49},{role:"OS",x:65,y:49},{role:"FV",x:50,y:29}],
+      "2-2-2":[{role:"K",x:50,y:88},{role:"DF",x:34,y:69},{role:"DF",x:66,y:69},{role:"OS",x:34,y:49},{role:"OS",x:66,y:49},{role:"FV",x:34,y:29},{role:"FV",x:66,y:29}]
+    };
+    const slots=(formations[formation]||formations["2-3-1"]).map((slot,index)=>({...slot,index:index+1}));
+    const assignedBySlot=new Map(firstEleven.map((entry,index)=>[Number(entry.slot_index)||index+1,entry]));
+    const placed=slots.map(slot=>({slot,entry:assignedBySlot.get(slot.index)||firstEleven[slot.index-1]||null}));
     const jersey=number=>`<svg viewBox="0 0 48 48" class="w-10 h-10 drop-shadow-[0_3px_3px_rgba(0,0,0,.8)]" aria-hidden="true"><path d="M14 5 5 9 1 20l8 4 3-5v24h24V19l3 5 8-4-4-11-9-4-5 5h-8z" fill="#e9e1d2" stroke="#541820" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 5q5 7 10 0" fill="none" stroke="#9a3540" stroke-width="3"/><text x="24" y="32" text-anchor="middle" font-size="14" font-weight="900" fill="#5c1a21">${esc(number)}</text></svg>`;
     const playerToken=({slot,entry})=>entry?`<button type="button" data-player-id="${esc(entry.player_id)}" class="absolute z-10 flex w-[82px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl px-1 py-1 text-white transition hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-altin" style="left:${slot.x}%;top:${slot.y}%" aria-label="#${esc(entry.player.number)} ${esc(entry.player.name)}, ${slot.role}">
         ${jersey(entry.player.number)}<span class="mt-1 max-w-full truncate rounded-full border border-altin/70 bg-[#171118]/95 px-2 py-1 text-[10px] font-extrabold shadow-lg">#${esc(entry.player.number)} ${esc(entry.player.name)}</span><span class="mt-0.5 rounded-full bg-bordo/95 px-2 py-0.5 text-[9px] font-black text-[#f4d59d]">${slot.role}</span>
-      </button>`:"";
+      </button>`:`<div class="absolute z-10 flex w-[82px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl border border-dashed border-white/45 bg-[#111a2a]/85 px-1 py-1 text-center text-white/80" style="left:${slot.x}%;top:${slot.y}%"><span class="grid h-10 w-10 place-items-center rounded-full border border-white/30 text-xl">+</span><span class="mt-1 max-w-full text-[9px] font-bold">Oyuncu seçiliyor</span><span class="mt-0.5 rounded-full bg-bordo/80 px-2 py-0.5 text-[9px] font-black text-[#f4d59d]">${slot.role}</span></div>`;
     const benchList=substitutes.length?substitutes.map(x=>`<button type="button" data-player-id="${esc(x.player_id)}" class="flex min-h-[88px] flex-col items-center justify-center rounded-xl border border-white/10 bg-[#111a2a] px-2 py-2 text-center hover:border-altin/70">
       ${jersey(x.player.number)}<span class="mt-1 max-w-full truncate text-[11px] font-bold text-white">#${esc(x.player.number)} ${esc(x.player.name)}</span><span class="mt-0.5 text-[9px] text-altin">${esc(x.player.position||"Yedek")}</span></button>`).join(""):'<p class="col-span-2 py-5 text-center text-sm text-gray-400">Yedek seçilmedi</p>';
     const matchTime=dateText(next.match_at);
@@ -305,7 +297,7 @@
     lineupBox.className="overflow-hidden rounded-3xl border border-[#574348] bg-[#0d0c11] p-3 shadow-[0_20px_55px_rgba(0,0,0,.45)] sm:p-5";
     lineupBox.innerHTML=`<header class="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-altin/35 bg-gradient-to-r from-[#171217] via-[#26151a] to-[#171217] px-3 py-3 sm:px-5">
       <img src="image_09a3ea.png" alt="Acısu United arması" class="h-12 w-12 rounded-full object-contain drop-shadow-[0_0_12px_rgba(193,165,123,.4)] sm:h-16 sm:w-16">
-      <div class="min-w-0 text-center"><p class="font-baslik text-lg font-bold tracking-wide text-altin sm:text-2xl">ACISU UNITED</p><p class="mt-1 truncate text-xs font-bold text-white sm:text-sm">VS · ${esc(next.opponent)}</p><p class="mt-1 text-[10px] text-gray-300 sm:text-xs">${esc(matchTime)} · ${esc(next.venue||"Maç kadrosu")}</p></div>
+      <div class="min-w-0 text-center"><p class="font-baslik text-lg font-bold tracking-wide text-altin sm:text-2xl">ACISU UNITED</p><p class="mt-1 truncate text-xs font-bold text-white sm:text-sm">VS · ${esc(next.opponent)}</p><p class="mt-1 text-[10px] text-gray-300 sm:text-xs">${esc(formation)} · ${esc(matchTime)} · ${esc(next.venue||"Maç kadrosu")}</p></div>
       ${opponentCrest}
     </header>
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">
