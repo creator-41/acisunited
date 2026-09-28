@@ -148,8 +148,9 @@
     box.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-player-id]")){event.preventDefault();show(event.target.dataset.playerId);}});
   }
 
-  function wireCoachProfiles(staff) {
+  function wireCoachProfiles(staff, matches) {
     window.acisuPublicStaff=staff;
+    window.acisuPublicMatches=matches;
     const modal=document.getElementById("player-profile-modal");
     const content=document.getElementById("player-profile-content");
     if(!modal||!content||modal.dataset.coachProfileWired)return;
@@ -157,6 +158,23 @@
     const open=coachId=>{
       const coach=(window.acisuPublicStaff||[]).find(x=>x.id===coachId);
       if(!coach)return;
+      const history=(window.acisuPublicMatches||[]).filter(m=>m.head_coach_id===coachId&&m.played&&!m.is_live)
+        .sort((a,b)=>new Date(b.match_at)-new Date(a.match_at));
+      const wins=history.filter(m=>Number(m.our_score)>Number(m.their_score)).length;
+      const draws=history.filter(m=>Number(m.our_score)===Number(m.their_score)).length;
+      const losses=history.length-wins-draws;
+      const scored=history.reduce((n,m)=>n+Number(m.our_score||0),0);
+      const conceded=history.reduce((n,m)=>n+Number(m.their_score||0),0);
+      const points=wins*3+draws,rate=history.length?Math.round(wins*100/history.length):0;
+      const recent=history.slice(0,5).map(m=>{
+        const own=Number(m.our_score||0),rival=Number(m.their_score||0);
+        const result=own>rival?"Galibiyet":own<rival?"Mağlubiyet":"Beraberlik";
+        const color=own>rival?"text-green-300":own<rival?"text-red-300":"text-altin";
+        return `<li class="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3">
+          <span class="min-w-0"><strong class="block truncate text-sm text-white">${esc(m.opponent)}</strong><small class="text-xs text-gray-400">${esc(dateText(m.match_at,m.time_confirmed))}</small></span>
+          <span class="shrink-0 text-right"><strong class="block font-baslik text-xl text-altin">${own}–${rival}</strong><small class="text-xs ${color}">${result}</small></span>
+        </li>`;
+      }).join("");
       content.innerHTML=`<div class="pt-3 text-center">
         <img src="${esc(safeImage(coach.image_url))}" alt="${esc(coach.name)}" class="mx-auto h-28 w-28 rounded-full border-2 border-altin/70 object-cover shadow-lg" onerror="this.onerror=null;this.src='image_09a3ea.png'">
         <p class="mt-3 font-baslik text-lg text-altin">${esc(coach.role)}</p>
@@ -164,11 +182,16 @@
         <p class="mt-2 text-xs text-gray-400">ACISU UNITED · TEKNİK HEYET</p>
        </div>
        <div class="mt-6 grid grid-cols-2 gap-3">
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">GENEL</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.rating)||0}</strong></div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">TAKIM YÖNETİMİ</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.pace)||0}</strong></div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">TAKTİK</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.passing)||0}</strong></div>
-        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold tracking-wider text-gray-400">DEFANS</p><strong class="mt-1 block font-baslik text-3xl text-altin">${Number(coach.defense)||0}</strong></div>
-       </div>`;
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">OYNANAN MAÇ</p><strong class="mt-1 block font-baslik text-3xl text-altin">${history.length}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">GALİBİYET</p><strong class="mt-1 block font-baslik text-3xl text-green-300">${wins}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">BERABERLİK</p><strong class="mt-1 block font-baslik text-3xl text-altin">${draws}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">MAĞLUBİYET</p><strong class="mt-1 block font-baslik text-3xl text-red-300">${losses}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">ATILAN GOL</p><strong class="mt-1 block font-baslik text-3xl text-altin">${scored}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">YENİLEN GOL</p><strong class="mt-1 block font-baslik text-3xl text-altin">${conceded}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">TAKIM PUANI</p><strong class="mt-1 block font-baslik text-3xl text-altin">${points}</strong></div>
+        <div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center"><p class="text-xs font-bold text-gray-400">GALİBİYET ORANI</p><strong class="mt-1 block font-baslik text-3xl text-altin">% ${rate}</strong></div>
+       </div>
+       <section class="mt-6"><h3 class="mb-3 font-baslik text-lg text-white">Son maçlar</h3><ul class="space-y-2">${recent||'<li class="rounded-xl bg-white/5 p-4 text-sm text-gray-400">Teknik direktör olarak seçildiği oynanmış maç bulunmuyor.</li>'}</ul></section>`;
       modal.hidden=false;document.body.classList.add("overflow-hidden");
     };
     document.addEventListener("click",event=>{
@@ -203,17 +226,31 @@
       ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
     }));
     window.renderSquad();
+    const matches = matchesResult.data || [];
+    const coachRecord = coachId => {
+      const history=matches.filter(m=>m.head_coach_id===coachId&&m.played&&!m.is_live)
+        .sort((a,b)=>new Date(b.match_at)-new Date(a.match_at));
+      const wins=history.filter(m=>Number(m.our_score)>Number(m.their_score)).length;
+      const draws=history.filter(m=>Number(m.our_score)===Number(m.their_score)).length;
+      const losses=history.length-wins-draws;
+      return {
+        played:history.length,wins,draws,losses,
+        scored:history.reduce((n,m)=>n+Number(m.our_score||0),0),
+        conceded:history.reduce((n,m)=>n+Number(m.their_score||0),0),
+        points:wins*3+draws,
+        winRate:history.length?Math.round(wins*100/history.length):0,
+        recent:history.slice(0,5)
+      };
+    };
     window.technicalStaff = (staffResult.data || []).map(p => ({
-      id: p.id, name: esc(p.name), pos: esc(p.role), img: esc(safeImage(p.image_url)),
-      ovr: p.rating, pace: p.pace, pas: p.passing, def: p.defense
+      id:p.id,name:esc(p.name),pos:esc(p.role),img:esc(safeImage(p.image_url)),
+      ...coachRecord(p.id)
     }));
     window.renderCoach();
-
-    const matches = matchesResult.data || [];
     const profileStats = statsResult.data || [];
     renderPublicSponsors(sponsorsResult.data || []);
     wirePlayerProfiles(players, matches, profileStats);
-    wireCoachProfiles(staffResult.data || []);
+    wireCoachProfiles(staffResult.data || [], matches);
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
     const coachById = new Map((staffResult.data || []).map(p => [p.id, p]));
     const goalsByMatch = new Map();
