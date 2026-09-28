@@ -310,55 +310,13 @@
     <!-- Instagram Akışı Bölümü -->
     <section id="instagram" class="py-20 bg-siyah border-t border-white/5">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
+            <div class="text-center mb-12">
                 <h2 class="font-baslik text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-4">Instagram <span class="text-altin text-glow-gold">Akışı</span></h2>
                 <div class="w-24 h-1 bg-altin mx-auto mb-4"></div>
-                <p class="text-gray-400">Bizi Instagram'da takip et: <a href="https://www.instagram.com/acisunited" target="_blank" class="text-altin font-bold hover:underline">@acisunited</a></p>
+                <p class="text-gray-400">Bizi Instagram'da takip et: <a href="https://www.instagram.com/acisunited" target="_blank" rel="noopener noreferrer" class="text-altin font-bold hover:underline">@acisunited</a></p>
             </div>
-
-            <!-- Instagram Post Kartları Grid (post1, post2, post3) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-                <!-- Post 1 -->
-                <a href="https://www.instagram.com/p/DdZrAbCiqmH/?img_index=1" target="_blank" class="glass-panel rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 block border border-white/10">
-                    <div class="h-64 bg-bordo/10 overflow-hidden relative flex items-center justify-center">
-                        <img src="POST1.png" alt="Acısu United Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x400/5c1a21/fff?text=Post+1'">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span class="bg-bordo text-white font-bold px-4 py-2 rounded-xl text-sm shadow-lg">Instagram'da Gör</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <p class="text-gray-300 text-sm mb-3">"Bir mahalleden daha fazlası..." Maç kadromuz ve mücadelemiz tam gaz devam ediyor! 🔥 #asayaltyapı #aleniacisu</p>
-                        <span class="text-altin text-xs font-bold uppercase tracking-widest">Son Gönderi #1</span>
-                    </div>
-                </a>
-
-                <!-- Post 2 -->
-                <a href="https://www.instagram.com/p/DdZopCXKbHn/" target="_blank" class="glass-panel rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 block border border-white/10">
-                    <div class="h-64 bg-bordo/10 overflow-hidden relative flex items-center justify-center">
-                        <img src="POST2.png" alt="Acısu United Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x400/5c1a21/fff?text=Post+2'">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span class="bg-bordo text-white font-bold px-4 py-2 rounded-xl text-sm shadow-lg">Instagram'da Gör</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <p class="text-gray-300 text-sm mb-3">Armamızla, ruhumuzla sahadayız. Acısu United ailesi büyüyor! 🖤❤️ #acisunited</p>
-                        <span class="text-altin text-xs font-bold uppercase tracking-widest">Son Gönderi #2</span>
-                    </div>
-                </a>
-
-                <!-- Post 3 -->
-                <a href="https://www.instagram.com/p/DdUpM1cKXB-/" target="_blank" class="glass-panel rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 block border border-white/10">
-                    <div class="h-64 bg-bordo/10 overflow-hidden relative flex items-center justify-center">
-                        <img src="POST3.png" alt="Acısu United Instagram Post" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x400/5c1a21/fff?text=Post+3'">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span class="bg-bordo text-white font-bold px-4 py-2 rounded-xl text-sm shadow-lg">Instagram'da Gör</span>
-                        </div>
-                    </div>
-                    <div class="p-5">
-                        <p class="text-gray-300 text-sm mb-3">Kartepe Sporium Kompleksi'nde heyecan dorukta. Bizi yalnız bırakmayan taraftarımıza teşekkürler! ⚽</p>
-                        <span class="text-altin text-xs font-bold uppercase tracking-widest">Son Gönderi #3</span>
-                    </div>
-                </a>
+            <div id="instagram-posts" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" aria-live="polite">
+                <p class="col-span-full text-center text-gray-400">Instagram gönderileri yükleniyor…</p>
             </div>
         </div>
     </section>
@@ -555,6 +513,99 @@
                 </div>
             `).join('') : '<p class="text-gray-400 col-span-full">Teknik heyet henüz eklenmedi.</p>';
         }
+
+        // Behold JSON akışından ana sayfa Instagram kartlarını üret.
+        async function renderInstagramFeed() {
+            const container = document.getElementById('instagram-posts');
+            if (!container) return;
+            const feedUrl = 'https://feeds.behold.so/K5bU1eZaLfTkkRePQJoP';
+            const instagramHome = 'https://www.instagram.com/acisunited';
+            const safeUrl = (value, allowedHost) => {
+                try {
+                    const url = new URL(value);
+                    return url.protocol === 'https:' && allowedHost(url.hostname) ? url.href : '';
+                } catch (_) { return ''; }
+            };
+            const safePermalink = value => safeUrl(value, host => host === 'instagram.com' || host === 'www.instagram.com') || instagramHome;
+            const safeMediaUrl = value => safeUrl(value, host => host.endsWith('cdninstagram.com') || host.endsWith('behold.pictures'));
+
+            try {
+                const response = await fetch(feedUrl, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Instagram akışı alınamadı');
+                const feed = await response.json();
+                const posts = (Array.isArray(feed) ? feed : feed.posts || [])
+                    .filter(post => post && post.visibility !== 'hidden')
+                    .slice(0, 6);
+                if (!posts.length) {
+                    container.innerHTML = '<p class="col-span-full text-center text-gray-400">Henüz Instagram gönderisi bulunmuyor.</p>';
+                    return;
+                }
+                container.replaceChildren();
+                posts.forEach((post, index) => {
+                    const item = post.mediaType === 'CAROUSEL_ALBUM' && Array.isArray(post.children) && post.children.length ? post.children[0] : post;
+                    const card = document.createElement('a');
+                    card.href = safePermalink(post.permalink);
+                    card.target = '_blank';
+                    card.rel = 'noopener noreferrer';
+                    card.className = 'glass-panel rounded-2xl overflow-hidden group hover:-translate-y-1 transition-all duration-300 block border border-white/10';
+
+                    const mediaBox = document.createElement('div');
+                    mediaBox.className = 'aspect-square bg-bordo/10 overflow-hidden relative flex items-center justify-center';
+                    const poster = safeMediaUrl(item.sizes?.large?.mediaUrl || item.sizes?.medium?.mediaUrl || item.mediaUrl || post.mediaUrl);
+                    const videoUrl = post.mediaType === 'VIDEO' ? safeMediaUrl(post.mediaUrl) : '';
+                    if (videoUrl) {
+                        const video = document.createElement('video');
+                        video.src = videoUrl;
+                        if (poster) video.poster = poster;
+                        video.muted = true;
+                        video.loop = true;
+                        video.autoplay = true;
+                        video.playsInline = true;
+                        video.className = 'w-full h-full object-cover';
+                        mediaBox.appendChild(video);
+                    } else if (poster) {
+                        const image = document.createElement('img');
+                        image.src = poster;
+                        image.alt = 'Acısu United Instagram gönderisi';
+                        image.loading = index < 3 ? 'eager' : 'lazy';
+                        image.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-500';
+                        image.onerror = () => image.remove();
+                        mediaBox.appendChild(image);
+                    } else {
+                        mediaBox.classList.add('text-altin', 'text-5xl');
+                        mediaBox.textContent = '⚽';
+                    }
+
+                    const overlay = document.createElement('div');
+                    overlay.className = 'absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center';
+                    const label = document.createElement('span');
+                    label.className = 'bg-bordo text-white font-bold px-4 py-2 rounded-xl text-sm shadow-lg';
+                    label.textContent = "Instagram'da Gör";
+                    overlay.appendChild(label);
+                    mediaBox.appendChild(overlay);
+
+                    const details = document.createElement('div');
+                    details.className = 'p-5';
+                    const caption = document.createElement('p');
+                    caption.className = 'text-gray-300 text-sm mb-3';
+                    const captionText = (post.prunedCaption || post.caption || '').trim();
+                    caption.textContent = captionText.length > 180 ? captionText.slice(0, 177) + '…' : (captionText || 'Acısu United Instagram gönderisi');
+                    const date = document.createElement('span');
+                    date.className = 'text-altin text-xs font-bold uppercase tracking-widest';
+                    const parsedDate = post.timestamp ? new Date(post.timestamp) : null;
+                    date.textContent = parsedDate && !Number.isNaN(parsedDate.getTime())
+                        ? parsedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+                        : 'Acısu United';
+                    details.append(caption, date);
+                    card.append(mediaBox, details);
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                container.innerHTML = '<p class="col-span-full text-center text-gray-400">Instagram akışı şu an yüklenemedi. Gönderileri <a class="text-altin font-bold" href="https://www.instagram.com/acisunited" target="_blank" rel="noopener noreferrer">@acisunited</a> hesabımızda görebilirsin.</p>';
+                console.warn('Instagram akışı yüklenemedi:', error);
+            }
+        }
+        renderInstagramFeed();
 
         // Navbar scroll efekti
         window.addEventListener('scroll', () => {
