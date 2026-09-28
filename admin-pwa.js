@@ -2,6 +2,7 @@
   const status = document.getElementById("admin-push-status");
   const enable = document.getElementById("admin-enable-push");
   const test = document.getElementById("admin-test-push");
+  const remote = document.getElementById("admin-remote-test");
   const isInstalled = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const supported = () => "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
@@ -78,6 +79,28 @@
       });
       setStatus("Test bildirimi telefona gösterilmek üzere verildi. Ekranı ve Bildirim Merkezi'ni kontrol et.");
     } catch (error) { setStatus("Test bildirimi gösterilemedi: " + (error.message || "Bilinmeyen hata")); }
+  });
+  remote?.addEventListener("click", async () => {
+    if (!supported() || Notification.permission !== "granted") {
+      setStatus("Önce bu cihazda bildirimleri aç."); return;
+    }
+    remote.disabled = true;
+    try {
+      const db = window.acisuAdmin?.db;
+      if (!db) throw new Error("Önce yönetici girişi yap.");
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) throw new Error("Bu cihaz kayıtlı değil. Önce 'Bu cihazda aç' düğmesine dokun.");
+      const { data, error } = await db.functions.invoke("acisu-push", {
+        body: { action: "test", endpoint: subscription.endpoint }
+      });
+      if (error || data?.error) throw error || new Error(data.error);
+      setStatus(data?.accepted
+        ? "Push servisi yalnızca bu cihazın testini kabul etti. Bildirim Merkezi'ni kontrol et."
+        : "Push servisi bu cihazı reddetti (HTTP " + (data?.status || "?") + "). Yeniden bildirimleri açmayı dene.");
+    } catch (error) {
+      setStatus("Sunucu testi başarısız: " + (error.message || "Bilinmeyen hata"));
+    } finally { remote.disabled = false; }
   });
   refreshPushState();
 })();
