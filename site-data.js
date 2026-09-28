@@ -11,13 +11,17 @@
     return /^(?:[a-zA-Z0-9_-]+\.(?:png|jpe?g|webp)|https:\/\/[a-zA-Z0-9.-]+\/[^\s"'<>]*)$/i.test(image)
       ? image : "image_09a3ea.png";
   };
+  const safeVideoUrl = value => {
+    try { const u = new URL(value); return u.protocol === "https:" ? u.href : ""; }
+    catch { return ""; }
+  };
   const dateText = (value, timeConfirmed = true) => new Intl.DateTimeFormat("tr-TR", {
     timeZone: "Europe/Istanbul", day: "2-digit", month: "2-digit",
     year: "numeric", ...(timeConfirmed ? { hour: "2-digit", minute: "2-digit" } : {})
   }).format(new Date(value));
 
 
-  let profileData = { players: [], matches: [], stats: [] };
+  let profileData = { players: [], matches: [], stats: [], videos: [] };
   function renderPublicSponsors(records) {
     const box = document.getElementById("public-sponsors");
     if (!box) return;
@@ -39,8 +43,8 @@
         : `<div class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl flex flex-col items-center">${content}</div>`;
     }).join("");
   }
-  function wirePlayerProfiles(players, matches, stats) {
-    profileData = { players, matches, stats };
+  function wirePlayerProfiles(players, matches, stats, videos) {
+    profileData = { players, matches, stats, videos };
     const box = document.getElementById("squad-container");
     if (!box || box.dataset.profileWired) return;
     box.dataset.profileWired = "1";
@@ -91,7 +95,7 @@
       return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Görsel hazırlanamadı.")),"image/png"));
     };
     const show = playerId => {
-      const { players, matches, stats } = profileData;
+      const { players, matches, stats, videos } = profileData;
       const player = players.find(p => p.id === playerId);
       if (!player) return;
       const own = stats.filter(s => s.player_id === playerId);
@@ -110,6 +114,10 @@
       const recent = own.map(stat => ({stat,match:matches.find(m=>m.id===stat.match_id)}))
         .filter(x=>x.match && (x.match.played || x.match.is_live))
         .sort((a,b)=>new Date(b.match.match_at)-new Date(a.match.match_at)).slice(0,5);
+      const playerVideos = videos.filter(v => v.player_id === playerId)
+        .map(v => ({...v, match: matches.find(m => m.id === v.match_id), url: safeVideoUrl(v.video_url)}))
+        .filter(v => v.match && v.url)
+        .sort((a,b) => new Date(b.match.match_at) - new Date(a.match.match_at));
       const safePic = safeImage(player.image_url);
       content.innerHTML = `<div class="text-center pt-3">
         <img src="${esc(safePic)}" alt="${esc(player.name)}" class="w-28 h-28 rounded-full object-cover mx-auto border-2 border-altin/70 shadow-lg" style="object-position:50% 8%" onerror="this.onerror=null;this.src='image_09a3ea.png'">
@@ -123,6 +131,7 @@
           <div class="divide-y divide-white/10">${[...seasonMap.values()].sort((a,b)=>b.year-a.year).map(x=>`<div class="py-2 flex justify-between gap-2 text-sm"><strong>${x.year}</strong><span class="text-gray-300">${x.games} maç · ${x.goals} gol · ${x.assists} asist</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz sezon istatistiği yok.</p>'}</div></div>
         <div class="mt-5"><h3 class="font-baslik text-xl text-altin mb-2">Son maç katkıları</h3>
           <div class="space-y-2">${recent.map(({stat:s,match:m})=>`<div class="rounded-lg bg-white/5 p-3 flex justify-between gap-3 text-sm"><span>${esc(m.opponent)}<small class="block text-gray-500">${esc(dateText(m.match_at,false))} · ${m.our_score??0}-${m.their_score??0}</small></span><span class="text-right text-gray-300">${s.played?"Oynadı":"-"}${s.goals?" · ⚽ "+s.goals:""}${s.assists?" · 🅰 "+s.assists:""}</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz maç katkısı yok.</p>'}</div></div>
+        ${playerVideos.length ? `<div class="mt-5"><h3 class="font-baslik text-xl text-altin mb-2">🎥 Gol videoları</h3><div class="space-y-2">${playerVideos.map(v => `<a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer" class="block rounded-xl border border-altin/30 bg-white/5 p-3 hover:bg-white/10"><strong>▶ ${esc(v.title)}</strong><small class="block text-gray-400 mt-1">Acısu United - ${esc(v.match.opponent)} · ${esc(dateText(v.match.match_at,false))}</small></a>`).join("")}</div></div>` : ""}
         <button id="profile-share-player" type="button" class="mt-5 w-full rounded-xl border border-altin/40 py-3 text-altin font-bold">Paylaşım görseli oluştur</button><div id="player-share-actions" hidden class="mt-4 space-y-3"><img id="player-share-image" alt="Oyuncu paylaşım görseli" class="w-full rounded-xl border border-altin/40"><div class="grid grid-cols-2 gap-2"><button id="player-share-native" type="button" class="rounded-xl bg-bordo px-3 py-3 font-bold text-white">Paylaş</button><button id="player-share-download" type="button" class="rounded-xl border border-altin/50 px-3 py-3 font-bold text-altin">İndir</button></div></div>`;
       if(visualUrl){URL.revokeObjectURL(visualUrl);visualUrl=null;}visualBlob=null;
       const share=document.getElementById("profile-share-player");
@@ -213,14 +222,15 @@
   }
 
   async function load() {
-    const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult, statsResult, sponsorsResult] = await Promise.all([
+    const [playersResult, matchesResult, goalResult, goalPlayersResult, staffResult, statsResult, sponsorsResult, videoResult] = await Promise.all([
       db.from("acisu_players").select("*").eq("active", true).order("number"),
       db.from("acisu_matches").select("*").eq("published", true).order("match_at", { ascending: false }),
       db.from("acisu_goal_log").select("match_id,side,scorer_id,assist_id,created_at").order("created_at"),
       db.from("acisu_players").select("id,name"),
       db.from("acisu_staff").select("*").eq("active", true).order("sort_order").order("created_at"),
       db.from("acisu_player_stats").select("match_id,player_id,played,goals,assists,yellow_cards,red_cards"),
-      db.from("acisu_sponsors").select("*").order("sort_order")
+      db.from("acisu_sponsors").select("*").order("sort_order"),
+      db.from("acisu_goal_videos").select("id,match_id,player_id,title,video_url,created_at")
     ]);
     if (playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error || sponsorsResult.error) {
       console.error("Acısu verileri yüklenemedi", playersResult.error || matchesResult.error || goalResult.error || goalPlayersResult.error || staffResult.error || statsResult.error || sponsorsResult.error);
@@ -256,7 +266,9 @@
     window.renderCoach();
     const profileStats = statsResult.data || [];
     renderPublicSponsors(sponsorsResult.data || []);
-    wirePlayerProfiles(players, matches, profileStats);
+    if (videoResult.error) console.warn("Gol videoları yüklenemedi:", videoResult.error);
+    const videos = videoResult.data || [];
+    wirePlayerProfiles(players, matches, profileStats, videos);
     wireCoachProfiles(staffResult.data || [], matches);
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
     const coachById = new Map((staffResult.data || []).map(p => [p.id, p]));
@@ -341,7 +353,7 @@
     const lineupBox = document.getElementById("lineup-content");
     const { data: allLineup, error } = await db.from("acisu_match_lineup")
       .select("match_id, player_id, role, slot_index, player:acisu_players(name, number, position)");
-    window.acisuMatchCenterData = { matches, players, goalPlayers:goalPlayersResult.data || [], goals:goalResult.data || [], stats:profileStats, staff:staffResult.data || [], lineup:allLineup || [] };
+    window.acisuMatchCenterData = { matches, players, goalPlayers:goalPlayersResult.data || [], goals:goalResult.data || [], videos, stats:profileStats, staff:staffResult.data || [], lineup:allLineup || [] };
     document.dispatchEvent(new CustomEvent("acisu:matches-loaded", {detail:window.acisuMatchCenterData}));
     if (error) {
       lineupBox.textContent = "Maç kadrosu yüklenemedi.";
