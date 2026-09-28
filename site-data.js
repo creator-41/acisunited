@@ -85,7 +85,7 @@
           <div class="space-y-2">${recent.map(({stat:s,match:m})=>`<div class="rounded-lg bg-white/5 p-3 flex justify-between gap-3 text-sm"><span>${esc(m.opponent)}<small class="block text-gray-500">${esc(dateText(m.match_at,false))} · ${m.our_score??0}-${m.their_score??0}</small></span><span class="text-right text-gray-300">${s.played?"Oynadı":"-"}${s.goals?" · ⚽ "+s.goals:""}${s.assists?" · 🅰 "+s.assists:""}</span></div>`).join("")||'<p class="text-gray-400 text-sm">Henüz maç katkısı yok.</p>'}</div></div>
         <button id="profile-share-player" type="button" class="mt-5 w-full rounded-xl border border-altin/40 py-3 text-altin font-bold">Oyuncu görseli hazırla</button>`;
       const share=document.getElementById("profile-share-player");
-      share?.addEventListener("click",()=>{close();window.dispatchEvent(new CustomEvent("acisu:share-player",{detail:{playerId}}));});
+      share?.addEventListener("click",()=>{close();window.location.assign("admin.html?share_player="+encodeURIComponent(playerId));});
       modal.hidden=false; document.body.classList.add("overflow-hidden");
     };
     box.addEventListener("click",event=>{const card=event.target.closest("[data-player-id]");if(card)show(card.dataset.playerId);});
@@ -202,7 +202,7 @@
 
     const lineupBox = document.getElementById("lineup-content");
     const { data: allLineup, error } = await db.from("acisu_match_lineup")
-      .select("match_id, role, player:acisu_players(name, number)");
+      .select("match_id, player_id, role, player:acisu_players(name, number, position)");
     if (error) {
       lineupBox.textContent = "Maç kadrosu yüklenemedi.";
       return;
@@ -217,15 +217,59 @@
       lineupBox.textContent = "Maç kadrosu henüz paylaşılmadı.";
       return;
     }
-    const lineup = allLineup.filter(x => x.match_id === next.id);
-    const group = role => lineup.filter(x => x.role === role && x.player)
-      .sort((a, b) => a.player.number - b.player.number)
-      .map(x => `<li class="py-2 border-b border-white/10">#${x.player.number} ${esc(x.player.name)}</li>`).join("");
-    lineupBox.innerHTML = `<h3 class="text-xl text-altin mb-3">${esc(next.opponent)} · ${esc(dateText(next.match_at))}</h3>
-      <div class="grid sm:grid-cols-2 gap-8 text-left">
-        <div><h4 class="font-bold mb-2">İlk kadro</h4><ul>${group("ilk11") || "Henüz seçilmedi"}</ul></div>
-        <div><h4 class="font-bold mb-2">Yedekler</h4><ul>${group("yedek") || "Henüz seçilmedi"}</ul></div>
-      </div>`;
+    const lineup = allLineup.filter(x => x.match_id === next.id && x.player);
+    const orderByNumber = (a,b) => Number(a.player.number)-Number(b.player.number);
+    const firstEleven = lineup.filter(x=>x.role==="ilk11").sort(orderByNumber);
+    const substitutes = lineup.filter(x=>x.role==="yedek").sort(orderByNumber);
+    const unassigned=[...firstEleven];
+    const takePosition=regex=>{const index=unassigned.findIndex(x=>regex.test(String(x.player.position||"").toLocaleLowerCase("tr-TR")));return index<0?null:unassigned.splice(index,1)[0];};
+    const slots=[
+      {role:"GK",x:50,y:88,match:/(^|[^a-z])(gk|kaleci|keeper)([^a-z]|$)/i},
+      {role:"DF",x:18,y:70,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
+      {role:"DF",x:39,y:74,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
+      {role:"DF",x:61,y:74,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
+      {role:"DF",x:82,y:70,match:/(def|defans|bek|stoper|centre.?back|center.?back|(^|[^a-z])(cb|lb|rb|df)([^a-z]|$))/i},
+      {role:"MF",x:26,y:53,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
+      {role:"MF",x:50,y:57,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
+      {role:"MF",x:74,y:53,match:/(mid|orta saha|(^|[^a-z])(cm|dm|am|mf)([^a-z]|$))/i},
+      {role:"ST",x:21,y:31,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i},
+      {role:"ST",x:50,y:27,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i},
+      {role:"ST",x:79,y:31,match:/(forvet|for|kanat|santrafor|wing|striker|(^|[^a-z])(fw|cf|st)([^a-z]|$))/i}
+    ];
+    const placed=slots.map(slot=>({slot,entry:takePosition(slot.match)}));
+    for(const item of placed)if(!item.entry&&unassigned.length)item.entry=unassigned.shift();
+    const jersey=number=>`<svg viewBox="0 0 48 48" class="w-10 h-10 drop-shadow-[0_3px_3px_rgba(0,0,0,.8)]" aria-hidden="true"><path d="M14 5 5 9 1 20l8 4 3-5v24h24V19l3 5 8-4-4-11-9-4-5 5h-8z" fill="#e9e1d2" stroke="#541820" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 5q5 7 10 0" fill="none" stroke="#9a3540" stroke-width="3"/><text x="24" y="32" text-anchor="middle" font-size="14" font-weight="900" fill="#5c1a21">${esc(number)}</text></svg>`;
+    const playerToken=({slot,entry})=>entry?`<button type="button" data-player-id="${esc(entry.player_id)}" class="absolute z-10 flex w-[82px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl px-1 py-1 text-white transition hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-altin" style="left:${slot.x}%;top:${slot.y}%" aria-label="#${esc(entry.player.number)} ${esc(entry.player.name)}, ${slot.role}">
+        ${jersey(entry.player.number)}<span class="mt-1 max-w-full truncate rounded-full border border-altin/70 bg-[#171118]/95 px-2 py-1 text-[10px] font-extrabold shadow-lg">#${esc(entry.player.number)} ${esc(entry.player.name)}</span><span class="mt-0.5 rounded-full bg-bordo/95 px-2 py-0.5 text-[9px] font-black text-[#f4d59d]">${slot.role}</span>
+      </button>`:"";
+    const benchList=substitutes.length?substitutes.map(x=>`<button type="button" data-player-id="${esc(x.player_id)}" class="flex min-h-[88px] flex-col items-center justify-center rounded-xl border border-white/10 bg-[#111a2a] px-2 py-2 text-center hover:border-altin/70">
+      ${jersey(x.player.number)}<span class="mt-1 max-w-full truncate text-[11px] font-bold text-white">#${esc(x.player.number)} ${esc(x.player.name)}</span><span class="mt-0.5 text-[9px] text-altin">${esc(x.player.position||"Yedek")}</span></button>`).join(""):'<p class="col-span-2 py-5 text-center text-sm text-gray-400">Yedek seçilmedi</p>';
+    const matchTime=dateText(next.match_at);
+    const opponentCrest=next.opponent_image_url?`<img src="${esc(next.opponent_image_url)}" alt="${esc(next.opponent)} arması" class="h-12 w-12 rounded-full border border-white/20 bg-white/10 object-contain p-1">`:`<span class="grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-white/5 text-sm font-black text-gray-300">${esc(String(next.opponent||"?").slice(0,2).toLocaleUpperCase("tr-TR"))}</span>`;
+    lineupBox.className="overflow-hidden rounded-3xl border border-[#574348] bg-[#0d0c11] p-3 shadow-[0_20px_55px_rgba(0,0,0,.45)] sm:p-5";
+    lineupBox.innerHTML=`<header class="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-altin/35 bg-gradient-to-r from-[#171217] via-[#26151a] to-[#171217] px-3 py-3 sm:px-5">
+      <img src="image_09a3ea.png" alt="Acısu United arması" class="h-12 w-12 rounded-full object-contain drop-shadow-[0_0_12px_rgba(193,165,123,.4)] sm:h-16 sm:w-16">
+      <div class="min-w-0 text-center"><p class="font-baslik text-lg font-bold tracking-wide text-altin sm:text-2xl">ACISU UNITED</p><p class="mt-1 truncate text-xs font-bold text-white sm:text-sm">VS · ${esc(next.opponent)}</p><p class="mt-1 text-[10px] text-gray-300 sm:text-xs">${esc(matchTime)} · ${esc(next.venue||"Maç kadrosu")}</p></div>
+      ${opponentCrest}
+    </header>
+    <div class="flex flex-col gap-4 md:flex-row md:items-stretch">
+      <div class="relative mx-auto aspect-[0.61] min-h-[550px] w-full max-w-[390px] overflow-hidden rounded-[24px] border-[3px] border-white/85 bg-[#078b66] shadow-[inset_0_0_28px_rgba(0,0,0,.25)] sm:min-h-[620px]">
+        <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#0a9b71_0%,#0a9b71_8.33%,#078b66_8.33%,#078b66_16.66%)]"></div>
+        <div class="absolute inset-x-[26%] top-0 h-[13%] border-x-2 border-b-2 border-white/80"></div><div class="absolute left-1/2 top-0 h-[7%] w-[42%] -translate-x-1/2 border-x-2 border-b-2 border-white/80"></div>
+        <div class="absolute left-1/2 top-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-b-full border-b-2 border-x-2 border-white/80"></div>
+        <div class="absolute inset-x-0 top-1/2 border-t-2 border-white/90"></div><div class="absolute left-1/2 top-1/2 h-[15%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90"></div>
+        <div class="absolute inset-x-[26%] bottom-0 h-[13%] border-x-2 border-t-2 border-white/80"></div><div class="absolute left-1/2 bottom-0 h-[7%] w-[42%] -translate-x-1/2 border-x-2 border-t-2 border-white/80"></div>
+        <div class="absolute left-1/2 bottom-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-t-full border-t-2 border-x-2 border-white/80"></div>
+        <div class="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-[.16]"><img src="image_09a3ea.png" alt="" class="h-36 w-36 object-contain sm:h-48 sm:w-48"></div>
+        ${placed.map(playerToken).join("")}
+      </div>
+      <aside class="w-full rounded-2xl border border-white/10 bg-[#182234] p-3 text-white md:w-32 md:shrink-0">
+        <h4 class="mb-3 text-center text-xs font-black uppercase tracking-wider text-gray-300">Yedekler</h4>
+        <div class="grid grid-cols-2 gap-2 md:grid-cols-1">${benchList}</div>
+      </aside>
+    </div>
+    <p class="mt-3 text-center text-[10px] text-gray-400">Oyuncu kartına dokunarak profilini görüntüleyebilirsin.</p>`;
+
   }
   window.acisuReloadSite = load;
   load();

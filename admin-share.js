@@ -20,13 +20,24 @@
   };
   const updateFields=()=>{const isPlayer=kind.value==="player";matchField.classList.toggle("hidden",isPlayer);playerField.classList.toggle("hidden",!isPlayer);};
   kind.addEventListener("change",updateFields);
-  window.addEventListener("acisu:admin-refreshed",refreshOptions);
-  window.addEventListener("acisu:share-player",event=>{
-    currentPlayerId=event.detail?.playerId||null;
+  const requestedPlayerId=new URLSearchParams(location.search).get("share_player");
+  let pendingSharePlayer=requestedPlayerId;
+  const openPlayerShare=(playerId,autoBuild=false)=>{
+    currentPlayerId=playerId||null;
     refreshOptions();kind.value="player";updateFields();
     if(currentPlayerId)playerSelect.value=currentPlayerId;
     api.activateTab("share");
+    if(autoBuild&&currentPlayerId)setTimeout(()=>build().catch(err=>{preview.textContent="Görsel oluşturulamadı.";api.notice("Görsel hazırlanamadı: "+err.message);}),0);
+  };
+  window.addEventListener("acisu:admin-refreshed",()=>{
+    refreshOptions();
+    if(pendingSharePlayer&&api.getPlayers().some(p=>p.id===pendingSharePlayer)){
+      const playerId=pendingSharePlayer;pendingSharePlayer=null;
+      openPlayerShare(playerId,true);
+      history.replaceState(null,"",location.pathname);
+    }
   });
+  window.addEventListener("acisu:share-player",event=>openPlayerShare(event.detail?.playerId,false));
   refreshOptions();updateFields();
   const rounded=(ctx,x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
   const display='"Oswald", Impact, sans-serif', brush='"Permanent Marker", "Arial Black", sans-serif', body='"Montserrat", system-ui, sans-serif';

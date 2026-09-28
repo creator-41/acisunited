@@ -129,16 +129,57 @@
   async function autoNews(match) {
     if (!match?.played) return false;
     const own = Number(match.our_score), rival = Number(match.their_score);
-    const title = own > rival ? `Acısu United, ${match.opponent} karşısında galip!` :
-      own < rival ? `Acısu United - ${match.opponent} maçında son düdük` : `Acısu United ile ${match.opponent} berabere kaldı`;
+    const opponent = match.opponent || "rakip";
+    const result = own > rival ? "win" : own < rival ? "loss" : "draw";
+    const headlines = {
+      win: [
+        `Acısu United sahadan galibiyetle ayrıldı!`,
+        `${opponent} karşısında üç puan bizim!`,
+        `Acısu United’dan maç sonu zaferi`,
+        `Son düdükle birlikte galibiyet Acısu United’ın`
+      ],
+      draw: [
+        `Acısu United ile ${opponent} puanları paylaştı`,
+        `Dengeli mücadelede kazanan çıkmadı`,
+        `Acısu United sahadan bir puanla ayrıldı`,
+        `${opponent} maçında eşitlik bozulmadı`
+      ],
+      loss: [
+        `Acısu United’ın mücadelesi son düdükle tamamlandı`,
+        `${opponent} karşısında maç sonucu: ${own}-${rival}`,
+        `Acısu United maçında son düdük`,
+        `Takımımız ${opponent} karşısında sahadaydı`
+      ]
+    };
+    const stories = {
+      win: [
+        `Acısu United, ${opponent} karşısındaki mücadeleyi ${own}-${rival} kazanarak üç puanı aldı.`,
+        `Takımımız ${own}-${rival}’lık skorla sahadan galip ayrıldı. Mücadele ve takım oyunu galibiyeti getirdi.`,
+        `${opponent} ile oynanan karşılaşma ${own}-${rival} sona erdi; Acısu United maçın kazananı oldu.`
+      ],
+      draw: [
+        `Acısu United ile ${opponent} arasındaki karşılaşma ${own}-${rival} sona erdi ve iki takım puanları paylaştı.`,
+        `Sahadaki dengeli mücadelede skor ${own}-${rival} oldu. Takımımız maçtan bir puanla ayrıldı.`,
+        `${opponent} karşısında oynanan maçta taraflar eşitliği bozamadı; tabelada ${own}-${rival} yazdı.`
+      ],
+      loss: [
+        `Acısu United, ${opponent} karşısındaki mücadeleyi ${own}-${rival} tamamladı. Takımımız sahadaki mücadelesini son ana kadar sürdürdü.`,
+        `Karşılaşma ${own}-${rival} sona erdi. Acısu United önümüzdeki maçta yeniden sahaya çıkacak.`,
+        `${opponent} ile oynanan maçta son düdük ${own}-${rival} skoruyla geldi. Takımımıza destek veren herkese teşekkürler.`
+      ]
+    };
+    const pick = list => list[Math.floor(Math.random() * list.length)];
     const matchScorers = stats.filter(s => s.match_id === match.id && s.goals > 0);
     const statsGoalTotal = matchScorers.reduce((total, s) => total + Number(s.goals || 0), 0);
     const scorers = statsGoalTotal === own
       ? matchScorers.map(s => `${playerName(s.player_id)} (${s.goals})`).join(", ")
       : "";
-    const body = `Acısu United, ${match.opponent} ile oynadığı maçı ${own}-${rival} tamamladı.${scorers ? " Goller: " + scorers + "." : match.goal_scorers ? " Goller: " + match.goal_scorers + "." : ""}`;
+    const scorerLine = scorers
+      ? pick([`Goller: ${scorers}.`, `Skora katkı veren oyuncular: ${scorers}.`, `Gol kayıtları: ${scorers}.`])
+      : match.goal_scorers ? `Gol atanlar: ${match.goal_scorers}.` : "";
+    const body = `${pick(stories[result])}${scorerLine ? " " + scorerLine : ""}`;
     const previous = news.find(n => n.match_id === match.id && n.auto_generated);
-    const payload = {title,body,match_id:match.id,published:true,auto_generated:true};
+    const payload = {title:pick(headlines[result]),body,match_id:match.id,published:true,auto_generated:true};
     const { error } = previous
       ? await db.from("acisu_news").update(payload).eq("id",previous.id)
       : await db.from("acisu_news").insert(payload);
