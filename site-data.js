@@ -73,7 +73,7 @@
       if(photo.complete&&photo.naturalWidth){
         const size=340,scale=Math.max(size/photo.naturalWidth,size/photo.naturalHeight);
         const cropW=size/scale,cropH=size/scale;
-        const cropX=(photo.naturalWidth-cropW)/2,cropY=(photo.naturalHeight-cropH)/2;
+        const cropX=(photo.naturalWidth-cropW)/2,cropY=0;
         ctx.drawImage(photo,cropX,cropY,cropW,cropH,370,322,size,size);
       }
       else if(crest.complete&&crest.naturalWidth)ctx.drawImage(crest,370,322,340,340);
