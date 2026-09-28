@@ -107,7 +107,7 @@
         .sort((a,b)=>new Date(b.match.match_at)-new Date(a.match.match_at)).slice(0,5);
       const safePic = safeImage(player.image_url);
       content.innerHTML = `<div class="text-center pt-3">
-        <img src="${esc(safePic)}" alt="${esc(player.name)}" class="w-28 h-28 rounded-full object-cover mx-auto border-2 border-altin/70 shadow-lg" onerror="this.onerror=null;this.src='image_09a3ea.png'">
+        <img src="${esc(safePic)}" alt="${esc(player.name)}" class="w-28 h-28 rounded-full object-cover mx-auto border-2 border-altin/70 shadow-lg" style="object-position:50% 28%" onerror="this.onerror=null;this.src='image_09a3ea.png'">
         <p class="text-altin font-baslik text-lg mt-3">#${player.number} · ${esc(player.position)}</p>
         <h2 id="profile-name" class="font-baslik text-3xl text-white uppercase mt-1">${esc(player.name)}</h2>
         <p class="text-gray-400 text-xs mt-2">ACISU UNITED OYUNCU PROFİLİ</p></div>
