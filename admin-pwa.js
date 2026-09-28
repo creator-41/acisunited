@@ -7,6 +7,17 @@
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const supported = () => "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
   const setStatus = message => { if (status) status.textContent = message; };
+  async function readyPushWorker() {
+    await navigator.serviceWorker.register("./sw.js");
+    let timeout;
+    try {
+      return await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => { timeout = setTimeout(() =>
+          reject(new Error("Bildirim servisi başlatılamadı. Uygulamayı kapatıp yeniden aç.")), 12000); })
+      ]);
+    } finally { clearTimeout(timeout); }
+  }
   const bytes = key => {
     const base64 = key.replace(/-/g, "+").replace(/_/g, "/");
     return Uint8Array.from(atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "=")), c => c.charCodeAt(0));
@@ -35,7 +46,7 @@
     if (Notification.permission === "denied") { setStatus("Bildirim izni kapalı. iPhone Ayarlar > Bildirimler > Acısu Admin bölümünden aç."); return; }
     if (Notification.permission !== "granted") { setStatus("Bu yönetim uygulamasında bildirimler henüz açılmadı."); return; }
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await readyPushWorker();
       const subscription = await registration.pushManager.getSubscription();
       setStatus(subscription ? "Bu cihazın push aboneliği açık. Test bildirimiyle ekranı kontrol edebilirsin."
         : "İzin var, fakat bu yönetim uygulaması push bildirimlerine henüz kayıtlı değil. Bu cihazda aç'a dokun.");
@@ -53,7 +64,7 @@
     try {
       const db = window.acisuAdmin?.db;
       if (!db) throw new Error("Önce yönetici girişi yap.");
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await readyPushWorker();
       const { data: config, error: configError } = await db.functions.invoke("acisu-push", { body: { action: "config" } });
       if (configError || !config?.publicKey) throw configError || new Error("Bildirim anahtarı alınamadı.");
       const subscription = await registration.pushManager.getSubscription()
@@ -71,7 +82,7 @@
   test?.addEventListener("click", async () => {
     if (!supported() || Notification.permission !== "granted") { setStatus("Önce bu cihazda bildirimleri aç."); return; }
     try {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await readyPushWorker();
       await registration.showNotification("Acısu United test", {
         body: "Bu bildirim görünüyorsa cihazın bildirim ekranı çalışıyor.",
         icon: "./image_09a3ea.png", tag: "acisu-local-test-" + Date.now(),
@@ -88,7 +99,7 @@
     try {
       const db = window.acisuAdmin?.db;
       if (!db) throw new Error("Önce yönetici girişi yap.");
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await readyPushWorker();
       const subscription = await registration.pushManager.getSubscription();
       if (!subscription) throw new Error("Bu cihaz kayıtlı değil. Önce 'Bu cihazda aç' düğmesine dokun.");
       const { data, error } = await db.functions.invoke("acisu-push", {
