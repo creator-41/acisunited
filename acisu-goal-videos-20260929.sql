@@ -9,6 +9,7 @@ create table if not exists public.acisu_goal_videos (
 );
 create index if not exists acisu_goal_videos_match_player_idx on public.acisu_goal_videos(match_id, player_id);
 alter table public.acisu_goal_videos enable row level security;
+revoke all on public.acisu_goal_videos from public, anon, authenticated;
 grant select on public.acisu_goal_videos to anon, authenticated;
 grant insert, update, delete on public.acisu_goal_videos to authenticated;
 
