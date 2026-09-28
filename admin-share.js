@@ -125,18 +125,20 @@
       ctx.save();ctx.strokeStyle="#b68460";ctx.lineWidth=7;ctx.lineCap="round";
       ctx.beginPath();ctx.moveTo(310,357);ctx.quadraticCurveTo(556,370,775,348);ctx.stroke();ctx.restore();
       const homeScore=Number(match.our_score??0),awayScore=Number(match.their_score??0);
-      const resultState=homeScore>awayScore?"GALİBİYET":homeScore<awayScore?"MÜCADELE DEVAM EDİYOR":"BERABERLİK";
+      const resultState=homeScore>awayScore?"GALİBİYET":homeScore<awayScore?"MÜCADELEYE DEVAM":"BERABERLİK";
       const resultColor=homeScore>awayScore?"#d7aa68":homeScore<awayScore?"#e5a8a8":"#e7c987";
       if(isResult){
-        ctx.save();rounded(ctx,132,386,816,448,34,"rgba(14,7,11,.72)");
+        ctx.save();rounded(ctx,132,386,816,448,34,"rgba(14,7,11,.76)");
         ctx.strokeStyle="rgba(225,187,124,.58)";ctx.lineWidth=3;ctx.strokeRect(132,386,816,448);
         ctx.fillStyle="rgba(225,187,124,.62)";ctx.fillRect(210,420,660,2);ctx.fillRect(210,799,660,2);ctx.restore();
-        text(ctx,"MAÇ SONUCU",540,453,25,"#e3bf88","700","center",700,display);
-        clubName(ctx,542,54);
-        text(ctx,String(homeScore)+"  —  "+String(awayScore),540,585,124,"#fff","700","center",790,display);
-        text(ctx,"ACISU UNITED  ·  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,680,42,"#f2eee9","700","center",850,display);
-        rounded(ctx,365,720,350,62,31,"rgba(110,35,47,.82)");
-        ctx.strokeStyle=resultColor;ctx.lineWidth=2;ctx.strokeRect(365,720,350,62);
+        text(ctx,"ACISU UNITED",330,493,46,"#e9bd80","700","center",340,display);
+        text(ctx,String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),750,493,46,"#f3eee8","700","center",340,display);
+        ctx.save();ctx.shadowColor="rgba(0,0,0,.9)";ctx.shadowBlur=18;ctx.shadowOffsetY=6;
+        text(ctx,String(homeScore),330,650,170,"#fff","700","center",260,display);
+        text(ctx,"—",540,638,86,"#c7a878","600","center",130,display);
+        text(ctx,String(awayScore),750,650,170,"#fff","700","center",260,display);ctx.restore();
+        rounded(ctx,365,721,350,62,31,"rgba(110,35,47,.86)");
+        ctx.strokeStyle=resultColor;ctx.lineWidth=2;ctx.strokeRect(365,721,350,62);
         text(ctx,resultState,540,762,27,resultColor,"700","center",320,display);
       }else{
         clubName(ctx,519,88);
@@ -152,7 +154,7 @@
       ribbon.addColorStop(0,"rgba(110,35,47,.76)");ribbon.addColorStop(1,"rgba(34,17,22,.84)");
       rounded(ctx,180,920,720,175,22,ribbon);
       ctx.fillStyle="rgba(220,180,117,.82)";ctx.fillRect(222,944,636,3);
-      text(ctx,isResult?resultState:"BİRLİKTE MÜCADELE",540,1032,54,"#f1cd91","700","center",650,display);
+      text(ctx,isResult?"BİRLİKTE DAHA GÜÇLÜ":"BİRLİKTE MÜCADELE",540,1032,54,"#f1cd91","700","center",650,display);
       text(ctx,"#AcısuUnited  ·  #BirlikteDahaGüçlü",540,1185,27,"#ddd","600","center");
     }
     text(ctx,"ACISU UNITED",540,1260,18,"rgba(255,255,255,.58)","700","center");
