@@ -26,7 +26,7 @@
   });
   refreshOptions();updateFields();
   const rounded=(ctx,x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};
-  const text=(ctx,value,x,y,size,color,weight="600",align="left")=>{ctx.font=weight+" "+size+"px system-ui, -apple-system, sans-serif";ctx.fillStyle=color;ctx.textAlign=align;ctx.fillText(String(value??""),x,y);};
+  const text=(ctx,value,x,y,size,color,weight="600",align="left",maxWidth)=>{ctx.font=weight+" "+size+"px system-ui, -apple-system, sans-serif";ctx.fillStyle=color;ctx.textAlign=align;if(maxWidth)ctx.fillText(String(value??""),x,y,maxWidth);else ctx.fillText(String(value??""),x,y);};
   const imageLoad=src=>new Promise(resolve=>{const img=new Image();img.crossOrigin="anonymous";img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src;});
   const drawImageCover=(ctx,img,x,y,w,h)=>{
     if(!img)return;const scale=Math.max(w/img.width,h/img.height),sw=w/scale,sh=h/scale,sx=(img.width-sw)/2,sy=(img.height-sh)/2;
@@ -41,26 +41,36 @@
     preview.textContent="Görsel hazırlanıyor…";download.disabled=true;
     const c=document.createElement("canvas");c.width=1080;c.height=1350;const ctx=c.getContext("2d");
     const crest=await imageLoad("image_09a3ea.png");
+    const matchdayImage=!isPlayer&&kind.value!=="result"?await imageLoad("assets/acisu-matchday-v1.jpg"):null;
     const bg=ctx.createLinearGradient(0,0,1080,1350);
     bg.addColorStop(0,"#0c090b");bg.addColorStop(.42,"#38151c");bg.addColorStop(1,"#090809");
     ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+    if(matchdayImage){
+      ctx.drawImage(matchdayImage,0,0,1080,1350);
+      const tint=ctx.createLinearGradient(0,0,0,1350);
+      tint.addColorStop(0,"rgba(7,4,7,.57)");
+      tint.addColorStop(.52,"rgba(16,6,10,.44)");
+      tint.addColorStop(.82,"rgba(16,5,9,.16)");
+      tint.addColorStop(1,"rgba(7,4,7,.52)");
+      ctx.fillStyle=tint;ctx.fillRect(0,0,1080,1350);
+    }
     const glow=ctx.createRadialGradient(790,470,60,690,550,760);
     glow.addColorStop(0,"rgba(161,55,69,.46)");glow.addColorStop(.52,"rgba(92,24,34,.19)");glow.addColorStop(1,"rgba(20,8,11,0)");
-    ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1350);
+    if(!matchdayImage){ctx.fillStyle=glow;ctx.fillRect(0,0,1080,1350);}
     ctx.save();
     ctx.strokeStyle="rgba(209,175,125,.055)";ctx.lineWidth=48;
-    for(let i=-2;i<7;i++){ctx.beginPath();ctx.moveTo(-260,i*280+100);ctx.lineTo(1340,i*280-470);ctx.stroke();}
+    if(!matchdayImage)for(let i=-2;i<7;i++){ctx.beginPath();ctx.moveTo(-260,i*280+100);ctx.lineTo(1340,i*280-470);ctx.stroke();}
     ctx.restore();
-    rounded(ctx,48,48,984,1254,34,"rgba(8,6,8,.44)");
+    rounded(ctx,48,48,984,1254,34,matchdayImage?"rgba(8,6,8,.08)":"rgba(8,6,8,.44)");
     ctx.save();ctx.beginPath();ctx.roundRect(57,57,966,1236,26);ctx.clip();
     ctx.strokeStyle="rgba(209,175,125,.10)";ctx.lineWidth=2;
-    for(let y=170;y<1300;y+=112){ctx.beginPath();ctx.moveTo(57,y);ctx.lineTo(1023,y);ctx.stroke();}
+    if(!matchdayImage)for(let y=170;y<1300;y+=112){ctx.beginPath();ctx.moveTo(57,y);ctx.lineTo(1023,y);ctx.stroke();}
     const ring=ctx.createRadialGradient(780,640,200,780,640,540);
     ring.addColorStop(0,"rgba(198,152,95,0)");ring.addColorStop(.78,"rgba(198,152,95,.025)");ring.addColorStop(1,"rgba(198,152,95,.10)");
     ctx.fillStyle=ring;ctx.fillRect(57,57,966,1236);
     if(crest){
       ctx.save();
-      ctx.globalAlpha=isPlayer ? .13 : .25;
+      ctx.globalAlpha=isPlayer ? .13 : matchdayImage ? .10 : .25;
       ctx.translate(isPlayer?780:795,isPlayer?555:625);
       ctx.rotate(-.13);
       ctx.drawImage(crest,-410,-410,820,820);
@@ -71,7 +81,7 @@
     shade.addColorStop(.42,"rgba(10,7,8,.31)");
     shade.addColorStop(.78,"rgba(10,7,8,.30)");
     shade.addColorStop(1,"rgba(10,7,8,.08)");
-    ctx.fillStyle=shade;ctx.fillRect(57,300,966,890);
+    if(!matchdayImage){ctx.fillStyle=shade;ctx.fillRect(57,300,966,890);}
     ctx.restore();
     ctx.strokeStyle="#b99a69";ctx.lineWidth=3;ctx.strokeRect(52,52,976,1246);
     ctx.strokeStyle="#e0bc81";ctx.lineWidth=6;
@@ -105,10 +115,10 @@
       ctx.save();ctx.shadowColor="rgba(210,157,98,.42)";ctx.shadowBlur=24;
       text(ctx,title,540,320,40,"#d3b47f","900","center");ctx.restore();
       text(ctx,isResult?String(match.our_score??0)+"  —  "+String(match.their_score??0):"ACISU UNITED",540,isResult?530:520,isResult?92:62,"#fff","900","center");
-      text(ctx,isResult?String(match.opponent||"Rakip takım"): "VS  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,isResult?630:640,38,"#dfc18e","800","center");
-      if(!isResult)text(ctx,dateText(match.match_at),540,750,31,"#fff","600","center");
+      text(ctx,isResult?String(match.opponent||"Rakip takım"): "VS  "+String(match.opponent||"Rakip takım").toLocaleUpperCase("tr-TR"),540,isResult?630:640,38,"#dfc18e","800","center",850);
+      if(!isResult)text(ctx,dateText(match.match_at),540,750,31,"#fff","600","center",840);
       else text(ctx,dateText(match.match_at),540,735,28,"#c7bba8","600","center");
-      if(match.venue)text(ctx,match.venue,540,810,27,"#fff","500","center");
+      if(match.venue)text(ctx,match.venue,540,810,27,"#fff","500","center",840);
       const ribbon=ctx.createLinearGradient(180,920,900,1095);
       ribbon.addColorStop(0,"rgba(110,35,47,.76)");ribbon.addColorStop(1,"rgba(34,17,22,.84)");
       rounded(ctx,180,920,720,175,22,ribbon);
