@@ -276,50 +276,102 @@
     "2-2-2": [{name:"GK",x:50,y:88},{name:"DF",x:34,y:69},{name:"DF",x:66,y:69},{name:"MF",x:34,y:49},{name:"MF",x:66,y:49},{name:"FW",x:34,y:29},{name:"FW",x:66,y:29}]
   };
   const lineupJersey = number => `<svg viewBox="0 0 48 48" class="h-8 w-8 drop-shadow" aria-hidden="true"><path d="M14 5 5 9 1 20l8 4 3-5v24h24V19l3 5 8-4-4-11-9-4-5 5h-8z" fill="#eee5d5" stroke="#641d27" stroke-width="2.5" stroke-linejoin="round"/><text x="24" y="32" text-anchor="middle" font-size="14" font-weight="900" fill="#5c1a21">${escapeHtml(number ?? "")}</text></svg>`;
-  function renderLineupEditor(matchId, formation, slotAssignments) {
+  let lineupDraft = { matchId:"", formation:"2-3-1", assignments:new Map(), captainId:"" };
+  let pickerSlot = null;
+  function closeLineupPicker() {
+    const modal = $("lineup-player-modal");
+    if (modal.hidden) return;
+    modal.hidden = true;
+    document.body.classList.remove("lineup-picker-open");
+    if (pickerSlot !== null) $("lineup-players").querySelector(`[data-open-lineup-slot="${pickerSlot}"]`)?.focus();
+    pickerSlot = null;
+  }
+  function renderLineupChoices() {
+    const chosen = lineupDraft.assignments.get(pickerSlot);
+    const query = $("lineup-player-search").value.trim().toLocaleLowerCase("tr-TR");
+    const selectedElsewhere = new Set([...lineupDraft.assignments].filter(([slot]) => slot !== pickerSlot).map(([,id]) => id));
+    const available = players.filter(p => p.active || p.id === chosen).sort((a,b) => Number(a.number) - Number(b.number))
+      .filter(p => `${p.number} ${p.name} ${p.position||""}`.toLocaleLowerCase("tr-TR").includes(query));
+    $("lineup-player-choices").innerHTML = available.length ? available.map(p => {
+      const used = selectedElsewhere.has(p.id);
+      const selected = chosen === p.id;
+      return `<button type="button" data-pick-lineup-player="${escapeHtml(p.id)}" ${used || !p.active ? "disabled" : ""} class="lineup-choice" aria-pressed="${selected}">
+        <span class="lineup-choice-avatar">${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="" loading="lazy">` : lineupJersey(p.number)}</span>
+        <span class="min-w-0 flex-1 text-left"><strong class="block truncate">#${escapeHtml(p.number)} ${escapeHtml(p.name)}</strong><small class="block muted">${escapeHtml(p.position || "Oyuncu")}</small></span>
+        <span class="text-xs text-altin">${used ? "Zaten seçildi" : selected ? "Seçili" : p.active ? "Seç" : "Pasif"}</span>
+      </button>`;
+    }).join("") : '<p class="muted py-5 text-center">Eşleşen oyuncu yok.</p>';
+  }
+  function openLineupPicker(slot) {
+    pickerSlot = slot;
+    $("lineup-picker-title").textContent = slot <= 7 ? `Saha ${slot} · oyuncu seç` : `Yedek ${slot - 7} · oyuncu seç`;
+    $("lineup-player-search").value = "";
+    $("lineup-clear-slot").hidden = !lineupDraft.assignments.has(slot);
+    renderLineupChoices();
+    $("lineup-player-modal").hidden = false;
+    document.body.classList.add("lineup-picker-open");
+    $("lineup-player-search").focus();
+  }
+  function renderLineupEditor() {
     const box = $("lineup-players");
-    const playersMarkup = players.filter(p => p.active).sort((a,b)=>a.number-b.number)
-      .map(p => `<option value="${escapeHtml(p.id)}">#${p.number} ${escapeHtml(p.name)}</option>`).join("");
+    const {formation, assignments, captainId} = lineupDraft;
     const slots = sevenSideFormations[formation] || sevenSideFormations["2-3-1"];
-    const selector = (index, label, position, x, y) => `<label class="absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl border border-white/15 bg-[#121116]/95 px-1 py-1 text-center shadow-lg" style="left:${x}%;top:${y}%">
-      ${lineupJersey(slotAssignments.get(index) ? players.find(p=>p.id===slotAssignments.get(index))?.number : "")}
-      <span class="mt-0.5 text-[9px] font-black text-[#f0cd91]">${label} · ${position}</span>
-      <select data-lineup-slot="${index}" aria-label="${label} oyuncu seçimi" class="mt-1 w-full rounded-md border border-[#836b56] bg-[#1d171a] px-1 py-1 text-[10px] text-white">
-       <option value="">Oyuncu seç</option>${playersMarkup}
-      </select>
-    </label>`;
-    const fieldPlayers = slots.map((slot,index)=>selector(index+1,`Saha ${index+1}`,slot.name,slot.x,slot.y)).join("");
-    const benchPlayers = Array.from({length:4},(_,i)=>selector(i+8,`Yedek ${i+1}`,"YEDEK",50,15+i*23).replace("absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2","flex w-full").replace(`style="left:50%;top:${15+i*23}%"`,"")).join("");
+    const selector = (index, label, position, x, y) => {
+      const id = assignments.get(index);
+      const player = players.find(p => p.id === id);
+      const captain = player && captainId === id && index <= 7;
+      return `<button type="button" data-open-lineup-slot="${index}" aria-label="${label} ${position}: ${player ? escapeHtml(player.name) : "oyuncu seç"}" class="lineup-slot absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2 flex-col items-center rounded-xl border border-white/25 bg-[#121116]/95 px-1 py-1 text-center shadow-lg" style="left:${x}%;top:${y}%">
+        ${lineupJersey(player?.number)}
+        <span class="mt-0.5 text-[9px] font-black text-[#f0cd91]">${label} · ${position}</span>
+        <span class="mt-1 w-full truncate rounded-md bg-[#251c21] px-1 py-1 text-[10px] font-bold text-white">${player ? escapeHtml(player.name) : "+ Oyuncu seç"}</span>
+        ${captain ? '<span class="lineup-captain-badge">★ KAPTAN</span>' : ""}
+      </button>`;
+    };
+    const fieldPlayers = slots.map((slot,index) => selector(index+1,`Saha ${index+1}`,slot.name,slot.x,slot.y)).join("");
+    const benchPlayers = Array.from({length:4},(_,i) => selector(i+8,`Yedek ${i+1}`,"YEDEK",50,15+i*23)
+      .replace("absolute z-10 flex w-[104px] -translate-x-1/2 -translate-y-1/2", "flex w-full")
+      .replace(`style="left:50%;top:${15+i*23}%"`, "")).join("");
+    const starters = [...assignments].filter(([slot]) => slot <= 7).sort((a,b) => a[0]-b[0])
+      .map(([,id]) => players.find(p => p.id === id)).filter(Boolean);
     box.innerHTML = `<div class="flex flex-col gap-4 lg:flex-row lg:items-stretch">
       <div class="relative mx-auto h-[590px] w-full max-w-[360px] shrink-0 overflow-hidden rounded-[24px] border-[3px] border-white/80 bg-[#078b66]">
-       <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#0a9b71_0%,#0a9b71_8.33%,#078b66_8.33%,#078b66_16.66%)]"></div>
-       <div class="absolute inset-x-[26%] top-0 h-[13%] border-x-2 border-b-2 border-white/80"></div><div class="absolute left-1/2 top-0 h-[7%] w-[42%] -translate-x-1/2 border-x-2 border-b-2 border-white/80"></div>
-       <div class="absolute left-1/2 top-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-b-full border-b-2 border-x-2 border-white/80"></div>
-       <div class="absolute inset-x-0 top-1/2 border-t-2 border-white/90"></div><div class="absolute left-1/2 top-1/2 h-[15%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90"></div>
-       <div class="absolute inset-x-[26%] bottom-0 h-[13%] border-x-2 border-t-2 border-white/80"></div><div class="absolute left-1/2 bottom-0 h-[7%] w-[42%] border-x-2 border-t-2 border-white/80 -translate-x-1/2"></div>
-       <div class="absolute left-1/2 bottom-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-t-full border-t-2 border-x-2 border-white/80"></div>
-       <div class="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-[.13]"><img src="image_09a3ea.png" alt="" class="h-36 w-36 object-contain"></div>
-       ${fieldPlayers}
+        <div class="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#0a9b71_0%,#0a9b71_8.33%,#078b66_8.33%,#078b66_16.66%)]"></div>
+        <div class="absolute inset-x-[26%] top-0 h-[13%] border-x-2 border-b-2 border-white/80"></div><div class="absolute left-1/2 top-0 h-[7%] w-[42%] -translate-x-1/2 border-x-2 border-b-2 border-white/80"></div>
+        <div class="absolute left-1/2 top-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-b-full border-b-2 border-x-2 border-white/80"></div>
+        <div class="absolute inset-x-0 top-1/2 border-t-2 border-white/90"></div><div class="absolute left-1/2 top-1/2 h-[15%] aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90"></div>
+        <div class="absolute inset-x-[26%] bottom-0 h-[13%] border-x-2 border-t-2 border-white/80"></div><div class="absolute left-1/2 bottom-0 h-[7%] w-[42%] border-x-2 border-t-2 border-white/80 -translate-x-1/2"></div>
+        <div class="absolute left-1/2 bottom-[12%] h-[11%] w-[32%] -translate-x-1/2 rounded-t-full border-t-2 border-x-2 border-white/80"></div>
+        <div class="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 opacity-[.13]"><img src="image_09a3ea.png" alt="" class="h-36 w-36 object-contain"></div>
+        ${fieldPlayers}
       </div>
       <aside class="w-full rounded-2xl border border-white/10 bg-[#17151a] p-3 text-white lg:max-w-[190px]">
-       <h3 class="mb-1 text-center text-sm font-black uppercase tracking-wide text-[#f0cd91]">Yedekler <span class="text-gray-400">(en fazla 4)</span></h3>
-       <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">${benchPlayers}</div>
+        <h3 class="mb-1 text-center text-sm font-black uppercase tracking-wide text-[#f0cd91]">Yedekler <span class="text-gray-400">(en fazla 4)</span></h3>
+        <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">${benchPlayers}</div>
       </aside>
-     </div>`;
-    for(const [index,id] of slotAssignments){const select=box.querySelector(`[data-lineup-slot="${index}"]`);if(select)select.value=id;}
+    </div>
+    <label class="field mt-5 block max-w-md">★ Takım kaptanı
+      <select id="lineup-captain"><option value="">Kaptan seç</option>
+        ${starters.map(p => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join("")}
+      </select>
+      <span class="muted mt-1 block text-xs">Kaptan sahadaki 7 oyuncudan biri olmalı.</span>
+    </label>`;
+    $("lineup-captain").value = captainId;
   }
   async function showLineup() {
+    closeLineupPicker();
     const matchId = $("lineup-match").value;
     if (!matchId) { $("lineup-players").textContent = "Önce maç ekle."; return; }
-    const { data, error } = await db.from("acisu_match_lineup").select("player_id,role,slot_index").eq("match_id", matchId).order("slot_index");
+    const { data, error } = await db.from("acisu_match_lineup").select("player_id,role,slot_index,is_captain").eq("match_id", matchId).order("slot_index");
+    if ($("lineup-match").value !== matchId) return;
     if (error) { notice(error.message); return; }
-    const match = matches.find(x=>x.id===matchId);
+    const match = matches.find(x => x.id === matchId);
     const formation = match?.lineup_formation || "2-3-1";
     $("lineup-formation").value = formation;
-    const rows=(data||[]).slice().sort((a,b)=>Number(a.slot_index||99)-Number(b.slot_index||99));
-    const assignments=new Map();
-    rows.forEach((row,index)=>assignments.set(Number(row.slot_index)||index+1,row.player_id));
-    renderLineupEditor(matchId,formation,assignments);
+    const rows = (data || []).slice().sort((a,b) => Number(a.slot_index||99)-Number(b.slot_index||99));
+    const assignments = new Map();
+    rows.forEach((row,index) => assignments.set(Number(row.slot_index)||index+1,row.player_id));
+    lineupDraft = {matchId,formation,assignments,captainId:rows.find(r => r.is_captain && r.role === "ilk11")?.player_id || ""};
+    renderLineupEditor();
   }
   async function boot() {
     const { data: { user }, error } = await db.auth.getUser();
@@ -500,28 +552,70 @@
   });
   $("lineup-match").addEventListener("change", showLineup);
   $("lineup-formation").addEventListener("change", () => {
-    const values=new Map([...$("lineup-players").querySelectorAll("[data-lineup-slot]")].map(x=>[Number(x.dataset.lineupSlot),x.value]).filter(x=>x[1]));
-    renderLineupEditor($("lineup-match").value,$("lineup-formation").value,values);
+    lineupDraft.formation = $("lineup-formation").value;
+    renderLineupEditor();
+  });
+  $("lineup-players").addEventListener("click", event => {
+    const slot = event.target.closest("[data-open-lineup-slot]");
+    if (slot) openLineupPicker(Number(slot.dataset.openLineupSlot));
+  });
+  $("lineup-players").addEventListener("change", event => {
+    if (event.target.id !== "lineup-captain") return;
+    lineupDraft.captainId = event.target.value;
+    renderLineupEditor();
+  });
+  $("lineup-player-search").addEventListener("input", renderLineupChoices);
+  $("lineup-player-choices").addEventListener("click", event => {
+    const option = event.target.closest("[data-pick-lineup-player]");
+    if (!option || option.disabled || pickerSlot === null) return;
+    const playerId = option.dataset.pickLineupPlayer;
+    if ([...lineupDraft.assignments].some(([slot,id]) => slot !== pickerSlot && id === playerId)) return;
+    const previous = lineupDraft.assignments.get(pickerSlot);
+    lineupDraft.assignments.set(pickerSlot, playerId);
+    if (previous === lineupDraft.captainId && previous !== playerId) lineupDraft.captainId = "";
+    renderLineupEditor();
+    closeLineupPicker();
+  });
+  $("lineup-clear-slot").addEventListener("click", () => {
+    const previous = lineupDraft.assignments.get(pickerSlot);
+    lineupDraft.assignments.delete(pickerSlot);
+    if (previous === lineupDraft.captainId) lineupDraft.captainId = "";
+    renderLineupEditor();
+    closeLineupPicker();
+  });
+  $("close-lineup-player-modal").addEventListener("click", closeLineupPicker);
+  $("lineup-player-modal").addEventListener("click", event => {
+    if (event.target.id === "lineup-player-modal") closeLineupPicker();
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !$("lineup-player-modal").hidden) {
+      event.preventDefault();
+      closeLineupPicker();
+    }
   });
   $("save-lineup").addEventListener("click", async () => {
     const matchId = $("lineup-match").value;
-    if (!matchId) return;
-    const controls=[...$("lineup-players").querySelectorAll("[data-lineup-slot]")];
-    const picked=controls.filter(x=>x.value).map(x=>({slot:Number(x.dataset.lineupSlot),player_id:x.value}));
-    const starters=picked.filter(x=>x.slot<=7), reserves=picked.filter(x=>x.slot>=8);
-    if(starters.length!==7){notice("Sahaya tam 7 oyuncu seçmelisin (kaleci dahil).");return;}
-    if(reserves.length>4){notice("En fazla 4 yedek seçebilirsin.");return;}
-    if(new Set(picked.map(x=>x.player_id)).size!==picked.length){notice("Aynı oyuncuyu birden fazla slota seçemezsin.");return;}
-    const formation=$("lineup-formation").value;
-    const {error:matchError}=await db.from("acisu_matches").update({lineup_formation:formation}).eq("id",matchId);
-    if(matchError){notice("Diziliş kaydedilemedi: "+matchError.message);return;}
-    const { error: delError } = await db.from("acisu_match_lineup").delete().eq("match_id", matchId);
-    if (delError) { notice(delError.message); return; }
-    const selected=picked.map(x=>({match_id:matchId,player_id:x.player_id,role:x.slot<=7?"ilk11":"yedek",slot_index:x.slot}));
-    const { error } = await db.from("acisu_match_lineup").insert(selected);
-    if (error) { notice("Kadro kaydedilemedi: " + error.message); return; }
-    const match=matches.find(x=>x.id===matchId);if(match)match.lineup_formation=formation;
-    notice("Maç kadrosu ve dizilişi kaydedildi.");
+    if (!matchId || lineupDraft.matchId !== matchId) return;
+    const picked = [...lineupDraft.assignments].map(([slot,player_id]) => ({slot,player_id}));
+    const starters = picked.filter(x => x.slot <= 7), reserves = picked.filter(x => x.slot >= 8);
+    if (starters.length !== 7) { notice("Sahaya tam 7 oyuncu seçmelisin (kaleci dahil)."); return; }
+    if (reserves.length > 4) { notice("En fazla 4 yedek seçebilirsin."); return; }
+    if (new Set(picked.map(x => x.player_id)).size !== picked.length) { notice("Aynı oyuncuyu birden fazla slota seçemezsin."); return; }
+    if (!starters.some(x => x.player_id === lineupDraft.captainId)) { notice("Sahadaki 7 oyuncudan bir kaptan seç."); return; }
+    const saveButton = $("save-lineup");
+    saveButton.disabled = true;
+    try {
+      const formation = lineupDraft.formation;
+      const {error:matchError} = await db.from("acisu_matches").update({lineup_formation:formation}).eq("id",matchId);
+      if (matchError) { notice("Diziliş kaydedilemedi: " + matchError.message); return; }
+      const {error:delError} = await db.from("acisu_match_lineup").delete().eq("match_id",matchId);
+      if (delError) { notice(delError.message); return; }
+      const selected = picked.map(x => ({match_id:matchId,player_id:x.player_id,role:x.slot<=7?"ilk11":"yedek",slot_index:x.slot,is_captain:x.player_id===lineupDraft.captainId}));
+      const {error} = await db.from("acisu_match_lineup").insert(selected);
+      if (error) { notice("Kadro kaydedilemedi: " + error.message); return; }
+      const match = matches.find(x => x.id === matchId); if (match) match.lineup_formation = formation;
+      notice("Maç kadrosu, kaptan ve diziliş kaydedildi.");
+    } finally { saveButton.disabled = false; }
   });
   $("players-list").addEventListener("click", async e => {
     const edit = e.target.closest("[data-edit-player]");
