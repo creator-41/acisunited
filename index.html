@@ -79,6 +79,16 @@
         }
 
         /* Gerçek FIFA Oyuncu Kartı Şekli (Üstü kavisli, altı sivri rozet) */
+        #acisu-video-modal[hidden]{display:none!important}
+        #acisu-video-modal{position:fixed;z-index:150;inset:0;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.88);backdrop-filter:blur(8px)}
+        .acisu-video-panel{width:min(100%,850px);border:1px solid #c1a57b;border-radius:18px;background:#160e11;box-shadow:0 20px 60px #000;overflow:hidden}
+        .acisu-video-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;color:#e8c797}
+        .acisu-video-top h2{margin:0;font:700 20px Oswald,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        #close-acisu-video{flex:none;width:42px;height:42px;border:1px solid #c1a57b;border-radius:50%;color:white;font-size:28px;line-height:1}
+        .acisu-video-ratio{aspect-ratio:16/9;background:#000}
+        .acisu-video-ratio iframe{display:block;width:100%;height:100%;border:0}
+        .acisu-video-footer{display:block;padding:13px 16px;color:#e8c797;text-decoration:underline;text-underline-offset:3px}
+        body.acisu-video-open{overflow:hidden!important}
         #player-profile-modal[hidden] { display: none !important; }
         .player-profile-trigger { cursor:pointer; }
         .player-profile-trigger:focus-visible { outline:3px solid #c1a57b; outline-offset:3px; }
@@ -416,6 +426,13 @@
     </nav>
 
 
+    <div id="acisu-video-modal" hidden role="dialog" aria-modal="true" aria-labelledby="acisu-video-title">
+      <section class="acisu-video-panel">
+        <div class="acisu-video-top"><h2 id="acisu-video-title">Gol videosu</h2><button id="close-acisu-video" type="button" aria-label="Videoyu kapat">×</button></div>
+        <div class="acisu-video-ratio"><iframe id="acisu-video-frame" title="Gol videosu" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+        <a id="acisu-video-external" class="acisu-video-footer" href="#" target="_blank" rel="noopener noreferrer">Video burada açılmazsa YouTube’da izle ↗</a>
+      </section>
+    </div>
     <div id="match-center" hidden role="dialog" aria-modal="true" aria-labelledby="match-center-title">
       <div class="mc-shell">
         <div class="mc-toolbar">
@@ -689,8 +706,9 @@
         renderSquad();
         renderCoach();
     </script>
-    <script src="site-data.js?v=20260929-1"></script>
+    <script src="site-data.js?v=20260929-3"></script>
     <script src="site-features.js?v=20260928-1"></script>
-    <script src="match-center.js?v=20260929-2"></script>
+    <script src="match-center.js?v=20260929-3"></script>
+    <script src="goal-video-player.js?v=20260929-1"></script>
 </body>
 </html>
