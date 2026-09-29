@@ -24,7 +24,7 @@
 
   function crest(name, url, own) {
     return url || own
-      ? `<img src="${esc(safeImage(own ? "image_09a3ea.png" : url))}" alt="${esc(name)} arması" class="mc-crest" loading="lazy">`
+      ? `<img src="${esc(safeImage(own ? "image_09a3ea.png" : url))}" alt="${esc(name)} arması" class="mc-crest${own ? "" : " mc-crest-rival"}" loading="lazy">`
       : `<span class="mc-crest mc-crest-empty" aria-hidden="true">${esc(String(name || "?").slice(0, 2).toLocaleUpperCase("tr-TR"))}</span>`;
   }
   function jersey(number) {
