@@ -111,6 +111,7 @@
         @keyframes acisuGoal{0%{opacity:0;transform:scale(.6)}20%{opacity:1;transform:scale(1.1)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.25)}}
         @media(prefers-reduced-motion:reduce){.live-pulse,.acisu-goal-flash{animation:none}.acisu-goal-flash{opacity:.85}}
         [data-site-page][hidden]{display:none!important}
+        #site-tabbar [hidden]{display:none!important}
         .site-tabbar{position:fixed;z-index:60;inset:auto 0 0;display:flex;justify-content:flex-start;overflow-x:auto;overscroll-behavior-x:contain;background:rgba(12,9,10,.97);border-top:1px solid rgba(193,165,123,.28);padding:7px 5px calc(7px + env(safe-area-inset-bottom));backdrop-filter:blur(14px);scrollbar-width:none}
         .site-tabbar::-webkit-scrollbar{display:none}
         .site-tab{flex:1 0 54px;max-width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#c8c1bd;font-size:9px;font-weight:700;line-height:1.1;padding:4px 2px;background:none;border:0}
@@ -422,7 +423,7 @@
         <button class="site-tab" type="button" role="tab" data-site-tab="lineup" aria-selected="false"><span class="tab-icon">📋</span><span>Maç kadrosu</span></button>
         <button class="site-tab" type="button" role="tab" data-site-tab="stats" aria-selected="false"><span class="tab-icon">📊</span><span>İstatistik</span></button>
         <button class="site-tab" type="button" role="tab" data-site-tab="news" aria-selected="false"><span class="tab-icon">📰</span><span>Haberler</span></button>
-        <button class="site-tab" type="button" role="tab" data-site-tab="archive" aria-selected="false"><span class="tab-icon">🏆</span><span>Arşiv</span></button>
+        <button class="site-tab" type="button" role="tab" data-site-tab="archive" aria-selected="false" hidden><span class="tab-icon">🏆</span><span>Arşiv</span></button>
     </nav>
 
 
@@ -707,7 +708,7 @@
         renderCoach();
     </script>
     <script src="site-data.js?v=20260929-3"></script>
-    <script src="site-features.js?v=20260929-2"></script>
+    <script src="site-features.js?v=20260929-3"></script>
     <script src="season-overview.js?v=20260929-1"></script>
     <script src="match-center.js?v=20260929-3"></script>
     <script src="goal-video-player.js?v=20260929-1"></script>
