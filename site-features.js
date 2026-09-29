@@ -63,7 +63,13 @@
         <h3 class="font-baslik text-2xl mt-2 mb-3 text-white">${esc(x.title)}</h3>
         <p class="text-gray-300 text-sm whitespace-pre-line">${esc(x.body)}</p></article>`).join("")
       : '<p class="text-gray-300">Henüz haber yayımlanmadı.</p>';
-    $("public-seasons").innerHTML = (a.data || []).length ? a.data.map(x =>
+    const archivedSeasons = a.data || [];
+    const archiveTab = document.querySelector('#site-tabbar [data-site-tab="archive"]');
+    if (archiveTab) {
+      archiveTab.hidden = archivedSeasons.length === 0;
+      if (archiveTab.hidden && archiveTab.getAttribute("aria-selected") === "true") showSiteTab("stats", false);
+    }
+    $("public-seasons").innerHTML = archivedSeasons.length ? archivedSeasons.map(x =>
       `<article class="bg-siyah border border-bordo/40 rounded-xl p-6">
         <h3 class="font-baslik text-2xl text-altin mb-2">${x.season_year} Sezonu</h3>
         <p class="text-gray-200 text-sm">${x.matches_count} maç · ${x.wins} galibiyet · ${x.draws} beraberlik · ${x.losses} mağlubiyet</p>
