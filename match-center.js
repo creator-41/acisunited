@@ -33,7 +33,7 @@
   function playerButton(entry, role, field) {
     const p = entry.player || data.players.find(x => x.id === entry.player_id);
     if (!p) return `<span class="mc-empty-slot">Oyuncu seçiliyor</span>`;
-    return `<button type="button" class="${field ? "mc-field-player" : "mc-bench-player"}" data-mc-player="${esc(entry.player_id)}" aria-label="${esc(p.name)} profilini aç">${jersey(p.number)}<span class="mc-player-name">${esc(p.name)}</span><span class="mc-player-role">${esc(role || p.position || "Yedek")}</span></button>`;
+    return `<button type="button" class="${field ? "mc-field-player" : "mc-bench-player"}" data-mc-player="${esc(entry.player_id)}" aria-label="${esc(p.name)} profilini aç">${jersey(p.number)}<span class="mc-player-name">${esc(p.name)}</span><span class="mc-player-role">${esc(role || p.position || "Yedek")}${entry.is_captain ? " · ★ K" : ""}</span></button>`;
   }
   function lineupSection(match) {
     const rows = (data.lineup || []).filter(x => x.match_id === match.id);
