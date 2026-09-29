@@ -295,7 +295,7 @@
           <h3 class="font-baslik text-2xl font-bold text-white text-center">ACISU UNITED</h3></div>`;
       const opponent = `<div class="flex flex-col items-center w-full md:w-1/3">
           ${m.opponent_image_url
-            ? `<img src="${esc(safeImage(m.opponent_image_url))}" alt="${esc(m.opponent)} arması" class="w-20 h-20 object-contain mb-4" onerror="this.onerror=null;this.src='image_09a3ea.png'">`
+            ? `<img src="${esc(safeImage(m.opponent_image_url))}" alt="${esc(m.opponent)} arması" class="w-20 h-20 rounded-full border border-white/20 bg-white/10 object-contain p-1 mb-4" onerror="this.onerror=null;this.src='image_09a3ea.png'">`
             : `<div class="w-20 h-20 rounded-full bg-yellow-900/20 border border-yellow-700/30 flex items-center justify-center mb-4"><span class="font-baslik text-sm text-yellow-600 text-center break-words px-1">${esc(m.opponent)}</span></div>`}
           <h3 class="font-baslik text-2xl font-bold text-gray-400 text-center">${esc(m.opponent)}</h3></div>`;
       const score = m.played || m.is_live
