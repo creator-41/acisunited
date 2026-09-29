@@ -130,7 +130,7 @@
       catch { return ""; }
       const player = (data.goalPlayers || []).find(p => p.id === v.player_id)
         || (data.players || []).find(p => p.id === v.player_id);
-      return `<a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer" class="mc-video-link"><span>▶</span><span><strong>${esc(v.title || "Gol videosu")}</strong><small>${esc(player?.name || "Acısu United")}</small></span><span aria-hidden="true">↗</span></a>`;
+      return `<a href="${esc(url.href)}" data-acisu-video="${esc(v.title || "Gol videosu")}" target="_blank" rel="noopener noreferrer" class="mc-video-link"><span>▶</span><span><strong>${esc(v.title || "Gol videosu")}</strong><small>${esc(player?.name || "Acısu United")}</small></span><span aria-hidden="true">↗</span></a>`;
     }).filter(Boolean);
     return rows.length ? `<section class="mc-panel"><h3>🎥 Gol videoları</h3><div class="mc-video-list">${rows.join("")}</div></section>` : "";
   }
