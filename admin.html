@@ -42,6 +42,18 @@
     .list-actions button:hover{text-decoration:underline}
     .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:#c1a57b}
     .lineup-item{background:#211a1d;border:1px solid #48373c;border-radius:12px;padding:12px 14px}
+    #lineup-player-modal[hidden]{display:none!important}
+    #lineup-player-modal{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:#050405dc;padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+    .lineup-picker-open{overflow:hidden}
+    .lineup-picker-panel{width:min(100%,520px);max-height:86dvh;display:flex;flex-direction:column;border:1px solid #b4976c;border-radius:20px;background:#1b1216;padding:18px;box-shadow:0 20px 65px #000c}
+    .lineup-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 10px;border-bottom:1px solid #ffffff18;color:white;text-align:left}
+    .lineup-choice:hover:not(:disabled),.lineup-choice[aria-pressed=true]{background:#42252d}
+    .lineup-choice:disabled{opacity:.46;cursor:not-allowed}
+    .lineup-choice-avatar{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;overflow:hidden;background:#24191e}
+    .lineup-choice-avatar img{width:100%;height:100%;object-fit:cover}
+    .lineup-captain-badge{margin-top:3px;border-radius:99px;background:#ad854b;color:#17100e;padding:2px 5px;font-size:9px;font-weight:900}
+    .lineup-slot:focus-visible{outline:3px solid #e7c691;outline-offset:3px}
+
     @media(max-width:640px){.list-row{align-items:flex-start;flex-direction:column}.list-actions{align-self:flex-end}}
   </style>
 </head>
@@ -342,9 +354,21 @@
       </section>
     </div>
   </main>
+  <div id="lineup-player-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lineup-picker-title">
+    <section class="lineup-picker-panel">
+      <div class="flex items-center justify-between gap-3">
+        <h2 id="lineup-picker-title" class="font-baslik text-2xl text-altin">Oyuncu seç</h2>
+        <button id="close-lineup-player-modal" type="button" class="outline-action px-3 py-2" aria-label="Oyuncu seçimini kapat">✕</button>
+      </div>
+      <label class="field mt-4 block">Oyuncu ara<input id="lineup-player-search" type="search" placeholder="Ad veya forma numarası" autocomplete="off"></label>
+      <div id="lineup-player-choices" class="mt-3 min-h-0 flex-1 overflow-y-auto overscroll-contain" role="list"></div>
+      <button id="lineup-clear-slot" type="button" class="outline-action mt-3" hidden>Bu pozisyonu boşalt</button>
+    </section>
+  </div>
+
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260929-2"></script>
+  <script src="admin.js?v=20260929-3"></script>
   <script src="admin-goal-videos.js?v=20260929-1"></script>
   <script src="admin-features.js?v=20260928-3"></script>
   <script src="admin-sponsors.js?v=20260927-1"></script>
