@@ -21,7 +21,7 @@
       const since=startAt(range), rows=[];
       for(let page=0;page<10;page++) {
         const {data,error}=await db.from("acisu_visits")
-          .select("created_at,visitor_id,session_id,section,app_mode")
+          .select("created_at,visitor_id,session_id,section,app_mode,device_label")
           .gte("created_at",since).order("created_at",{ascending:false})
           .range(page*1000,page*1000+999);
         if(error) throw error;
@@ -36,6 +36,13 @@
         const group=grouped.get(key)||{visitors:new Set(),views:0};
         group.views++;group.visitors.add(row.visitor_id);grouped.set(key,group);
       }
+      const deviceGroups=new Map();
+      for (const row of rows) {
+        const label=row.device_label||"Bilinmiyor";
+        if (!deviceGroups.has(label)) deviceGroups.set(label,new Set());
+        deviceGroups.get(label).add(row.visitor_id);
+      }
+      const devices=[...deviceGroups].sort((a,b)=>b[1].size-a[1].size);
       const sorted=[...grouped].sort((a,b)=>a[0].localeCompare(b[0]));
       const max=Math.max(1,...sorted.map(([,g])=>g.views));
       root.innerHTML=`
@@ -48,8 +55,12 @@
           ${sorted.length ? sorted.map(([key,g])=>`<div class="grid grid-cols-[80px_1fr_50px] items-center gap-2 text-xs mb-2"><span>${escape(key)}</span><div class="h-5 bg-[#322329] rounded-full overflow-hidden"><div class="h-full bg-[#c1a57b]" style="width:${g.views/max*100}%"></div></div><span class="text-right">${g.visitors.size} / ${g.views}</span></div>`).join("") : '<p class="muted">Bu dönemde henüz ziyaret kaydı yok.</p>'}
           <p class="muted text-xs mt-3">Çubuklar sayfa açılışını gösterir. Sağda tekil cihaz / sayfa açılışı yazıyor.</p>
         </div>
+        <div class="surface p-4 mb-5"><h3 class="font-baslik text-xl mb-3">Cihaz türleri</h3>
+          ${devices.length ? devices.map(([label,ids])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${ids.size} cihaz</strong></div>`).join("") : '<p class="muted">Henüz cihaz verisi yok.</p>'}
+          <p class="muted text-xs mt-2">Cihaz bilgisi tarayıcının verdiği kategoriye göre gösterilir; kesin model bilgisi değildir.</p>
+        </div>
         <div class="surface p-4"><h3 class="font-baslik text-xl mb-3">Son girişler</h3>
-          ${rows.slice(0,50).map(row=>`<div class="border-t border-white/10 py-2 flex justify-between gap-3 text-xs"><span>${escape(localStamp(row.created_at))} · ${escape(labels[row.section]||row.section)}${row.app_mode?" · Uygulama":""}</span><span class="text-altin whitespace-nowrap">Cihaz ${escape(row.visitor_id.slice(0,8))}</span></div>`).join("") || '<p class="muted">Kayıt yok.</p>'}
+          ${rows.slice(0,50).map(row=>`<div class="border-t border-white/10 py-2 flex justify-between gap-3 text-xs"><span>${escape(localStamp(row.created_at))} · ${escape(labels[row.section]||row.section)} · ${escape(row.device_label||"Bilinmiyor")}${row.app_mode?" · Uygulama":""}</span><span class="text-altin whitespace-nowrap">Cihaz ${escape(row.visitor_id.slice(0,8))}</span></div>`).join("") || '<p class="muted">Kayıt yok.</p>'}
         </div>
         ${rows.length===10000?'<p class="text-amber-300 text-xs mt-3">Çok yoğun trafik: ilk 10.000 kayıt gösteriliyor.</p>':""}`;
       loaded=true;
@@ -62,5 +73,5 @@
     load();
   }));
   $("tab-button-visitors").addEventListener("click",()=>{setTimeout(load,0);});
-  document.addEventListener("acisu:refreshed",()=>{if(!loaded)load();});
+  window.addEventListener("acisu:refreshed",()=>{if(!loaded)load();});
 })();
