@@ -105,6 +105,7 @@
           <button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button>
           <button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button>
           <button id="tab-button-audit" class="tab" type="button" role="tab" aria-controls="tab-audit" aria-selected="false" tabindex="-1" data-tab="audit">🕘 İşlem geçmişi</button>
+          <button id="tab-button-visitors" class="tab" type="button" role="tab" aria-controls="tab-visitors" aria-selected="false" tabindex="-1" data-tab="visitors">📈 Ziyaretçiler</button>
         </div>
       </nav>
       <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
@@ -347,10 +348,24 @@
           <p class="muted text-sm">Bildirim izni veren cihazlara anlık mesaj gönder.</p>
           <label class="field">Başlık<input name="title" maxlength="100" value="Acısu United" required></label>
           <label class="field">Mesaj<textarea name="body" maxlength="500" rows="4" required class="mt-2 w-full bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"></textarea></label>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label class="field">Bildirimin bağlantısı<select id="push-kind" class="bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"><option value="match">Maç</option><option value="news">Haber</option></select></label>
+            <label class="field">Açılacak içerik<select id="push-target" required class="bg-[#120e10] border border-[#644b52] rounded-lg p-3 text-white"><option value="">Maç seç</option></select></label>
+          </div>
           <div class="flex flex-wrap gap-2 text-xs"><button type="button" class="outline-action" data-preset="goal">⚽ Gol</button><button type="button" class="outline-action" data-preset="lineup">📋 Kadro</button><button type="button" class="outline-action" data-preset="start">🔴 Maç başladı</button><button type="button" class="outline-action" data-preset="result">🏁 Sonuç</button></div>
           <button class="action" type="submit">🔔 Herkese gönder</button>
           <p id="push-result" role="status" class="muted text-sm"></p>
         </form>
+      </section>
+      <section id="tab-visitors" role="tabpanel" aria-labelledby="tab-button-visitors" hidden>
+        <p class="eyebrow mb-1">Site trafiği</p><h2 class="font-baslik text-3xl mb-3">Ziyaretçiler</h2>
+        <p class="muted text-sm mb-5">Takip bu özellik açıldıktan sonra başlar. Ziyaretçiler anonimdir; cihaz kodu aynı tarayıcıdaki girişleri ayırt eder, kişi adı veya IP adresi gösterilmez.</p>
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button type="button" class="outline-action" data-visitor-range="1" aria-pressed="false">Bugün</button>
+          <button type="button" class="outline-action" data-visitor-range="7" aria-pressed="true">Son 7 gün</button>
+          <button type="button" class="outline-action" data-visitor-range="30" aria-pressed="false">Son 30 gün</button>
+        </div>
+        <div id="visitor-panel" role="status">Bu sekmeyi açınca trafik yüklenir.</div>
       </section>
     </div>
   </main>
@@ -371,10 +386,11 @@
   <script src="admin.js?v=20260929-3"></script>
   <script src="admin-photo-background.js?v=20260930-2"></script>
   <script src="admin-goal-videos.js?v=20260929-1"></script>
-  <script src="admin-features.js?v=20260928-3"></script>
+  <script src="admin-features.js?v=20260930-4"></script>
   <script src="admin-sponsors.js?v=20260927-1"></script>
   <script src="admin-share.js?v=20260928-7"></script>
   <script src="admin-enhancements.js?v=20260927-1"></script>
   <script src="admin-pwa.js?v=20260928-3"></script>
+  <script src="admin-visitors.js?v=20260930-1"></script>
 </body>
 </html>
