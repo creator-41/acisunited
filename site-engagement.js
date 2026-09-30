@@ -29,8 +29,8 @@
       .select("id,title,body,target_kind,target_id,created_at").order("created_at",{ascending:false}).limit(50);
     if (error) { list.textContent="Bildirimler yüklenemedi."; return; }
     list.innerHTML = data?.length ? data.map(row => {
-      const link = row.target_kind === "news" ? "./?haber=" : "./?mac=";
-      return `<a role="listitem" class="acisu-inbox-item" href="${link}${encodeURIComponent(row.target_id)}"><strong>${esc(row.title)}</strong><span>${esc(date(row.created_at))} · ${row.target_kind === "news" ? "Habere git" : "Maça git"}</span><p>${esc(row.body)}</p></a>`;
+      const link = row.target_kind === "news" ? "./?haber=" : row.target_kind === "player" ? "./?oyuncu=" : "./?mac=";
+      return `<a role="listitem" class="acisu-inbox-item" href="${link}${encodeURIComponent(row.target_id)}"><strong>${esc(row.title)}</strong><span>${esc(date(row.created_at))} · ${row.target_kind === "news" ? "Habere git" : row.target_kind === "player" ? "Oyuncu profiline git" : "Maça git"}</span><p>${esc(row.body)}</p></a>`;
     }).join("") : '<p>Henüz bildirim yok.</p>';
   }
   bell.setAttribute("aria-label","Bildirim geçmişini aç");
@@ -58,18 +58,27 @@
   };
   const visitor = getId(localStorage,"acisu_visitor_id");
   const session = getId(sessionStorage,"acisu_visit_session");
+  // Sadece genel cihaz kategorisi kaydedilir; ham user-agent ve cihaz modeli tutulmaz.
+  const agent = navigator.userAgent || "";
+  const deviceLabel = /iPhone/i.test(agent) ? "iPhone"
+    : /iPad/i.test(agent) || (/Macintosh/i.test(agent) && navigator.maxTouchPoints > 1) ? "iPad"
+    : /SamsungBrowser|SAMSUNG|\bSM-[A-Z0-9]+\b/i.test(agent) ? "Samsung"
+    : /Android/i.test(agent) ? "Android"
+    : /Windows/i.test(agent) ? "Windows"
+    : /Macintosh|Mac OS X/i.test(agent) ? "Mac"
+    : /Linux/i.test(agent) ? "Linux" : "Diğer";
   const validSections = new Set(["home","squad","fixtures","lineup","stats","news","archive"]);
   let lastSection="";
   function logSection(section) {
     if (!validSections.has(section) || lastSection === section) return;
     lastSection = section;
     db.from("acisu_visits").insert({
-      visitor_id:visitor,session_id:session,section,
+      visitor_id:visitor,session_id:session,section,device_label:deviceLabel,
       app_mode:window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true
     }).then(({error}) => { if(error) console.warn("Ziyaret kaydedilemedi",error.message); });
   }
   const params = new URLSearchParams(location.search);
-  logSection(params.has("mac") ? "fixtures" : params.has("haber") ? "news" : "home");
+  logSection(params.has("mac") ? "fixtures" : params.has("haber") ? "news" : params.has("oyuncu") ? "squad" : "home");
   document.querySelectorAll("#site-tabbar [data-site-tab]").forEach(tab =>
     tab.addEventListener("click",() => logSection(tab.dataset.siteTab)));
 })();
