@@ -50,7 +50,7 @@
     fillMatches("stats-match");
     fillMatches("news-match", () => true, true);
     fillMatches("auto-news-match", m => m.played);
-    renderLive(); renderStats(); renderPoints(); renderNews(); renderSeasons();
+    renderLive(); renderStats(); renderPoints(); renderNews(); renderSeasons(); renderPushTargets();
   }
   function renderLive() {
     const box = $("live-panel"), m = getMatches().find(x => x.id === $("live-match").value);
@@ -109,9 +109,9 @@
       <div class="muted text-xs mt-1">Gol: ${esc(s.top_scorer||"-")} · Asist: ${esc(s.top_assister||"-")}</div>
       <button class="text-xs text-red-300 mt-2 underline" data-delete-season="${s.season_year}">Arşivden kaldır</button></div>`).join("") || '<p class="muted">Henüz arşiv yok.</p>';
   }
-  async function push(title, body, silent = false) {
+  async function push(title, body, targetKind, targetId, silent = false) {
     try {
-      const { data, error } = await db.functions.invoke("acisu-push", { body: { action: "send", title, body } });
+      const { data, error } = await db.functions.invoke("acisu-push", { body: { action: "send", title, body, target_kind: targetKind, target_id: targetId } });
       if (error || data?.error) throw error || new Error(data.error);
       const sent = Number(data?.sent || 0), failed = Number(data?.failed || 0);
       lastPushStatus = sent === 0
@@ -212,13 +212,13 @@
     if (action === "start") {
       if (!confirm(`${match.opponent} maçını canlı başlat?`)) return;
       ({error} = await db.from("acisu_matches").update({is_live:true,played:false,our_score:0,their_score:0}).eq("id",match.id).eq("played",false));
-      if (!error) pushFailed = !(await push("🔴 Maç başladı!", `Acısu United - ${match.opponent} şimdi canlı!`, true));
+      if (!error) pushFailed = !(await push("🔴 Maç başladı!", `Acısu United - ${match.opponent} şimdi canlı!`, "match", match.id, true));
     } else if (action === "finish") {
       if (!confirm(`Maçı ${match.our_score}-${match.their_score} skoruyla bitir?`)) return;
       ({error} = await db.from("acisu_matches").update({is_live:false,played:true}).eq("id",match.id).eq("is_live",true));
       if (!error) {
         newsFailed = !(await autoNews({...match,played:true}));
-        pushFailed = !(await push("🏁 Maç sonucu", `Acısu United ${match.our_score}-${match.their_score} ${match.opponent}`, true));
+        pushFailed = !(await push("🏁 Maç sonucu", `Acısu United ${match.our_score}-${match.their_score} ${match.opponent}`, "match", match.id, true));
       }
     } else {
       const scorer = action === "goal" ? $("live-scorer")?.value : null;
@@ -227,7 +227,7 @@
       ({error} = await db.rpc("acisu_record_live_goal", {p_match_id:match.id,p_side:action === "goal" ? "acisu" : "opponent",p_scorer_id:scorer,p_assist_id:assist}));
       if (!error) {
         const us = Number(match.our_score)+(action === "goal" ? 1 : 0), them = Number(match.their_score)+(action === "opponent" ? 1 : 0);
-        pushFailed = !(await push("⚽ GOOOL!", `${action === "goal" ? playerName(scorer) : match.opponent} · Acısu United ${us}-${them} ${match.opponent}`, true));
+        pushFailed = !(await push("⚽ GOOOL!", `${action === "goal" ? playerName(scorer) : match.opponent} · Acısu United ${us}-${them} ${match.opponent}`, "match", match.id, true));
       }
     }
     if (error) { notice(error.message); return; }
@@ -299,16 +299,29 @@
     const {error}=await db.from("acisu_seasons").delete().eq("season_year",Number(b.dataset.deleteSeason));
     if(error)notice(error.message);else{notice("Arşiv kaydı kaldırıldı.");await reload();}
   });
+  function renderPushTargets() {
+    const select = $("push-target"), kind = $("push-kind").value, previous = select.value;
+    const rows = kind === "news"
+      ? news.filter(item => item.published).map(item => ({ id:item.id, label:item.title }))
+      : getMatches().filter(item => item.published).map(item => ({ id:item.id, label:matchText(item) }));
+    select.innerHTML = opt("", kind === "news" ? "Yayımlanmış haber seç" : "Maç seç")
+      + rows.map(item => opt(item.id,item.label)).join("");
+    if (rows.some(item => item.id === previous)) select.value = previous;
+  }
+  $("push-kind").addEventListener("change", renderPushTargets);
   const presets={goal:["⚽ GOOOL!","Acısu United gol attı!"],lineup:["📋 Maç kadrosu","Yeni maç kadromuz yayımlandı."],
     start:["🔴 Maç başladı","Acısu United maçı şimdi canlı!"],result:["🏁 Maç sonucu","Maç sonucunu siteden görebilirsin."]};
   document.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
     const [title,body]=presets[b.dataset.preset];const f=$("push-form");
     f.elements.namedItem("title").value=title;f.elements.namedItem("body").value=body;
+    $("push-kind").value="match";renderPushTargets();
   }));
   $("push-form").addEventListener("submit",async e=>{
     e.preventDefault();const f=e.currentTarget, button=f.querySelector('[type="submit"]');
     button.disabled=true;
-    const sent=await push(f.elements.namedItem("title").value.trim(),f.elements.namedItem("body").value.trim());
+    const kind=$("push-kind").value, target=$("push-target").value;
+    if(!target){$("push-result").textContent="Önce bildirimin açacağı maçı veya haberi seç.";button.disabled=false;return;}
+    const sent=await push(f.elements.namedItem("title").value.trim(),f.elements.namedItem("body").value.trim(),kind,target);
     $("push-result").textContent=lastPushStatus|| (sent?"Bildirim isteği işlendi.":"Gönderim başarısız.");
     button.disabled=false;
   });
