@@ -1,13 +1,13 @@
 (function () {
   const scriptUrl = document.currentScript.src;
-  let worker, pending, activeForm, sequence = 0;
+  let worker, workerMode, pending, activeForm, sequence = 0;
   const LIMIT = 5 * 1024 * 1024;
 
   function stopWorker() {
     worker?.terminate();
-    worker = null;
+    worker = null; workerMode = null;
   }
-  function processPhoto(blob, onStatus) {
+  function processPhoto(blob, onStatus, mode) {
     if (pending) return Promise.reject(new Error('Başka bir fotoğraf işleniyor. Tamamlanmasını bekle.'));
     return new Promise((resolve, reject) => {
       const id = ++sequence;
@@ -17,15 +17,17 @@
         pending = null;
         if (error) { stopWorker(); reject(error); } else resolve(result);
       };
-      pending = { id, finish, timer: setTimeout(() => finish(new Error('İşlem çok uzun sürdü. İnternet bağlantını kontrol edip tekrar deneyebilirsin.')), 240000) };
+      pending = { id, finish, onStatus, timer: setTimeout(() => finish(new Error('İşlem çok uzun sürdü. İnternet bağlantını kontrol edip tekrar deneyebilirsin.')), 240000) };
       try {
+        if (worker && workerMode !== mode) stopWorker();
         if (!worker) {
-          worker = new Worker(new URL('photo-background-worker.js?v=20260930-1', scriptUrl), { type: 'module' });
+          workerMode = mode;
+          worker = new Worker(new URL(mode === 'logo' ? 'logo-background-worker.js?v=20260930-1' : 'photo-background-worker.js?v=20260930-1', scriptUrl), { type: 'module' });
           worker.onmessage = ({ data }) => {
             if (!pending || pending.id !== data.id) return;
             if (data.status === 'done') pending.finish(null, data);
             else if (data.status === 'error') pending.finish(new Error(data.message));
-            else onStatus(data);
+            else pending.onStatus(data);
           };
           worker.onerror = () => pending?.finish(new Error('Temizleme aracı yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.'));
         }
@@ -56,15 +58,20 @@
     } finally { URL.revokeObjectURL(url); }
   }
 
-  for (const [kind, previewId] of [['player', 'photo-preview'], ['staff', 'staff-photo-preview']]) {
+  for (const [kind, previewId, fileName, imageName, mode] of [
+    ['player', 'photo-preview', 'photo', 'image_url', 'portrait'],
+    ['staff', 'staff-photo-preview', 'photo', 'image_url', 'portrait'],
+    ['match', 'opponent-photo-preview', 'opponent_photo', 'opponent_image_url', 'logo']
+  ]) {
     const form = document.getElementById(kind + '-form');
     const preview = document.getElementById(previewId);
     if (!form || !preview) continue;
-    const input = form.elements.namedItem('photo');
-    const oldImage = form.elements.namedItem('image_url');
+    const input = form.elements.namedItem(fileName);
+    const oldImage = form.elements.namedItem(imageName);
+    const hint = mode === 'logo' ? 'Ücretsiz · Tek renk arka planlı armalar için. Şeffaf PNG olarak hazırlanır.' : 'Ücretsiz · Fotoğraf cihazında işlenir. İlk kullanımda model indirilir; biraz sürebilir.';
     const row = document.createElement('div');
     row.className = 'sm:col-span-2';
-    row.innerHTML = `<div class="flex flex-wrap gap-2"><button type="button" class="outline-action" data-bg-clean>✂ Arka planı temizle</button><button type="button" class="outline-action" data-bg-restore hidden>Orijinale dön</button><button type="button" class="outline-action" data-bg-cancel hidden>İptal</button></div><p class="muted text-xs mt-2" role="status" aria-live="polite">Ücretsiz · Fotoğraf cihazında işlenir. İlk kullanımda model indirilir; biraz sürebilir.</p>`;
+    row.innerHTML = `<div class="flex flex-wrap gap-2"><button type="button" class="outline-action" data-bg-clean>✂ Arka planı temizle</button><button type="button" class="outline-action" data-bg-restore hidden>Orijinale dön</button><button type="button" class="outline-action" data-bg-cancel hidden>İptal</button></div><p class="muted text-xs mt-2" role="status" aria-live="polite">${hint}</p>`;
     preview.parentElement.after(row);
     const clean = row.querySelector('[data-bg-clean]');
     const restore = row.querySelector('[data-bg-restore]');
@@ -85,7 +92,7 @@
       state.result = null; state.original = null;
       if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
       state.previewUrl = null;
-      status.textContent = 'Ücretsiz · Fotoğraf cihazında işlenir. İlk kullanımda model indirilir; biraz sürebilir.';
+      status.textContent = hint;
       update();
     };
     input.addEventListener('change', reset);
@@ -136,7 +143,7 @@
         if (state.version !== version || key() !== initialKey) return;
         const result = await processPhoto(prepared, data => {
           status.textContent = data.status === 'processing' ? 'Arka plan temizleniyor…' : `Temizleme modeli indiriliyor${data.progress ? ` · %${data.progress}` : '…'}`;
-        });
+        }, mode);
         if (state.version !== version || key() !== initialKey || (input.files?.[0] || null) !== selectedFile) return;
         const canvas = document.createElement('canvas');
         canvas.width = result.width; canvas.height = result.height;
@@ -150,13 +157,13 @@
         state.previewUrl = URL.createObjectURL(file);
         state.original = original; state.result = file;
         preview.src = state.previewUrl; preview.hidden = false;
-        status.textContent = 'Arka plan temizlendi. Önizlemeyi kontrol edip kaydet; istersen orijinale dön.';
+        status.textContent = result.alreadyTransparent ? 'Bu görselin arka planı zaten şeffaf. Kaydedebilirsin.' : 'Arka plan temizlendi. Önizlemeyi kontrol edip kaydet; istersen orijinale dön.';
       } catch (error) {
         if (state.version === version) status.textContent = error.message || 'Arka plan temizlenemedi. Orijinal fotoğraf korunuyor.';
       } finally { state.busy = false; state.controller = null; if (activeForm === form) activeForm = null; update(); }
     });
     preview.classList.remove('w-16', 'h-16', 'object-cover');
-    preview.classList.add('w-28', 'h-36', 'object-contain');
+    preview.classList.add('w-28', mode === 'logo' ? 'h-28' : 'h-36', 'object-contain');
     preview.style.background = 'repeating-conic-gradient(#382e31 0% 25%, #21191c 0% 50%) 50% / 16px 16px';
     update();
   }
