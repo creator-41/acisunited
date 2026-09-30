@@ -51,7 +51,16 @@
     const modal = document.getElementById("player-profile-modal");
     const content = document.getElementById("player-profile-content");
     let visualUrl=null,visualBlob=null;
-    const close = () => { modal.hidden = true; document.body.classList.remove("overflow-hidden"); if(visualUrl){URL.revokeObjectURL(visualUrl);visualUrl=null;} };
+    const close = () => {
+      modal.hidden = true;
+      document.body.classList.remove("overflow-hidden");
+      if (visualUrl) { URL.revokeObjectURL(visualUrl); visualUrl=null; }
+      const page = new URL(location.href);
+      if (page.searchParams.has("oyuncu")) {
+        page.searchParams.delete("oyuncu");
+        history.replaceState(history.state,"",page);
+      }
+    };
     document.getElementById("close-player-profile")?.addEventListener("click", close);
     modal?.addEventListener("click", event => { if (event.target === modal) close(); });
     document.addEventListener("keydown", event => { if (event.key === "Escape" && !modal.hidden) close(); });
@@ -269,6 +278,12 @@
     if (videoResult.error) console.warn("Gol videoları yüklenemedi:", videoResult.error);
     const videos = videoResult.data || [];
     wirePlayerProfiles(players, matches, profileStats, videos);
+    const requestedPlayer = new URLSearchParams(location.search).get("oyuncu");
+    if (requestedPlayer && /^[0-9a-f-]{36}$/i.test(requestedPlayer)) {
+      window.showAcisuTab?.("squad", false);
+      if (players.some(player => player.id === requestedPlayer))
+        window.openAcisuPlayerProfile?.(requestedPlayer);
+    }
     wireCoachProfiles(staffResult.data || [], matches);
     const namesById = new Map((goalPlayersResult.data || []).map(p => [p.id, p.name]));
     const coachById = new Map((staffResult.data || []).map(p => [p.id, p]));
