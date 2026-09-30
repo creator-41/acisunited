@@ -303,8 +303,10 @@
     const select = $("push-target"), kind = $("push-kind").value, previous = select.value;
     const rows = kind === "news"
       ? news.filter(item => item.published).map(item => ({ id:item.id, label:item.title }))
-      : getMatches().filter(item => item.published).map(item => ({ id:item.id, label:matchText(item) }));
-    select.innerHTML = opt("", kind === "news" ? "Yayımlanmış haber seç" : "Maç seç")
+      : kind === "player"
+        ? getPlayers().filter(item => item.active).map(item => ({ id:item.id, label:item.name }))
+        : getMatches().filter(item => item.published).map(item => ({ id:item.id, label:matchText(item) }));
+    select.innerHTML = opt("", kind === "news" ? "Yayımlanmış haber seç" : kind === "player" ? "Oyuncu seç" : "Maç seç")
       + rows.map(item => opt(item.id,item.label)).join("");
     if (rows.some(item => item.id === previous)) select.value = previous;
   }
