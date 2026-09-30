@@ -50,19 +50,30 @@
 
   async function loadExtras() {
     const [n, a, m] = await Promise.all([
-      db.from("acisu_news").select("title,body,created_at").eq("published",true).order("created_at",{ascending:false}).limit(8),
+      db.from("acisu_news").select("id,title,body,created_at").eq("published",true).order("created_at",{ascending:false}).limit(30),
       db.from("acisu_seasons").select("*").order("season_year",{ascending:false}),
       db.from("acisu_matches").select("id,our_score,their_score,is_live,played").eq("published",true)
     ]);
     if (n.error || a.error || m.error) {
       console.error("Acısu içerikleri yüklenemedi",n.error||a.error||m.error); return;
     }
-    $("public-news").innerHTML = (n.data || []).length ? n.data.map(x =>
-      `<article class="bg-[#1c1215] border border-bordo/40 rounded-xl p-6">
+    const requestedNews = new URLSearchParams(location.search).get("haber");
+    let newsRows = n.data || [];
+    if (requestedNews && /^[0-9a-f-]{36}$/i.test(requestedNews) && !newsRows.some(x=>x.id===requestedNews)) {
+      const extra = await db.from("acisu_news").select("id,title,body,created_at")
+        .eq("id",requestedNews).eq("published",true).maybeSingle();
+      if (extra.data) newsRows = [extra.data,...newsRows];
+    }
+    $("public-news").innerHTML = newsRows.length ? newsRows.map(x =>
+      `<article id="haber-${esc(x.id)}" class="bg-[#1c1215] border border-bordo/40 rounded-xl p-6 scroll-mt-32">
         <small class="text-altin">${esc(dateText(x.created_at))}</small>
         <h3 class="font-baslik text-2xl mt-2 mb-3 text-white">${esc(x.title)}</h3>
         <p class="text-gray-300 text-sm whitespace-pre-line">${esc(x.body)}</p></article>`).join("")
       : '<p class="text-gray-300">Henüz haber yayımlanmadı.</p>';
+    if (requestedNews) {
+      showSiteTab("news",false);
+      requestAnimationFrame(() => document.getElementById("haber-"+requestedNews)?.scrollIntoView({block:"start"}));
+    }
     const archivedSeasons = a.data || [];
     const archiveTab = document.querySelector('#site-tabbar [data-site-tab="archive"]');
     if (archiveTab) {
@@ -284,7 +295,7 @@
     try { localStorage.setItem("acisu_app_installed", "1"); } catch (_) {}
   });
   $("close-install-banner").addEventListener("click",closeInstallPrompt);
-  $("enable-push").addEventListener("click",enablePush);
+  window.acisuEnablePush = enablePush;
   $("close-push-prompt").addEventListener("click",closePushPrompt);
   $("later-push-prompt").addEventListener("click",closePushPrompt);
   $("accept-push-prompt").addEventListener("click",async()=>{await enablePush();updateBell();});
