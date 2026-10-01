@@ -1,5 +1,5 @@
-const CACHE = "acisu-shell-v5";
-const SHELL = ["./", "./admin.html", "./offline.html", "./icon.svg", "./image_09a3ea.png"];
+const CACHE = "acisu-shell-v6";
+const SHELL = ["./", "./admin.html", "./offline.html", "./icon.svg", "./image_09a3ea.png", "./acisu-site.css?v=20261001-1", "./acisu-index-app.js?v=20261001-1", "./acisu-admin.css?v=20261001-1"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE)
     .then(cache => cache.addAll(SHELL).catch(error => console.warn("Offline önbellek oluşturulamadı:", error)))
