@@ -58,6 +58,47 @@
   };
   const visitor = getId(localStorage,"acisu_visitor_id");
   const session = getId(sessionStorage,"acisu_visit_session");
+  // Sponsor ölçümleri oturum başına tekilleştirilir; kişi adı, IP veya tam cihaz modeli alınmaz.
+  const sponsorFallbackLogged = new Set();
+  function logSponsorEvent(card, eventType) {
+    const sponsorId=card?.dataset.sponsorId, sponsorName=card?.dataset.sponsorName;
+    if (!sponsorId || !sponsorName) return;
+    const key=`acisu_sponsor_${eventType}_${sponsorId}`;
+    let already=false;
+    try {
+      already=sessionStorage.getItem(key)==="1";
+      if (!already) sessionStorage.setItem(key,"1");
+    } catch {
+      if (sponsorFallbackLogged.has(key)) return;
+      sponsorFallbackLogged.add(key);
+    }
+    if (already) return;
+    db.from("acisu_sponsor_events").insert({sponsor_id:sponsorId,sponsor_name:sponsorName,visitor_id:visitor,session_id:session,event_type:eventType})
+      .then(({error}) => {
+        if (error && error.code!=="23505") {
+          try { sessionStorage.removeItem(key); } catch { sponsorFallbackLogged.delete(key); }
+          console.warn("Sponsor etkileşimi kaydedilemedi",error.message);
+        }
+      });
+  }
+  const sponsorBox=document.getElementById("public-sponsors");
+  if (sponsorBox && "IntersectionObserver" in window) {
+    const sponsorObserver=new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio>=0.25) {
+          logSponsorEvent(entry.target,"impression");
+          sponsorObserver.unobserve(entry.target);
+        }
+      });
+    },{threshold:[0.25]});
+    const observeSponsorCards=()=>sponsorBox.querySelectorAll("[data-sponsor-id]").forEach(card=>sponsorObserver.observe(card));
+    observeSponsorCards();
+    new MutationObserver(observeSponsorCards).observe(sponsorBox,{childList:true,subtree:true});
+  }
+  document.addEventListener("click",event => {
+    const card=event.target.closest?.('#public-sponsors a[data-sponsor-id]');
+    if (card) logSponsorEvent(card,"click");
+  },true);
   // Sadece genel cihaz kategorisi kaydedilir; ham user-agent ve cihaz modeli tutulmaz.
   const agent = navigator.userAgent || "";
   const deviceLabel = /iPhone/i.test(agent) ? "iPhone"
