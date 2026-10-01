@@ -1,7 +1,7 @@
 (function () {
   const db = window.acisuDb;
   const bell = document.getElementById("enable-push");
-  if (!db || !bell) return;
+  if (!db || !bell || !window.AcisuPrivacy?.allowsAnalytics()) return;
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c =>
     ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const style = document.createElement("style");
