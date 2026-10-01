@@ -94,7 +94,6 @@
       tab.tabIndex = active ? 0 : -1;
       $(tab.getAttribute("aria-controls")).hidden = !active;
       if (active && focus) tab.focus();
-      if (active && name === "attendance" && !$("dashboard").hidden) loadAdminAttendance();
       if (active && name === "audit" && !$("dashboard").hidden) loadAdminAudit();
     }
   }
@@ -693,7 +692,7 @@
     const button = $("download-admin-backup");
     button.disabled = true; button.textContent = "Yedek hazırlanıyor…";
     try {
-      const tables = ["acisu_players","acisu_matches","acisu_match_lineup","acisu_player_stats","acisu_goal_log","acisu_news","acisu_seasons","acisu_staff","acisu_sponsors","acisu_admin_audit","acisu_match_attendance","acisu_goal_videos"];
+      const tables = ["acisu_players","acisu_matches","acisu_match_lineup","acisu_player_stats","acisu_goal_log","acisu_news","acisu_seasons","acisu_staff","acisu_sponsors","acisu_admin_audit","acisu_goal_videos"];
       const entries = await Promise.all(tables.map(async table => {
         const {data,error}=await db.from(table).select("*");
         if(error) throw new Error(table+": "+error.message);
@@ -709,21 +708,6 @@
     finally { button.disabled=false; button.textContent="⬇ Verileri yedekle"; }
   });
 
-  const adminDate = value => value ? new Intl.DateTimeFormat("tr-TR", {
-    timeZone: "Europe/Istanbul", day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"
-  }).format(new Date(value)) : "";
-  async function loadAdminAttendance() {
-    const box = $("attendance-list");
-    if (!box || $("dashboard").hidden) return;
-    box.textContent = "Katılım bilgileri yükleniyor…";
-    const { data, error } = await db.from("acisu_match_attendance").select("match_id");
-    if (error) { box.textContent = "Katılım bilgileri alınamadı: " + error.message; return; }
-    const counts = new Map();
-    for (const row of data || []) counts.set(row.match_id, (counts.get(row.match_id) || 0) + 1);
-    box.innerHTML = matches.length ? matches.map(match =>
-      `<div class="flex justify-between gap-4 py-3 border-b border-white/10 last:border-0"><span><strong>${escapeHtml(match.opponent)}</strong><small class="block muted">${escapeHtml(adminDate(match.match_at))}</small></span><strong class="text-altin whitespace-nowrap">${counts.get(match.id) || 0} kişi</strong></div>`
-    ).join("") : "<p class='muted'>Henüz maç yok.</p>";
-  }
   async function loadAdminAudit() {
     const box = $("audit-list");
     if (!box || $("dashboard").hidden) return;
@@ -736,7 +720,6 @@
       `<div class="py-3 border-b border-white/10 last:border-0"><div class="flex justify-between gap-3"><strong>${escapeHtml(labels[row.action] || row.action)} · ${escapeHtml(row.entity)}</strong><time class="muted text-xs whitespace-nowrap">${escapeHtml(adminDate(row.created_at))}</time></div><p class="muted text-xs mt-1">${escapeHtml(row.summary || "")} · ${escapeHtml(row.actor_email || "Sistem")}</p></div>`
     ).join("") : "<p class='muted'>Henüz işlem kaydı yok.</p>";
   }
-  $("refresh-attendance")?.addEventListener("click", loadAdminAttendance);
   $("refresh-audit")?.addEventListener("click", loadAdminAudit);
   activateTab("overview");
   boot();
