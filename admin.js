@@ -87,9 +87,20 @@
     form.elements.namedItem("id").value = editingMatchId || "";
   }
   const tabs = [...document.querySelectorAll("#admin-tabs [role=tab]")];
+  const groupButtons = [...document.querySelectorAll("#admin-groups [data-admin-group]")];
+  const groupPanels = [...document.querySelectorAll("#admin-tabs [data-subtab-group]")];
+  const defaultTabByGroup = { overview:"overview", matches:"live", team:"players", content:"news", system:"push" };
+  const lastTabByGroup = { ...defaultTabByGroup };
+  const tabGroup = tab => tab.closest("[data-subtab-group]")?.dataset.subtabGroup || "overview";
   function activateTab(name, focus = false) {
+    const selectedTab = tabs.find(tab => tab.dataset.tab === name);
+    if (!selectedTab) return;
+    const selectedGroup = tabGroup(selectedTab);
+    lastTabByGroup[selectedGroup] = name;
+    groupButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.adminGroup === selectedGroup)));
+    groupPanels.forEach(panel => { panel.hidden = panel.dataset.subtabGroup !== selectedGroup; });
     for (const tab of tabs) {
-      const active = tab.dataset.tab === name;
+      const active = tab === selectedTab;
       tab.setAttribute("aria-selected", String(active));
       tab.tabIndex = active ? 0 : -1;
       $(tab.getAttribute("aria-controls")).hidden = !active;
@@ -97,14 +108,25 @@
       if (active && name === "audit" && !$("dashboard").hidden) loadAdminAudit();
     }
   }
-  tabs.forEach((tab, index) => {
+  groupButtons.forEach(button => button.addEventListener("click", () => {
+    const group = button.dataset.adminGroup;
+    const current = tabs.find(tab => tab.getAttribute("aria-selected") === "true");
+    if (current && tabGroup(current) === group) return;
+    const target = tabs.find(tab => tab.dataset.tab === lastTabByGroup[group]) || tabs.find(tab => tabGroup(tab) === group);
+    if (target) activateTab(target.dataset.tab);
+  }));
+  tabs.forEach(tab => {
     tab.addEventListener("click", () => activateTab(tab.dataset.tab));
-    tab.addEventListener("keydown", e => {
-      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
-      e.preventDefault();
-      const target = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1
-        : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      activateTab(tabs[target].dataset.tab, true);
+    tab.addEventListener("keydown", event => {
+      if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+      const list = tab.closest("[role=tablist]");
+      const visibleTabs = [...(list?.querySelectorAll('[role="tab"]') || [])];
+      const index = visibleTabs.indexOf(tab);
+      if (index < 0 || !visibleTabs.length) return;
+      event.preventDefault();
+      const target = event.key === "Home" ? 0 : event.key === "End" ? visibleTabs.length - 1
+        : (index + (event.key === "ArrowRight" ? 1 : -1) + visibleTabs.length) % visibleTabs.length;
+      activateTab(visibleTabs[target].dataset.tab, true);
     });
   });
   function editor(kind, open, editing = false) {

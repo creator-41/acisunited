@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={theme:{extend:{colors:{bordo:"#5c1a21",altin:"#c1a57b"},fontFamily:{sans:["Montserrat","sans-serif"],baslik:["Oswald","sans-serif"]}}}}</script>
-    <link rel="stylesheet" href="acisu-admin.css?v=20261001-1">
+    <link rel="stylesheet" href="acisu-admin.css?v=20261001-2">
 </head>
 <body class="font-sans min-h-screen">
   <header class="border-b border-white/10 bg-[#181114]">
@@ -42,27 +42,11 @@
       <div class="mb-7">
         <p class="eyebrow mb-2">Kulüp yönetimi</p>
         <h1 class="font-baslik text-3xl sm:text-4xl tracking-wide">İçerik paneli</h1>
-        <p class="muted text-sm mt-2">Oyuncuları, maç sonuçlarını ve maç kadrosunu ayrı sekmelerden yönet.</p>
+        <p class="muted text-sm mt-2">Maçları, takımı ve kulüp içeriklerini bölümlere ayrılmış tek merkezden yönet.</p>
       </div>
-      <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 overflow-x-auto sticky top-2 z-30">
-        <div id="admin-tabs" role="tablist" aria-label="Yönetim bölümleri" class="flex gap-1 min-w-max">
-          <button id="tab-button-overview" class="tab" type="button" role="tab" aria-controls="tab-overview" aria-selected="true" tabindex="0" data-tab="overview">Genel bakış</button>
-          <button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button>
-          <button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button>
-          <button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button>
-          <button id="tab-button-goal-videos" class="tab" type="button" role="tab" aria-controls="tab-goal-videos" aria-selected="false" tabindex="-1" data-tab="goal-videos">🎥 Gol videoları</button>
-          <button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button>
-          <button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button>
-          <button id="tab-button-share" class="tab" type="button" role="tab" aria-controls="tab-share" aria-selected="false" tabindex="-1" data-tab="share">🎨 Görsel atölyesi</button>
-          <button id="tab-button-sponsors" class="tab" type="button" role="tab" aria-controls="tab-sponsors" aria-selected="false" tabindex="-1" data-tab="sponsors">🤝 Sponsorlar</button>
-          <button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="false" tabindex="-1" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button>
-          <button id="tab-button-staff" class="tab" type="button" role="tab" aria-controls="tab-staff" aria-selected="false" tabindex="-1" data-tab="staff"><span>Teknik heyet</span><span id="staff-count" class="tab-number">0</span></button>
-          <button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button>
-          <button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button>
-          <button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button>
-          <button id="tab-button-audit" class="tab" type="button" role="tab" aria-controls="tab-audit" aria-selected="false" tabindex="-1" data-tab="audit">🕘 İşlem geçmişi</button>
-          <button id="tab-button-visitors" class="tab" type="button" role="tab" aria-controls="tab-visitors" aria-selected="false" tabindex="-1" data-tab="visitors">📈 Ziyaretçiler</button>
-        </div>
+      <nav aria-label="Yönetim bölümleri" class="surface p-2 mb-6 sticky top-2 z-30">
+        <div id="admin-groups" class="admin-primary-nav" role="group" aria-label="Ana yönetim bölümleri"><button type="button" class="admin-group-tab" data-admin-group="overview" aria-pressed="true"><span aria-hidden="true">🏠</span><span>Genel</span></button><button type="button" class="admin-group-tab" data-admin-group="matches" aria-pressed="false"><span aria-hidden="true">⚽</span><span>Maçlar</span></button><button type="button" class="admin-group-tab" data-admin-group="team" aria-pressed="false"><span aria-hidden="true">👥</span><span>Takım</span></button><button type="button" class="admin-group-tab" data-admin-group="content" aria-pressed="false"><span aria-hidden="true">🎨</span><span>İçerik</span></button><button type="button" class="admin-group-tab" data-admin-group="system" aria-pressed="false"><span aria-hidden="true">⚙️</span><span>Yönetim</span></button></div>
+        <div id="admin-tabs" class="admin-subnav"><div class="admin-subtab-list" data-subtab-group="overview" role="tablist" aria-label="Genel"><button id="tab-button-overview" class="tab" type="button" role="tab" aria-controls="tab-overview" aria-selected="true" tabindex="0" data-tab="overview">Genel bakış</button></div><div class="admin-subtab-list" data-subtab-group="matches" role="tablist" aria-label="Maçlar" hidden><button id="tab-button-live" class="tab" type="button" role="tab" aria-controls="tab-live" aria-selected="false" tabindex="-1" data-tab="live">🔴 Canlı maç</button><button id="tab-button-lineup" class="tab" type="button" role="tab" aria-controls="tab-lineup" aria-selected="false" tabindex="-1" data-tab="lineup"><span>Maç kadrosu</span></button><button id="tab-button-matches" class="tab" type="button" role="tab" aria-controls="tab-matches" aria-selected="false" tabindex="-1" data-tab="matches"><span>Maçlar</span><span id="match-count" class="tab-number">0</span></button><button id="tab-button-goal-videos" class="tab" type="button" role="tab" aria-controls="tab-goal-videos" aria-selected="false" tabindex="-1" data-tab="goal-videos">🎥 Gol videoları</button></div><div class="admin-subtab-list" data-subtab-group="team" role="tablist" aria-label="Takım" hidden><button id="tab-button-players" class="tab" type="button" role="tab" aria-controls="tab-players" aria-selected="false" tabindex="-1" data-tab="players"><span>Oyuncular</span><span id="player-count" class="tab-number">0</span></button><button id="tab-button-staff" class="tab" type="button" role="tab" aria-controls="tab-staff" aria-selected="false" tabindex="-1" data-tab="staff"><span>Teknik heyet</span><span id="staff-count" class="tab-number">0</span></button><button id="tab-button-stats" class="tab" type="button" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1" data-tab="stats">İstatistikler</button><button id="tab-button-points" class="tab" type="button" role="tab" aria-controls="tab-points" aria-selected="false" tabindex="-1" data-tab="points">Puanlar</button></div><div class="admin-subtab-list" data-subtab-group="content" role="tablist" aria-label="İçerik" hidden><button id="tab-button-news" class="tab" type="button" role="tab" aria-controls="tab-news" aria-selected="false" tabindex="-1" data-tab="news">Haberler</button><button id="tab-button-share" class="tab" type="button" role="tab" aria-controls="tab-share" aria-selected="false" tabindex="-1" data-tab="share">🎨 Görsel atölyesi</button><button id="tab-button-sponsors" class="tab" type="button" role="tab" aria-controls="tab-sponsors" aria-selected="false" tabindex="-1" data-tab="sponsors">🤝 Sponsorlar</button><button id="tab-button-seasons" class="tab" type="button" role="tab" aria-controls="tab-seasons" aria-selected="false" tabindex="-1" data-tab="seasons">Sezon arşivi</button></div><div class="admin-subtab-list" data-subtab-group="system" role="tablist" aria-label="Yönetim" hidden><button id="tab-button-push" class="tab" type="button" role="tab" aria-controls="tab-push" aria-selected="false" tabindex="-1" data-tab="push">🔔 Bildirimler</button><button id="tab-button-visitors" class="tab" type="button" role="tab" aria-controls="tab-visitors" aria-selected="false" tabindex="-1" data-tab="visitors">📈 Ziyaretçiler</button><button id="tab-button-audit" class="tab" type="button" role="tab" aria-controls="tab-audit" aria-selected="false" tabindex="-1" data-tab="audit">🕘 İşlem geçmişi</button></div></div>
       </nav>
       <section id="tab-overview" role="tabpanel" aria-labelledby="tab-button-overview">
         <p class="eyebrow mb-1">Kulübün durumu</p><h2 class="font-baslik text-3xl mb-5">Genel bakış</h2>
@@ -335,7 +319,7 @@
 
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script src="admin.js?v=20260929-3"></script>
+  <script src="admin.js?v=20261001-1"></script>
   <script src="admin-photo-background.js?v=20260930-2"></script>
   <script src="admin-goal-videos.js?v=20260929-1"></script>
   <script src="admin-features.js?v=20260930-5"></script>
