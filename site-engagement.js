@@ -67,13 +67,32 @@
     : /Windows/i.test(agent) ? "Windows"
     : /Macintosh|Mac OS X/i.test(agent) ? "Mac"
     : /Linux/i.test(agent) ? "Linux" : "Diğer";
+  function detectSource() {
+    try {
+      const host=new URL(document.referrer).hostname.toLowerCase();
+      if(!host) return "Doğrudan";
+      if(host==="acisunited.com.tr" || host==="www.acisunited.com.tr" || host.endsWith(".github.io")) return "Site içi";
+      if(/instagram/.test(host)) return "Instagram";
+      if(/whatsapp|wa\.me/.test(host)) return "WhatsApp";
+      if(/google\./.test(host)) return "Google";
+      if(/facebook|fb\.me/.test(host)) return "Facebook";
+      if(/tiktok/.test(host)) return "TikTok";
+      if(/youtube|youtu\.be/.test(host)) return "YouTube";
+      return "Diğer site";
+    } catch { return "Doğrudan"; }
+  }
+  let sourceLabel;
+  try {
+    sourceLabel=sessionStorage.getItem("acisu_visit_source");
+    if(!sourceLabel) { sourceLabel=detectSource(); sessionStorage.setItem("acisu_visit_source",sourceLabel); }
+  } catch { sourceLabel=detectSource(); }
   const validSections = new Set(["home","squad","fixtures","lineup","stats","news","archive"]);
   let lastSection="";
   function logSection(section) {
     if (!validSections.has(section) || lastSection === section) return;
     lastSection = section;
     db.from("acisu_visits").insert({
-      visitor_id:visitor,session_id:session,section,device_label:deviceLabel,
+      visitor_id:visitor,session_id:session,section,device_label:deviceLabel,source_label:sourceLabel,
       app_mode:window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true
     }).then(({error}) => { if(error) console.warn("Ziyaret kaydedilemedi",error.message); });
   }
