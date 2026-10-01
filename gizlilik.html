@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#5c1a21">
+  <title>Gizlilik ve Çerezler | Acısu United</title>
+  <link rel="stylesheet" href="acisu-site.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body{padding:0!important;background:#0a0a0a;color:#f5eee8;font-family:Montserrat,sans-serif}
+    main{width:min(100% - 28px,980px);margin:28px auto 70px}
+    .privacy-card{background:linear-gradient(145deg,#1b1013,#100d0e);border:1px solid #594246;border-radius:20px;padding:clamp(20px,5vw,48px);margin:18px 0}
+    h1,h2,h3{font-family:Oswald,sans-serif;text-transform:uppercase}
+    h1{font-size:clamp(34px,8vw,54px);color:#e9cb9c}
+    h2{font-size:26px;color:#e9cb9c;margin:0 0 14px}
+    h3{font-size:19px;color:#f5eee8;margin:20px 0 8px}
+    p,li{line-height:1.7;color:#ded5d2}
+    a{color:#e9cb9c}
+    .draft-alert{border:1px solid #f0b45c;background:#3a260e;color:#ffe0a8;padding:16px;border-radius:14px;margin:20px 0}
+    .facts{display:grid;gap:12px}
+    .fact{background:#24171a;padding:15px;border-radius:12px}
+    .back{display:inline-block;margin:10px 0 22px}
+    table{width:100%;border-collapse:collapse;margin:12px 0}
+    th,td{text-align:left;vertical-align:top;padding:10px;border:1px solid #61464a}
+    @media(max-width:650px){table{font-size:13px}.privacy-card{padding:19px}}
+  </style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← Acısu United ana sayfa</a>
+  <h1>Gizlilik <span style="color:#fff">&amp;</span> çerezler</h1>
+  <p>Bu metin, Acısu United internet sitesinin kodunda doğrulanabilen veri akışlarını açıklar.</p>
+  <div class="draft-alert"><strong>Yayına hazır değil — işletme bilgileri tamamlanmalı.</strong><br>
+  İşletmenin bildirdiği Acısu United adı, iletişim e-postası ve adres bu taslağa işlendi. Acısu United’ın tescilli kişi/kuruluş unvanı ve hukuki statüsü, işleme faaliyetlerinin hukuki sebepleri, saklama süreleri ve sağlayıcılarla veri aktarım düzenlemeleri ayrıca teyit edilmeden bu metin KVKK aydınlatma yükümlülüğünü tamamlamaz.</div>
+
+  <section class="privacy-card">
+    <h2>1. Veri sorumlusu ve başvuru</h2>
+    <div class="facts">
+      <div class="fact"><strong>Veri sorumlusu adı:</strong> Acısu United (site işletmecisinin bildirdiği ad). Tescilli kişi/kuruluş unvanı ve hukuki statüsü ayrıca teyit edilmeli.</div>
+      <div class="fact"><strong>İletişim / KVKK başvurusu:</strong> <a href="mailto:acisunited@gmail.com">acisunited@gmail.com</a><br>Adres: Fatih Sultan Mehmet, Hızır Sk., 41250 Kartepe/Kocaeli.</div>
+    </div>
+  </section>
+
+  <section class="privacy-card">
+    <h2>2. Sitede işlenebilen veriler</h2>
+    <ul>
+      <li><strong>Oyuncu ve teknik heyet içerikleri:</strong> Yönetim panelinden girilen ad, takım içi rol/pozisyon, forma numarası, profil fotoğrafı ve yayımlanan biyografi/istatistik gibi içerikler. Ziyaretçilere yayımlanabilir.</li>
+      <li><strong>Maç, haber ve takım içerikleri:</strong> Rakip/maç bilgileri, skor, maç kadrosu, gol/asist ve haber metinleri. İçeriği yöneticiler girer ve sitede yayımlar.</li>
+      <li><strong>“Maça gel” tercihi:</strong> Ziyaretçi maç merkezinde katılım düğmesini kullandığında, o maçla ilişkilendirilen rastgele cihaz kimliği ve katılım durumu Supabase RPC üzerinden işlenir; isim veya telefon alanı istenmez.</li>
+      <li><strong>İsteğe bağlı site ölçümü:</strong> Yalnızca bu ölçüme izin verilirse rastgele ziyaretçi/oturum kodu, açılan site bölümü, genel cihaz kategorisi (ör. iPhone/Android), genel trafik kaynağı kategorisi ve sponsor gösterim/tıklama olayı Supabase’e gönderilir. Ham user-agent kod tarafından bu kayda yazılmaz.</li>
+      <li><strong>Bildirim aboneliği:</strong> Ziyaretçi bildirim iznini kendisi açarsa tarayıcının PushSubscription bilgisi (endpoint ve anahtarları içeren JSON) Acısu bildirim Edge Function’ına gönderilir. Tarayıcı ve işletim sistemi bildirimi yönetir; bildirim izni verilmesi isteğe bağlıdır.</li>
+      <li><strong>Yönetici girişi:</strong> Yönetim panelinde e-posta ve parola ile Supabase Auth oturumu başlatılır. Ziyaretçilerden üyelik veya sipariş formu alınmaz.</li>
+    </ul>
+  </section>
+
+  <section class="privacy-card">
+    <h2>3. Tarayıcı depolaması ve çerezler</h2>
+    <p>Site kodu, kendi kullanım ölçümünde çerez yerine localStorage ve sessionStorage kullanır. İsteğe bağlı kullanım ölçümü varsayılan olarak kapalıdır; “Yalnızca gerekli olanlar” seçildiğinde ziyaret ve sponsor analitiği çalıştırılmaz. Tercih kaydı bu cihazdaki localStorage’da saklanır.</p>
+    <p>Maça katılım özelliği ve uygulama kurulumu/bildirim deneyimi için gerekli işlevsel tarayıcı depolaması yalnızca ilgili özellik kullanıldığında saklanabilir. Tercih kaydı yalnızca bu cihazın localStorage alanında tutulur; sunucu tarafında rıza kanıtı kaydı bu uygulamada görülmedi. Supabase Auth ve üçüncü taraf sağlayıcılarının kendi depolama davranışları ayrıca doğrulanmalı.</p>
+    <p><button type="button" data-acisu-privacy-settings class="rounded-lg border border-altin px-4 py-3 text-altin">Tercihleri düzenle</button></p>
+  </section>
+
+  <section class="privacy-card">
+    <h2>4. Hizmet sağlayıcıları ve dış bağlantılar</h2>
+    <div class="facts">
+      <div class="fact"><strong>Supabase:</strong> Site içerik veritabanı, Auth, Storage, ziyaret ölçümü ve bildirim Edge Function’ı için kullanılır. Acısu projesinin bulunduğu bölge Frankfurt olarak yapılandırılmıştır. Destek/telemetri gibi alt işleyenlerin erişimi, veri saklama süresi ve yurt dışı aktarım güvencesi işletme tarafından sağlayıcı sözleşmelerinden doğrulanmalı.</div>
+      <div class="fact"><strong>GitHub Pages:</strong> Site dosyalarını ve görselleri sunar. Barındırma erişim kayıtlarının kapsamı, saklama süresi ve veri aktarım koşulları sağlayıcı belgeleri/sözleşmesinden doğrulanmalı.</div>
+      <div class="fact"><strong>Google Fonts, Tailwind CDN ve jsDelivr:</strong> Sayfa ilk yüklenirken yazı tipi ve JavaScript kütüphaneleri bu adreslerden istenir; tarayıcının bağlantı bilgileri (IP adresi dahil ağ metaverisi) bu sağlayıcılara iletilebilir. İstekler çerez tercih paneli tarafından engellenmez. Sağlayıcıların konum ve aktarım güvenceleri doğrulanmalı.</div>
+      <div class="fact"><strong>YouTube:</strong> Gol videosu oynatıcı kullanıcı video alanını açınca yüklenir; kod youtube-nocookie alan adını kullanır. Video sağlayıcısına bağlantı verisi iletilebilir. Sağlayıcının kendi politikası ayrıca geçerlidir.</div>
+      <div class="fact"><strong>Google Haritalar:</strong> Yol tarifi bağlantısı kullanıcı dokunduğunda Google Haritalar’a gider.</div>
+      <div class="fact"><strong>Instagram:</strong> Sitedeki bağlantı Instagram profilini yeni sekmede açar. Mevcut kaynak kodunda otomatik Behold akış betiği doğrulanmadı.</div>
+      <div class="fact"><strong>Fotoğraf arka plan temizleme aracı:</strong> Yönetim aracında özellik çalıştırıldığında Transformers.js ve model dosyaları jsDelivr/Hugging Face CDN üzerinden alınabilir. İşlem tarayıcıda yürütülür; mevcut worker kaynağı fotoğraf dosyasını CDN’e göndermediğini, yalnızca kütüphane ve model dosyalarını indirdiğini belirtiyor. CDN isteklerinde yine bağlantı metaverisi iletilebilir.</div>
+    </div>
+    <p>Sağlayıcıların ülke ve veri aktarım mekanizmaları yalnızca site kodundan kesin belirlenemez. Yurt dışı aktarımın varlığı ve KVKK m. 9 kapsamındaki dayanağı sözleşmeler, sağlayıcı ayarları ve gerçek ağ trafiğiyle teyit edilmelidir.</p>
+  </section>
+
+  <section class="privacy-card">
+    <h2>5. Amaçlar, dayanaklar ve saklama</h2>
+    <p>Teknik olarak görülen amaçlar: takım içeriğini yayımlamak, maç katılım sayısını yönetmek, kullanıcı isteğiyle bildirim göndermek ve isteğe bağlı kullanım/sponsor ölçümü yapmaktır. Bu amaçların her biri için uygulanacak KVKK m. 5 hukuki sebebi, veri saklama süresi ve silme/anonimleştirme takvimi işletme tarafından belirlenip doğrulanmalı; bu sayfa bunları tahmin etmez.</p>
+    <p>Site kodu, ziyaret ölçüm kayıtları için otomatik silme süresi göstermiyor. Saklama süresi ve silme prosedürü tanımlanmalı.</p>
+  </section>
+
+  <section class="privacy-card">
+    <h2>6. Haklarınız</h2>
+    <p>KVKK’nın 11. maddesi kapsamındaki haklarınız için veri sorumlusuna başvurabilirsiniz. Haklar; verinin işlenip işlenmediğini öğrenme, bilgi talep etme, amaç ve uygun kullanımı öğrenme, aktarılan üçüncü kişileri bilme, düzeltme/silme/yok etme isteme, yapılan işlemlerin alıcılara bildirilmesini isteme, otomatik analiz sonucuna itiraz etme ve kanuna aykırı işlemden doğan zararın giderilmesini talep etme haklarını kapsar.</p>
+    <p>Başvurular için işletme tarafından teyit edilmiş kanal bu taslakta henüz bulunmuyor; yayımdan önce eklenmeli. KVKK m. 11 kapsamındaki başvuru usulü ve süresi ayrıca doğrulanmalı.</p>
+  </section>
+
+  <section class="privacy-card">
+    <h2>7. Açık rıza ve bu tercih paneli</h2>
+    <p>Aydınlatma metnini okuduğunu onaylama şartı koymuyoruz. “İsteğe bağlı kullanım ölçümü” ayrı bir tercihtir; reddedilebilir ve daha sonra geri alınabilir. Ölçüm tercihini geri almak gelecekteki analitik kayıtlarını durdurur; daha önce kaydedilmiş verinin silinmesi için veri sorumlusuna başvuru kanalı gerekir.</p>
+  </section>
+
+  <p class="text-center text-gray-500 text-sm">Teknik taslak · 1 Ekim 2026 · Hukuki inceleme ve işletme bilgileriyle tamamlanması gerekir.</p>
+</main>
+<script src="privacy-consent.js?v=20261001-1"></script>
+</body>
+</html>
