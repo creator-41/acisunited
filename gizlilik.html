@@ -59,7 +59,7 @@
   <section class="privacy-card">
     <h2>3. Tarayıcı depolaması ve çerezler</h2>
     <p>Site kodu, kendi kullanım ölçümünde çerez yerine localStorage ve sessionStorage kullanır. İsteğe bağlı kullanım ölçümü varsayılan olarak kapalıdır; “Yalnızca gerekli olanlar” seçildiğinde ziyaret ve sponsor analitiği çalıştırılmaz. Tercih kaydı bu cihazdaki localStorage’da saklanır.</p>
-    <p>Maça katılım özelliği ve uygulama kurulumu/bildirim deneyimi için gerekli işlevsel tarayıcı depolaması yalnızca ilgili özellik kullanıldığında saklanabilir. Supabase Auth ve üçüncü taraf sağlayıcılarının kendi depolama davranışları bu sayfanın koduyla tam olarak denetlenememiştir; doğrulanmalı.</p>
+    <p>Maça katılım özelliği ve uygulama kurulumu/bildirim deneyimi için gerekli işlevsel tarayıcı depolaması yalnızca ilgili özellik kullanıldığında saklanabilir. Tercih kaydı yalnızca bu cihazın localStorage alanında tutulur; sunucu tarafında rıza kanıtı kaydı bu uygulamada görülmedi. Supabase Auth ve üçüncü taraf sağlayıcılarının kendi depolama davranışları ayrıca doğrulanmalı.</p>
     <p><button type="button" data-acisu-privacy-settings class="rounded-lg border border-altin px-4 py-3 text-altin">Tercihleri düzenle</button></p>
   </section>
 
@@ -72,7 +72,7 @@
       <div class="fact"><strong>YouTube:</strong> Gol videosu oynatıcı kullanıcı video alanını açınca yüklenir; kod youtube-nocookie alan adını kullanır. Video sağlayıcısına bağlantı verisi iletilebilir. Sağlayıcının kendi politikası ayrıca geçerlidir.</div>
       <div class="fact"><strong>Google Haritalar:</strong> Yol tarifi bağlantısı kullanıcı dokunduğunda Google Haritalar’a gider.</div>
       <div class="fact"><strong>Instagram:</strong> Sitedeki bağlantı Instagram profilini yeni sekmede açar. Mevcut kaynak kodunda otomatik Behold akış betiği doğrulanmadı.</div>
-      <div class="fact"><strong>Fotoğraf arka plan temizleme aracı:</strong> Yönetim aracında özellik çalıştırıldığında Transformers.js ve model dosyaları jsDelivr/Hugging Face CDN üzerinden alınabilir. İşlem tarayıcıda yürütülür; fotoğrafın bu sağlayıcılara yüklenip yüklenmediği sürüm ve ağ istekleriyle ayrıca doğrulanmalı.</div>
+      <div class="fact"><strong>Fotoğraf arka plan temizleme aracı:</strong> Yönetim aracında özellik çalıştırıldığında Transformers.js ve model dosyaları jsDelivr/Hugging Face CDN üzerinden alınabilir. İşlem tarayıcıda yürütülür; mevcut worker kaynağı fotoğraf dosyasını CDN’e göndermediğini, yalnızca kütüphane ve model dosyalarını indirdiğini belirtiyor. CDN isteklerinde yine bağlantı metaverisi iletilebilir.</div>
     </div>
     <p>Sağlayıcıların ülke ve veri aktarım mekanizmaları yalnızca site kodundan kesin belirlenemez. Yurt dışı aktarımın varlığı ve KVKK m. 9 kapsamındaki dayanağı sözleşmeler, sağlayıcı ayarları ve gerçek ağ trafiğiyle teyit edilmelidir.</p>
   </section>
@@ -94,7 +94,7 @@
     <p>Aydınlatma metnini okuduğunu onaylama şartı koymuyoruz. “İsteğe bağlı kullanım ölçümü” ayrı bir tercihtir; reddedilebilir ve daha sonra geri alınabilir. Ölçüm tercihini geri almak gelecekteki analitik kayıtlarını durdurur; daha önce kaydedilmiş verinin silinmesi için veri sorumlusuna başvuru kanalı gerekir.</p>
   </section>
 
-  <p class="text-center text-gray-500 text-sm">Bu sayfa teknik gözleme dayalı taslaktır; hukuki inceleme ve işletme bilgileriyle tamamlanması gerekir.</p>
+  <p class="text-center text-gray-500 text-sm">Teknik taslak · 1 Ekim 2026 · Hukuki inceleme ve işletme bilgileriyle tamamlanması gerekir.</p>
 </main>
 <script src="privacy-consent.js?v=20261001-1"></script>
 </body>
