@@ -21,7 +21,7 @@
       const since=startAt(range), rows=[];
       for(let page=0;page<10;page++) {
         const {data,error}=await db.from("acisu_visits")
-          .select("created_at,visitor_id,session_id,section,app_mode,device_label")
+          .select("created_at,visitor_id,session_id,section,app_mode,device_label,source_label")
           .gte("created_at",since).order("created_at",{ascending:false})
           .range(page*1000,page*1000+999);
         if(error) throw error;
@@ -43,6 +43,17 @@
         deviceGroups.get(label).add(row.visitor_id);
       }
       const devices=[...deviceGroups].sort((a,b)=>b[1].size-a[1].size);
+      const sourceGroups=new Map(), sectionGroups=new Map();
+      for (const row of rows) {
+        const source=row.source_label||"Eski kayıt";
+        if (!sourceGroups.has(source)) sourceGroups.set(source,new Set());
+        sourceGroups.get(source).add(row.session_id);
+        const section=labels[row.section]||row.section;
+        const group=sectionGroups.get(section)||{sessions:new Set(),views:0};
+        group.sessions.add(row.session_id);group.views++;sectionGroups.set(section,group);
+      }
+      const sources=[...sourceGroups].sort((a,b)=>b[1].size-a[1].size);
+      const popularSections=[...sectionGroups].sort((a,b)=>b[1].sessions.size-a[1].sessions.size||b[1].views-a[1].views);
       const sorted=[...grouped].sort((a,b)=>a[0].localeCompare(b[0]));
       const max=Math.max(1,...sorted.map(([,g])=>g.views));
       root.innerHTML=`
@@ -54,6 +65,15 @@
         <div class="surface p-4 mb-5"><h3 class="font-baslik text-xl mb-3">${range===1?"Saatlik":"Günlük"} trafik</h3>
           ${sorted.length ? sorted.map(([key,g])=>`<div class="grid grid-cols-[80px_1fr_50px] items-center gap-2 text-xs mb-2"><span>${escape(key)}</span><div class="h-5 bg-[#322329] rounded-full overflow-hidden"><div class="h-full bg-[#c1a57b]" style="width:${g.views/max*100}%"></div></div><span class="text-right">${g.visitors.size} / ${g.views}</span></div>`).join("") : '<p class="muted">Bu dönemde henüz ziyaret kaydı yok.</p>'}
           <p class="muted text-xs mt-3">Çubuklar sayfa açılışını gösterir. Sağda tekil cihaz / sayfa açılışı yazıyor.</p>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-4 mb-5">
+          <div class="surface p-4"><h3 class="font-baslik text-xl mb-3">Nereden geldiler?</h3>
+            ${sources.length?sources.map(([label,ids])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${ids.size} oturum</strong></div>`).join(""):'<p class="muted">Bu dönemde kaynak kaydı yok.</p>'}
+            <p class="muted text-xs mt-2">Kaynak, tarayıcının ilettiği site adına göre tahmin edilir. Gizlilik ayarları kaynağı saklayabilir.</p>
+          </div>
+          <div class="surface p-4"><h3 class="font-baslik text-xl mb-3">En çok açılan bölümler</h3>
+            ${popularSections.length?popularSections.map(([label,g])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${g.sessions.size} oturum · ${g.views} açılış</strong></div>`).join(""):'<p class="muted">Bu dönemde sayfa kaydı yok.</p>'}
+          </div>
         </div>
         <div class="surface p-4 mb-5"><h3 class="font-baslik text-xl mb-3">Cihaz türleri</h3>
           ${devices.length ? devices.map(([label,ids])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${ids.size} cihaz</strong></div>`).join("") : '<p class="muted">Henüz cihaz verisi yok.</p>'}
