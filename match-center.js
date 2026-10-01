@@ -1,4 +1,5 @@
 (function () {
+  try { localStorage.removeItem("acisu-attendance-visitor-v1"); } catch (_) {}
   const modal = document.getElementById("match-center");
   const content = document.getElementById("match-center-content");
   if (!modal || !content) return;
