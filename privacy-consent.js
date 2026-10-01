@@ -40,6 +40,7 @@
     <button class="acisu-consent-close acisu-consent-secondary" type="button" data-close aria-label="Kapat">×</button>
     <h2 id="acisu-consent-title">Gizlilik ve çerez tercihleri</h2>
     <p>Siteyi çalıştırmak için gerekli tarayıcı depolaması kullanılır. İsteğe bağlı site kullanım ölçümü; rastgele ziyaretçi ve oturum kodu, ziyaret edilen bölüm, genel cihaz kategorisi, trafik kaynağı kategorisi ve sponsor gösterim/tıklama olaylarını Acısu United’ın Supabase projesine kaydeder.</p>
+    <p>Sayfanın görünmesi ve çalışması için Google Fonts, Tailwind CDN ve jsDelivr’den dosyalar istenir; bu bağlantılarda sağlayıcılar IP adresi gibi ağ metaverisini görebilir. Bu istekler tercih düğmesiyle engellenmez. Düğme yalnızca Acısu United’ın kendi ziyaret ve sponsor ölçümünü açıp kapatır. Ayrıntılar: <a class="acisu-consent-link" href="gizlilik.html">gizlilik ve çerez metni</a>.</p>
     <p>Aydınlatma metnini okumak için onay vermen gerekmez. Tercihin, istediğin zaman bu sayfanın altındaki “Tercihleri düzenle” bağlantısından değiştirilebilir. <a class="acisu-consent-link" href="gizlilik.html">Gizlilik ve çerez metnini oku</a>.</p>
     <label class="acisu-consent-toggle"><input type="checkbox" data-analytics><span><strong>İsteğe bağlı kullanım ölçümü</strong><br><small>Zorunlu değildir; reddedince ziyaret ve sponsor analitiği kaydedilmez.</small></span></label>
     <div class="acisu-consent-actions">
