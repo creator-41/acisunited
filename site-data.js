@@ -39,8 +39,8 @@
       const logo = s.logo_url ? `<img src="${esc(safeImage(s.logo_url))}" alt="${esc(s.name)} logosu" class="max-w-48 h-20 object-contain mb-3" loading="lazy">` : "";
       const content = `<span class="text-xs text-gray-400 uppercase tracking-widest mb-2">${s.tier==="main"?"Ana Sponsor":"Destekçimiz"}</span>${logo}<h3 class="font-baslik text-2xl sm:text-3xl font-bold text-white text-center">${esc(s.name)}</h3>`;
       return website
-        ? `<a href="${esc(website)}" target="_blank" rel="noopener noreferrer" class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl hover:bg-white/10 transition-colors flex flex-col items-center">${content}<span class="sr-only">Sponsor sitesini yeni sekmede aç</span></a>`
-        : `<div class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl flex flex-col items-center">${content}</div>`;
+        ? `<a data-sponsor-id="${esc(s.id)}" data-sponsor-name="${esc(s.name)}" href="${esc(website)}" target="_blank" rel="noopener noreferrer" class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl hover:bg-white/10 transition-colors flex flex-col items-center">${content}<span class="sr-only">Sponsor sitesini yeni sekmede aç</span></a>`
+        : `<div data-sponsor-id="${esc(s.id)}" data-sponsor-name="${esc(s.name)}" class="bg-white/5 border border-white/10 min-w-56 px-8 py-7 rounded-2xl flex flex-col items-center">${content}</div>`;
     }).join("");
   }
   function wirePlayerProfiles(players, matches, stats, videos) {
