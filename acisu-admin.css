@@ -1,0 +1,43 @@
+html,body{overflow-x:clip;touch-action:pan-x pan-y}
+    body{background:#100d0f;color:#f5efec}
+    [hidden]{display:none!important}
+    .surface{background:#1c1619;border:1px solid #49353a;border-radius:20px;box-shadow:0 14px 40px #0002}
+    .field{display:block;font-size:.77rem;font-weight:700;color:#c9b8bb;letter-spacing:.03em}
+    .field input,.field select{display:block;width:100%;margin-top:8px;background:#120e10;border:1px solid #644b52;border-radius:10px;padding:12px;color:#fff;min-height:46px;font-size:16px;font-weight:500;letter-spacing:normal}
+    .field input:focus,.field select:focus{outline:2px solid #c1a57b;outline-offset:1px;border-color:#c1a57b}
+    @media(max-width:767px){input,select,textarea{font-size:16px!important}}
+    input[type=checkbox]{accent-color:#c1a57b;width:18px;height:18px}
+    .action{background:#8a343e;color:white;padding:12px 19px;border-radius:10px;font-size:.85rem;font-weight:700;transition:background .2s}
+    .action:hover{background:#a64751}
+    .action:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #d5b98b;outline-offset:3px}
+    .outline-action{border:1px solid #795c63;border-radius:10px;padding:11px 17px;font-size:.85rem;font-weight:700;color:#e7d8d5}
+    .outline-action:hover{background:#3a272c}
+    .tab{position:relative;flex:none;display:flex;align-items:center;gap:11px;border:1px solid transparent;border-radius:11px;padding:13px 16px;color:#c4b5b7;font-weight:700;font-size:.84rem;white-space:nowrap;transition:background .2s,color .2s}
+    .tab:hover{background:#38262b;color:#fff}
+    .tab[aria-selected=true]{background:#593038;color:#fff;border-color:#846169}
+    .tab[aria-selected=true] .tab-number{background:#c1a57b;color:#1b1213}
+    .tab-number{background:#392c30;border-radius:99px;min-width:24px;padding:3px 7px;text-align:center;font-size:.69rem}
+    .muted{color:#bcaeb0}
+    #notice:not(:empty){position:fixed;z-index:50;top:76px;left:50%;transform:translateX(-50%);width:min(calc(100% - 24px),520px);background:#36272b;border:1px solid #ac8b6d;border-radius:12px;padding:13px 16px;color:#fff;box-shadow:0 14px 35px #0009}
+    .list-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid #ffffff16}
+    .list-row:first-child{border-top:0}
+    .list-actions{display:flex;gap:12px;flex:none;font-size:.77rem;font-weight:700}
+    .list-actions button:first-child{color:#dec49d}
+    .list-actions button:last-child{color:#d8a0a3}
+    .list-actions button:hover{text-decoration:underline}
+    .eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:#c1a57b}
+    .lineup-item{background:#211a1d;border:1px solid #48373c;border-radius:12px;padding:12px 14px}
+    #lineup-player-modal[hidden]{display:none!important}
+    #lineup-player-modal{position:fixed;z-index:100;inset:0;display:grid;place-items:center;background:#050405dc;padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+    .lineup-picker-open{overflow:hidden}
+    .lineup-picker-panel{width:min(100%,520px);max-height:86dvh;display:flex;flex-direction:column;border:1px solid #b4976c;border-radius:20px;background:#1b1216;padding:18px;box-shadow:0 20px 65px #000c}
+    .lineup-choice{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:8px 10px;border-bottom:1px solid #ffffff18;color:white;text-align:left}
+    .lineup-choice:hover:not(:disabled),.lineup-choice[aria-pressed=true]{background:#42252d}
+    .lineup-choice:disabled{opacity:.46;cursor:not-allowed}
+    .lineup-choice-avatar{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:50%;overflow:hidden;background:#24191e}
+    .lineup-choice-avatar img{width:100%;height:100%;object-fit:cover}
+    .lineup-captain-badge{margin-top:3px;border-radius:99px;background:#ad854b;color:#17100e;padding:2px 5px;font-size:9px;font-weight:900}
+    .lineup-slot:focus-visible{outline:3px solid #e7c691;outline-offset:3px}
+
+    @media(max-width:640px){.list-row{align-items:flex-start;flex-direction:column}.list-actions{align-self:flex-end}}
+  
