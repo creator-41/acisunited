@@ -49,7 +49,7 @@
     <ul>
       <li><strong>Oyuncu ve teknik heyet içerikleri:</strong> Yönetim panelinden girilen ad, takım içi rol/pozisyon, forma numarası, profil fotoğrafı ve yayımlanan biyografi/istatistik gibi içerikler. Ziyaretçilere yayımlanabilir.</li>
       <li><strong>Maç, haber ve takım içerikleri:</strong> Rakip/maç bilgileri, skor, maç kadrosu, gol/asist ve haber metinleri. İçeriği yöneticiler girer ve sitede yayımlar.</li>
-      <li><strong>“Maça gel” tercihi:</strong> Ziyaretçi maç merkezinde katılım düğmesini kullandığında, o maçla ilişkilendirilen rastgele cihaz kimliği ve katılım durumu Supabase RPC üzerinden işlenir; isim veya telefon alanı istenmez.</li>
+      <li><strong>Geçmiş “Maça gel” kayıtları:</strong> Bu özellik 1 Ekim 2026'da siteden kaldırıldı. Önceki döneme ait katılım kayıtları Acısu Supabase projesinde duruyor; bu kod değişikliği onları silmedi. Saklama ve silme süresi işletme tarafından belirlenmeli.</li>
       <li><strong>İsteğe bağlı site ölçümü:</strong> Yalnızca bu ölçüme izin verilirse rastgele ziyaretçi/oturum kodu, açılan site bölümü, genel cihaz kategorisi (ör. iPhone/Android), genel trafik kaynağı kategorisi ve sponsor gösterim/tıklama olayı Supabase’e gönderilir. Ham user-agent kod tarafından bu kayda yazılmaz.</li>
       <li><strong>Bildirim aboneliği:</strong> Ziyaretçi bildirim iznini kendisi açarsa tarayıcının PushSubscription bilgisi (endpoint ve anahtarları içeren JSON) Acısu bildirim Edge Function’ına gönderilir. Tarayıcı ve işletim sistemi bildirimi yönetir; bildirim izni verilmesi isteğe bağlıdır.</li>
       <li><strong>Yönetici girişi:</strong> Yönetim panelinde e-posta ve parola ile Supabase Auth oturumu başlatılır. Ziyaretçilerden üyelik veya sipariş formu alınmaz.</li>
@@ -59,7 +59,7 @@
   <section class="privacy-card">
     <h2>3. Tarayıcı depolaması ve çerezler</h2>
     <p>Site kodu, kendi kullanım ölçümünde çerez yerine localStorage ve sessionStorage kullanır. İsteğe bağlı kullanım ölçümü varsayılan olarak kapalıdır; “Yalnızca gerekli olanlar” seçildiğinde ziyaret ve sponsor analitiği çalıştırılmaz. Tercih kaydı bu cihazdaki localStorage’da saklanır.</p>
-    <p>Maça katılım özelliği ve uygulama kurulumu/bildirim deneyimi için gerekli işlevsel tarayıcı depolaması yalnızca ilgili özellik kullanıldığında saklanabilir. Tercih kaydı yalnızca bu cihazın localStorage alanında tutulur; sunucu tarafında rıza kanıtı kaydı bu uygulamada görülmedi. Supabase Auth ve üçüncü taraf sağlayıcılarının kendi depolama davranışları ayrıca doğrulanmalı.</p>
+    <p>Maça katılım özelliği kaldırıldı; yeni sürüm bu amaçla tarayıcı kimliği oluşturmaz. Önceki sürümden kalan yerel katılım kodu site açıldığında temizlenir. Uygulama kurulumu/bildirim deneyimi için gerekli işlevsel tarayıcı depolaması ilgili özellik kullanıldığında saklanabilir. Tercih kaydı yalnızca bu cihazın localStorage alanında tutulur; sunucu tarafında rıza kanıtı kaydı bu uygulamada görülmedi. Supabase Auth ve üçüncü taraf sağlayıcılarının kendi depolama davranışları ayrıca doğrulanmalı.</p>
     <p><button type="button" data-acisu-privacy-settings class="rounded-lg border border-altin px-4 py-3 text-altin">Tercihleri düzenle</button></p>
   </section>
 
