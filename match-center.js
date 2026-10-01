@@ -53,37 +53,76 @@
       <h4 class="mc-subheading">Yedekler · ${bench.length}/4</h4><div class="mc-bench">${bench.length ? bench.map(x => playerButton(x, "Yedek", false)).join("") : `<p class="mc-muted">Yedek seçilmedi.</p>`}</div></section>`;
   }
   function goalSection(match) {
-    if (!match.played && !match.is_live) return `<section class="mc-panel"><h3>Maç akışı</h3><p class="mc-muted">Maç başlayınca goller burada görünecek.</p></section>`;
-    const goals = (data.goals || []).filter(x => x.match_id === match.id && x.side === "acisu");
+    const matchGoals = (data.goals || []).filter(x => x.match_id === match.id);
+    const ownScore = Number(match.our_score || 0);
+    const rivalScore = Number(match.their_score || 0);
+    const ownLogged = matchGoals.filter(x => x.side === "acisu").length;
+    const rivalLogged = matchGoals.filter(x => x.side === "opponent").length;
+    const logMatchesScore = ownLogged === ownScore && rivalLogged === rivalScore;
     const players = new Map([...(data.goalPlayers || []), ...(data.players || [])].map(p => [p.id, p.name]));
-    let rows = [];
-    if (goals.length === Number(match.our_score || 0)) {
-      rows = goals.map((x, index) => `<li class="mc-event"><span class="mc-event-icon">⚽</span><span><strong>${esc(players.get(x.scorer_id) || "Acısu United")}</strong>${x.assist_id ? `<small>Asist: ${esc(players.get(x.assist_id) || "Acısu oyuncusu")}</small>` : ""}</span><span class="mc-event-index">${index + 1}. gol</span></li>`);
+    const stats = (data.stats || []).filter(x => x.match_id === match.id);
+    const scored = stats.filter(x => Number(x.goals) > 0);
+    const goalEntries = matchGoals;
+    let events = "";
+
+    if (logMatchesScore) {
+      events = goalEntries.map(goal => {
+        const ownGoal = goal.side === "acisu";
+        const name = ownGoal ? (players.get(goal.scorer_id) || "Acısu oyuncusu") : "Rakip golü";
+        const assist = ownGoal && goal.assist_id ? players.get(goal.assist_id) : "";
+        return '<li class="mc-story-event"><span class="mc-event-icon">' + (ownGoal ? "⚽" : "🥅") + '</span><span class="mc-story-event-copy"><strong>' + esc(name) + '</strong>' +
+          (assist ? '<small>Asist: ' + esc(assist) + '</small>' : "") + '</span><span class="mc-event-index">GOL</span></li>';
+      }).join("");
     } else {
-      rows = (data.stats || []).filter(x => x.match_id === match.id && Number(x.goals) > 0).map(x =>
-        `<li class="mc-event"><span class="mc-event-icon">⚽</span><span><strong>${esc(players.get(x.player_id) || "Acısu oyuncusu")}</strong><small>${Number(x.goals)} gol${Number(x.assists) ? ` · ${Number(x.assists)} asist` : ""}</small></span></li>`);
-      if (!rows.length && match.goal_scorers) rows = [`<li class="mc-event"><span class="mc-event-icon">⚽</span><span>${esc(match.goal_scorers)}</span></li>`];
+      events = scored.map(stat => {
+        const name = players.get(stat.player_id) || "Acısu oyuncusu";
+        const goals = Number(stat.goals || 0), assists = Number(stat.assists || 0);
+        return '<li class="mc-story-event"><span class="mc-event-icon">⚽</span><span class="mc-story-event-copy"><strong>' + esc(name) + '</strong><small>' +
+          goals + ' gol' + (assists ? ' · ' + assists + ' asist' : "") + '</small></span></li>';
+      }).join("");
+      if (!events && (ownScore + rivalScore) > 0) {
+        events = '<li class="mc-story-note">Gol skoru kaydedilmiş; golcü ayrıntıları henüz tamamlanmamış.</li>';
+      }
     }
-    const assists = rows.length ? "" : (data.stats || []).filter(x => x.match_id === match.id && Number(x.assists) > 0).map(x =>
-      `<li class="mc-event"><span class="mc-event-icon">🎯</span><span><strong>${esc(players.get(x.player_id) || "Acısu oyuncusu")}</strong><small>${Number(x.assists)} asist</small></span></li>`).join("");
-    return `<section class="mc-panel"><h3>Maç akışı</h3>${rows.length || assists ? `<ol class="mc-events">${rows.join("")}${assists}</ol>` : `<p class="mc-muted">Gol ve asist bilgisi henüz girilmedi.</p>`}</section>`;
+
+    const videoRows = (data.videos || []).filter(v => v.match_id === match.id).map(v => {
+      let url;
+      try { url = new URL(v.video_url); if (url.protocol !== "https:") return ""; }
+      catch { return ""; }
+      const player = (data.goalPlayers || []).find(p => p.id === v.player_id)
+        || (data.players || []).find(p => p.id === v.player_id);
+      return '<a href="' + esc(url.href) + '" data-acisu-video="' + esc(v.title || "Gol videosu") + '" target="_blank" rel="noopener noreferrer" class="mc-video-link"><span>▶</span><span><strong>' +
+        esc(v.title || "Gol videosu") + '</strong><small>' + esc(player?.name || "Acısu United") + '</small></span><span aria-hidden="true">↗</span></a>';
+    }).filter(Boolean).join("");
+
+    let result = match.is_live ? "CANLI" : "YAKLAŞAN MAÇ";
+    let resultClass = match.is_live ? "mc-story-live" : "mc-story-draw";
+    let summary = match.is_live ? "Maç devam ediyor. Güncel gol katkıları aşağıda." : "Karşılaşma öncesi bilgiler ve paylaşılmış kadro burada.";
+    if (match.played && !match.is_live) {
+      resultClass = "mc-story-draw";
+      if (ownScore > rivalScore) { result = "GALİBİYET"; resultClass = "mc-story-win"; }
+      else if (ownScore < rivalScore) { result = "MAĞLUBİYET"; resultClass = "mc-story-loss"; }
+      else result = "BERABERLİK";
+      summary = "Acısu United, " + esc(match.opponent) + " karşısında " + ownScore + "-" + rivalScore + " tamamladı.";
+    }
+
+    const isFinished = Boolean(match.played && !match.is_live);
+    return '<section class="mc-panel mc-story"><div class="mc-story-heading"><div><p class="mc-story-kicker">ACISU UNITED · ' +
+      (isFinished ? "MAÇ SONU" : match.is_live ? "CANLI ANLATIM" : "MAÇ ÖNCESİ") +
+      '</p><h3>' + (isFinished ? "MAÇ HİKÂYESİ" : match.is_live ? "CANLI MAÇ AKIŞI" : "MAÇ ÖNİZLEMESİ") +
+      '</h3><p class="mc-story-summary">' + summary + '</p></div><span class="mc-story-result ' + resultClass + '">' + result + '</span></div>' +
+      (isFinished || match.is_live
+        ? '<ol class="mc-events mc-story-events">' + (events || '<li class="mc-story-note">' + (ownScore + rivalScore === 0 ? "Henüz gol olmadı." : "Gol katkısı bilgisi henüz girilmedi.") + '</li>') + '</ol>'
+        : '<p class="mc-muted">Maç başlayınca gol katkıları ve varsa gol videoları burada görünecek.</p>') +
+      (videoRows ? '<div class="mc-story-highlights"><h4>🎥 Gol anları</h4><div class="mc-video-list">' + videoRows + '</div></div>' : '') +
+      '</section>';
   }
 
   function directionsSection(match) {
     if (!match.venue) return "";
     return `<p class="mc-detail"><a class="mc-directions" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.venue)}">📍 Sahaya yol tarifi</a></p>`;
   }
-  function videoSection(match) {
-    const rows = (data.videos || []).filter(v => v.match_id === match.id).map(v => {
-      let url;
-      try { url = new URL(v.video_url); if (url.protocol !== "https:") return ""; }
-      catch { return ""; }
-      const player = (data.goalPlayers || []).find(p => p.id === v.player_id)
-        || (data.players || []).find(p => p.id === v.player_id);
-      return `<a href="${esc(url.href)}" data-acisu-video="${esc(v.title || "Gol videosu")}" target="_blank" rel="noopener noreferrer" class="mc-video-link"><span>▶</span><span><strong>${esc(v.title || "Gol videosu")}</strong><small>${esc(player?.name || "Acısu United")}</small></span><span aria-hidden="true">↗</span></a>`;
-    }).filter(Boolean);
-    return rows.length ? `<section class="mc-panel"><h3>🎥 Gol videoları</h3><div class="mc-video-list">${rows.join("")}</div></section>` : "";
-  }
+
   function render() {
     if (!activeId || !data) return;
     const match = data.matches.find(x => String(x.id) === activeId);
@@ -104,7 +143,7 @@
       </section>
       <p class="mc-detail">${esc(dateText(match.match_at, match.time_confirmed))}${match.venue ? ` · ${esc(match.venue)}` : ""}</p>
       ${coach ? `<button type="button" class="mc-coach" data-coach-id="${esc(coach.id)}">🧢 Teknik direktör: ${esc(coach.name)}</button>` : ""}
-      ${directionsSection(match)}${goalSection(match)}${videoSection(match)}${lineupSection(match)}`;
+      ${directionsSection(match)}${goalSection(match)}${lineupSection(match)}`;
   }
   function urlFor(id) {
     const url = new URL(location.href);
