@@ -62,16 +62,16 @@
     const players = new Map([...(data.goalPlayers || []), ...(data.players || [])].map(p => [p.id, p.name]));
     const stats = (data.stats || []).filter(x => x.match_id === match.id);
     const scored = stats.filter(x => Number(x.goals) > 0);
-    const orderedGoals = matchGoals.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const goalEntries = matchGoals;
     let events = "";
 
     if (logMatchesScore) {
-      events = orderedGoals.map((goal, index) => {
+      events = goalEntries.map(goal => {
         const ownGoal = goal.side === "acisu";
         const name = ownGoal ? (players.get(goal.scorer_id) || "Acısu oyuncusu") : "Rakip golü";
         const assist = ownGoal && goal.assist_id ? players.get(goal.assist_id) : "";
         return '<li class="mc-story-event"><span class="mc-event-icon">' + (ownGoal ? "⚽" : "🥅") + '</span><span class="mc-story-event-copy"><strong>' + esc(name) + '</strong>' +
-          (assist ? '<small>Asist: ' + esc(assist) + '</small>' : "") + '</span><span class="mc-event-index">' + (index + 1) + '. gol</span></li>';
+          (assist ? '<small>Asist: ' + esc(assist) + '</small>' : "") + '</span><span class="mc-event-index">GOL</span></li>';
       }).join("");
     } else {
       events = scored.map(stat => {
@@ -95,9 +95,9 @@
         esc(v.title || "Gol videosu") + '</strong><small>' + esc(player?.name || "Acısu United") + '</small></span><span aria-hidden="true">↗</span></a>';
     }).filter(Boolean).join("");
 
-    let result = "CANLI";
-    let resultClass = "mc-story-live";
-    let summary = "Maç devam ediyor. Güncel gol katkıları aşağıda.";
+    let result = match.is_live ? "CANLI" : "YAKLAŞAN MAÇ";
+    let resultClass = match.is_live ? "mc-story-live" : "mc-story-draw";
+    let summary = match.is_live ? "Maç devam ediyor. Güncel gol katkıları aşağıda." : "Karşılaşma öncesi bilgiler ve paylaşılmış kadro burada.";
     if (match.played && !match.is_live) {
       resultClass = "mc-story-draw";
       if (ownScore > rivalScore) { result = "GALİBİYET"; resultClass = "mc-story-win"; }
