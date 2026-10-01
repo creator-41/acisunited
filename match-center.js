@@ -1,4 +1,5 @@
 (function () {
+  try { localStorage.removeItem("acisu-attendance-visitor-v1"); } catch (_) {}
   const modal = document.getElementById("match-center");
   const content = document.getElementById("match-center-content");
   if (!modal || !content) return;
@@ -68,61 +69,10 @@
     return `<section class="mc-panel"><h3>Maç akışı</h3>${rows.length || assists ? `<ol class="mc-events">${rows.join("")}${assists}</ol>` : `<p class="mc-muted">Gol ve asist bilgisi henüz girilmedi.</p>`}</section>`;
   }
 
-  const visitorKey = "acisu-attendance-visitor-v1";
-  function visitorId() {
-    try {
-      let id = localStorage.getItem(visitorKey);
-      if (!id) { id = crypto.randomUUID(); localStorage.setItem(visitorKey, id); }
-      return id;
-    } catch { return null; }
+  function directionsSection(match) {
+    if (!match.venue) return "";
+    return `<p class="mc-detail"><a class="mc-directions" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.venue)}">📍 Sahaya yol tarifi</a></p>`;
   }
-  function attendanceSection(match) {
-    if (match.played || match.is_live || !match.published || new Date(match.match_at) <= new Date()) return "";
-    return `<section class="mc-panel mc-attendance"><h3>🙌 Maça gel</h3><p class="mc-muted">Tribünde bizimle olacak mısın?</p>
-      <button type="button" class="mc-attend-button" data-mc-attend disabled>Katılım yükleniyor…</button>
-      <p class="mc-attend-count" data-mc-attend-count aria-live="polite"></p>
-      ${match.venue ? `<a class="mc-directions" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.venue)}">📍 Sahaya yol tarifi</a>` : ""}</section>`;
-  }
-  async function loadAttendance(match) {
-    const box = content.querySelector(".mc-attendance");
-    if (!box || !visitorId() || !window.acisuDb) {
-      if (box) box.querySelector("[data-mc-attend]").textContent = "Katılım şu anda kullanılamıyor";
-      return;
-    }
-    const {data: result, error} = await window.acisuDb.rpc("acisu_attendance_status", {
-      p_match_id: match.id, p_visitor_id: visitorId()
-    });
-    if (activeId !== String(match.id) || !box.isConnected) return;
-    const button = box.querySelector("[data-mc-attend]");
-    if (error) { button.textContent = "Katılım yüklenemedi"; return; }
-    button.disabled = false;
-    button.dataset.going = String(!!result.going);
-    button.textContent = result.going ? "✓ Geliyorum · Vazgeç" : "🙌 Maça geliyorum";
-    box.querySelector("[data-mc-attend-count]").textContent =
-      `${Number(result.count) || 0} taraftar katılacağını belirtti`;
-  }
-  content.addEventListener("click", async event => {
-    const button = event.target.closest("[data-mc-attend]");
-    if (!button || button.disabled || !activeId || !visitorId()) return;
-    const matchId = activeId;
-    button.disabled = true;
-    button.textContent = "Kaydediliyor…";
-    const {data: result, error} = await window.acisuDb.rpc("acisu_set_attendance", {
-      p_match_id: matchId, p_visitor_id: visitorId(), p_going: button.dataset.going !== "true"
-    });
-    if (!button.isConnected || activeId !== matchId) return;
-    if (error) {
-      button.disabled = false;
-      button.textContent = "Tekrar dene";
-      showShareStatus("Katılım kaydedilemedi: " + error.message);
-      return;
-    }
-    button.disabled = false;
-    button.dataset.going = String(!!result.going);
-    button.textContent = result.going ? "✓ Geliyorum · Vazgeç" : "🙌 Maça geliyorum";
-    content.querySelector("[data-mc-attend-count]").textContent =
-      `${Number(result.count) || 0} taraftar katılacağını belirtti`;
-  });
   function videoSection(match) {
     const rows = (data.videos || []).filter(v => v.match_id === match.id).map(v => {
       let url;
@@ -154,8 +104,7 @@
       </section>
       <p class="mc-detail">${esc(dateText(match.match_at, match.time_confirmed))}${match.venue ? ` · ${esc(match.venue)}` : ""}</p>
       ${coach ? `<button type="button" class="mc-coach" data-coach-id="${esc(coach.id)}">🧢 Teknik direktör: ${esc(coach.name)}</button>` : ""}
-      ${attendanceSection(match)}${goalSection(match)}${videoSection(match)}${lineupSection(match)}`;
-    loadAttendance(match);
+      ${directionsSection(match)}${goalSection(match)}${videoSection(match)}${lineupSection(match)}`;
   }
   function urlFor(id) {
     const url = new URL(location.href);
