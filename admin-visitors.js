@@ -28,6 +28,25 @@
         rows.push(...(data||[]));
         if(!data || data.length<1000) break;
       }
+      const sponsorEvents=[];
+      for(let page=0;page<10;page++) {
+        const {data,error}=await db.from("acisu_sponsor_events")
+          .select("created_at,sponsor_id,sponsor_name,event_type")
+          .gte("created_at",since).order("created_at",{ascending:false})
+          .range(page*1000,page*1000+999);
+        if(error) throw error;
+        sponsorEvents.push(...(data||[]));
+        if(!data || data.length<1000) break;
+      }
+      const sponsorGroups=new Map();
+      for(const event of sponsorEvents) {
+        const group=sponsorGroups.get(event.sponsor_id)||{name:event.sponsor_name,impressions:0,clicks:0};
+        group.name=event.sponsor_name;
+        if(event.event_type==="impression") group.impressions++;
+        else if(event.event_type==="click") group.clicks++;
+        sponsorGroups.set(event.sponsor_id,group);
+      }
+      const sponsorReport=[...sponsorGroups.values()].sort((a,b)=>b.clicks-a.clicks||b.impressions-a.impressions);
       const people=new Set(rows.map(x=>x.visitor_id)).size;
       const sessions=new Set(rows.map(x=>x.session_id)).size;
       const grouped=new Map();
@@ -74,6 +93,10 @@
           <div class="surface p-4"><h3 class="font-baslik text-xl mb-3">En çok açılan bölümler</h3>
             ${popularSections.length?popularSections.map(([label,g])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${g.sessions.size} oturum · ${g.views} açılış</strong></div>`).join(""):'<p class="muted">Bu dönemde sayfa kaydı yok.</p>'}
           </div>
+        </div>
+        <div class="surface p-4 mb-5"><h3 class="font-baslik text-xl mb-3">Sponsor performansı</h3>
+          ${sponsorReport.length?sponsorReport.map(g=>{const ctr=g.impressions?Math.round(g.clicks/g.impressions*100):0;return '<div class="border-t border-white/10 py-3"><div class="flex justify-between gap-3 text-sm"><strong>'+escape(g.name)+'</strong><span class="text-altin">'+ctr+'% tıklama oranı</span></div><div class="flex gap-4 text-xs muted mt-1"><span>'+g.impressions+' oturumda gösterildi</span><span>'+g.clicks+' oturumda tıklandı</span></div></div>'}).join(""):'<p class="muted">Bu dönemde sponsor gösterimi kaydı yok.</p>'}
+          <p class="muted text-xs mt-2">Kartın en az dörtte biri ekranda göründüğünde gösterim sayılır. Her oturumda sponsor başına bir gösterim ve bir tıklama kaydedilir.</p>
         </div>
         <div class="surface p-4 mb-5"><h3 class="font-baslik text-xl mb-3">Cihaz türleri</h3>
           ${devices.length ? devices.map(([label,ids])=>`<div class="flex justify-between gap-3 border-t border-white/10 py-2 text-sm"><span>${escape(label)}</span><strong class="text-altin">${ids.size} cihaz</strong></div>`).join("") : '<p class="muted">Henüz cihaz verisi yok.</p>'}
